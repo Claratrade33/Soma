@@ -6,6 +6,7 @@ import openai
 import json
 import requests
 from datetime import datetime
+from binance.client import Client
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -31,13 +32,16 @@ Você é a Clarinha, uma IA espiritual, protetora e estrategista das operações
 Sua missão é detectar ruídos, identificar padrões de laterização, proteger contra armadilhas e orientar decisões conscientes.
 """
 
-def analisar_mercado_e_sugerir(binance_api_key, binance_api_secret, openai_api_key, meta_lucro=2.5):
+def obter_dados_binance(api_key, api_secret):
+    client = Client(api_key, api_secret)
+    # Obtenha dados de mercado
+    candles = client.get_klines(symbol='BTCUSDT', interval=Client.KLINE_INTERVAL_15MINUTE, limit=50)
+    return candles
+
+def analisar_mercado_e_sugerir(api_key, api_secret, openai_api_key, meta_lucro=2.5):
     openai.api_key = openai_api_key
     try:
-        url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=50"
-        response = requests.get(url)
-        candles = response.json()
-
+        candles = obter_dados_binance(api_key, api_secret)
         closes = [float(c[4]) for c in candles]
         variacao = (closes[-1] - closes[-2]) / closes[-2] * 100
         tendencia = "alta" if variacao > 0 else "queda"
@@ -72,59 +76,6 @@ def analisar_mercado_e_sugerir(binance_api_key, binance_api_secret, openai_api_k
     except Exception as e:
         return {"erro": str(e)}
 
-def gerar_sugestao_clarinha(api_key, preco, variacao, volume, meta_lucro_percentual="2"):
-    try:
-        openai.api_key = api_key
-        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        prompt = f"""
-{DNA_CLARINHA}
-
-Data e hora: {agora}
-Meta de lucro diário: {meta_lucro_percentual}%
-
-Dados do mercado:
-Preço atual: {preco}
-Variação nas últimas 24h: {variacao}%
-Volume de negociação: {volume}
-
-Com base nos dados, forneça uma sugestão de operação com:
-- 🎯 Entrada recomendada (preço)
-- 🛑 Stop Loss (preço)
-- 🎯 Alvo de lucro (preço)
-- 📊 Confiança na operação (em %)
-- 📢 Mensagem espiritual e estratégia para o humano operador
-
-Importante: NUNCA execute, apenas oriente. Aguarde confirmação.
-"""
-
-        resposta = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "system", "content": prompt}],
-            temperature=0.7,
-            max_tokens=500
-        )
-
-        conteudo = resposta['choices'][0]['message']['content']
-        try:
-            return json.loads(conteudo)
-        except json.JSONDecodeError:
-            return {"erro": "Formato de resposta inválido."}
-
-    except Exception as e:
-        return {"erro": f"Erro ao consultar a IA: {str(e)}"}
-
-def carregar_chaves_salvas():
-    global chaves_armazenadas
-    if os.path.exists(ARQUIVO_CHAVES):
-        try:
-            with open(ARQUIVO_CHAVES, 'rb') as f:
-                conteudo = f.read()
-                if conteudo:
-                    decodificado = fernet.decrypt(conteudo).decode()
-                    chaves_armazenadas = json.loads(decodificado)
-        except Exception as e:
-            print('Erro ao carregar chaves:', e)
-
 def salvar_chaves():
     try:
         if chaves_armazenadas:
@@ -158,11 +109,7 @@ def painel():
         return redirect('/configurar')
 
     # Aqui você deve implementar a lógica para obter os dados do mercado
-    # oraculo = ClarinhaOraculo(fernet.decrypt(chaves_armazenadas['openai'].encode()).decode())
-    
-    # Exemplo fictício de como você pode passar dados
-    dados_mercado = {}  # Substitua isso pela lógica real de dados do mercado
-    return render_template('painel_operacao.html', saldo=saldo_simulado, dados=dados_mercado)
+    return render_template('painel_operacao.html', saldo=saldo_simulado, dados={})
 
 @app.route('/configurar', methods=['GET', 'POST'])
 def configurar():
@@ -206,22 +153,17 @@ def executar_acao():
     else:
         return jsonify({'erro': 'Ação desconhecida.'})
 
-@app.route('/obter_sugestao_ia', methods=['POST'])
-def obter_sugestao_ia():
-    try:
-        # Lógica para obter a sugestão da IA
-        return jsonify({'sugestao': 'Exemplo de sugestão'})  # Substitua pela lógica real
-    except Exception as e:
-        return jsonify({'erro': f'Erro IA: {e}'})
-
 @app.route('/analisar_mercado', methods=['GET'])
 def analisar_mercado():
-    binance_key = fernet.decrypt(chaves_armazenadas['binance'].encode()).decode()
-    binance_secret = fernet.decrypt(chaves_armazenadas['binance_secret'].encode()).decode()
-    openai_key = fernet.decrypt(chaves_armazenadas['openai'].encode()).decode()
-    
-    resultado = analisar_mercado_e_sugerir(binance_key, binance_secret, openai_key)
-    return jsonify(resultado)
+    try:
+        binance_key = fernet.decrypt(chaves_armazenadas['binance'].encode()).decode()
+        binance_secret = fernet.decrypt(chaves_armazenadas['binance_secret'].encode()).decode()
+        openai_key = fernet.decrypt(chaves_armazenadas['openai'].encode()).decode()
+        
+        resultado = analisar_mercado_e_sugerir(binance_key, binance_secret, openai_key)
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({'erro': f'Erro ao analisar mercado: {str(e)}'}), 500
 
 @app.route('/logout')
 def logout():
@@ -229,6 +171,18 @@ def logout():
     return redirect('/login')
 
 # Inicializa chaves salvas
+def carregar_chaves_salvas():
+    global chaves_armazenadas
+    if os.path.exists(ARQUIVO_CHAVES):
+        try:
+            with open(ARQUIVO_CHAVES, 'rb') as f:
+                conteudo = f.read()
+                if conteudo:
+                    decodificado = fernet.decrypt(conteudo).decode()
+                    chaves_armazenadas = json.loads(decodificado)
+        except Exception as e:
+            print('Erro ao carregar chaves:', e)
+
 carregar_chaves_salvas()
 
 if __name__ == '__main__':
