@@ -2,46 +2,43 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Operações • ClaraVerse</title>
+    <title>Painel de Operações</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/dashboard.js" defer></script>
 </head>
 <body>
-    <div class="painel-container">
-        <header>
-            <h1>✨ ClaraVerse - Painel de Operações</h1>
-            <div class="saldo">💰 Saldo Simulado: R$ {{ saldo }}</div>
-        </header>
+    <div class="container">
+        <h2>Painel de Operações</h2>
+        <p>Saldo: R$ {{ saldo }}</p>
+        <p>Carregando dados do mercado...</p>
 
-        <main class="painel-grid">
-            <section class="botoes">
-                <button onclick="executarAcao('entrada')">⚡ Entrada</button>
-                <button onclick="executarAcao('stop')">🛑 Stop</button>
-                <button onclick="executarAcao('alvo')">🎯 Alvo</button>
-                <button onclick="executarAcao('automatico')">🤖 Alternar Automático</button>
-                <a href="/logout" class="logout-btn">🚪 Logout</a>
-            </section>
+        <div class="botoes">
+            <button onclick="executarAcao('entrada')">⚡ Entrada</button>
+            <button onclick="executarAcao('stop')">🛑 Stop</button>
+            <button onclick="executarAcao('alvo')">🎯 Alvo</button>
+            <button onclick="executarAcao('automatico')">🤖 Alternar Automático</button>
+            <a href="/logout"><button>🚪 Logout</button></a>
+        </div>
 
-            <section class="sugestao-ia">
-                <h3>🔮 Resposta da IA Clarinha</h3>
-                <div id="resposta-ia">Clique abaixo para consultar 👇</div>
-                <button onclick="obterSugestaoIA()">📩 Obter Sugestão da IA</button>
-            </section>
+        <div class="ia">
+            <h3>🔮 Sugestão da IA Clarinha</h3>
+            <div id="resposta-ia">Clique abaixo para consultar 👇</div>
+            <button onclick="obterSugestaoIA()">📩 Obter Sugestão</button>
+        </div>
 
-            <section class="configuracao-chaves">
-                <h3>🔐 Configuração das Chaves API</h3>
-                {% if not chaves_preenchidas %}
-                <form action="/salvar_chaves" method="POST">
-                    <input type="text" name="openai_key" placeholder="🔑 OpenAI API Key" required>
-                    <input type="text" name="binance_key" placeholder="📘 Binance API Key" required>
-                    <input type="text" name="binance_secret" placeholder="📘 Binance Secret Key" required>
-                    <button type="submit">💾 Salvar Chaves</button>
-                </form>
-                {% else %}
-                <p>✅ Chaves já configuradas com sucesso!</p>
-                {% endif %}
-            </section>
-        </main>
+        <div class="config">
+            <h3>🔐 Configuração das Chaves</h3>
+            {% if not chaves_preenchidas %}
+            <form action="/salvar_chaves" method="POST">
+                <input type="text" name="openai_key" placeholder="🔑 OpenAI Key" required><br>
+                <input type="text" name="binance_key" placeholder="📘 Binance Key" required><br>
+                <input type="text" name="binance_secret" placeholder="📘 Binance Secret" required><br>
+                <button type="submit">💾 Salvar Chaves</button>
+            </form>
+            {% else %}
+            <p>✅ Chaves configuradas.</p>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>
