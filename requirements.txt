@@ -1,6 +1,6 @@
-Flask==2.0.1
-cryptography==3.4.7
-python-binance==0.7.0
-openai==0.11.3
+Flask>=2.0,<3.0
+Werkzeug>=2.0,<3.0
+openai
 requests
-gunicorn
+cryptography
+python-binance
