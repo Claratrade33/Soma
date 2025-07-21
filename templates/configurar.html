@@ -10,13 +10,13 @@
         <h1>🔐 Configuração de Chaves API</h1>
         <form method="POST" action="/salvar_chaves" class="form-config">
             <label for="binance_api_key">Binance API Key</label>
-            <input type="text" id="binance_api_key" name="binance_api_key" required>
+            <input type="text" id="binance_api_key" name="binance_key" required> <!-- Corrigido para 'binance_key' -->
 
             <label for="binance_api_secret">Binance API Secret</label>
-            <input type="text" id="binance_api_secret" name="binance_api_secret" required>
+            <input type="text" id="binance_api_secret" name="binance_secret" required> <!-- Corrigido para 'binance_secret' -->
 
             <label for="openai_api_key">OpenAI API Key</label>
-            <input type="text" id="openai_api_key" name="openai_api_key" required>
+            <input type="text" id="openai_api_key" name="openai_key" required> <!-- Corrigido para 'openai_key' -->
 
             <button type="submit" class="botao-salvar">Salvar Chaves</button>
         </form>
