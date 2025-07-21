@@ -39,4 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('botao-entrada')?.addEventListener('click', () => executarAcao('entrada'));
     document.getElementById('botao-stop')?.addEventListener('click', () => executarAcao('stop'));
     document.getElementById('botao-alvo')?.addEventListener('click', () => executarAcao('alvo'));
-    document
+    document.getElementById('botao-automatico')?.addEventListener('click', () => executarAcao('automatico'));
+    document.getElementById('botao-executar')?.addEventListener('click', obterSugestaoIA);
+});
