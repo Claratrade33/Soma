@@ -7,8 +7,21 @@
     <title>Dashboard</title>
 </head>
 <body>
-    <h1>Bem-vindo ao seu painel</h1>
-    <p>Aqui você pode gerenciar suas informações.</p>
+    <h1>Bem-vindo ao seu painel, {{ user.username }}</h1>
+    
+    <h2>Chaves de API</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <label>Binance API Key:</label>
+        <input type="text" name="binance_api_key" required><br>
+        <label>Binance API Secret:</label>
+        <input type="text" name="binance_api_secret" required><br>
+        <label>OpenAI API Key:</label>
+        <input type="text" name="openai_api_key" required><br>
+        <input type="submit" value="Salvar Chaves">
+    </form>
+    
+    <p>Aqui você pode gerenciar suas informações e acessar dados públicos.</p>
     <a href="{{ url_for('index') }}">Sair</a>
 </body>
 </html>
