@@ -1,41 +1,32 @@
 async function executarAcao(acao) {
-    const botao = document.querySelector(`button[onclick*="${acao}"]`);
-    if (botao) botao.disabled = true;
-
     try {
         const resposta = await fetch('/executar_acao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ acao: acao })
         });
-
         const resultado = await resposta.json();
         alert(resultado.status || resultado.erro);
-        if (resultado.status && resultado.status.includes('+') || resultado.status.includes('-')) {
+        if (resultado.status && (resultado.status.includes('+') || resultado.status.includes('-'))) {
             location.reload();
         }
-    } catch (erro) {
-        alert('Erro: ' + erro);
-    } finally {
-        if (botao) botao.disabled = false;
+    } catch (error) {
+        alert('Erro ao executar ação: ' + error);
     }
 }
 
 async function obterSugestaoIA() {
-    const div = document.getElementById('resposta-ia');
-    div.innerText = '🔮 Consultando Clarinha...';
-
+    const divResposta = document.getElementById('resposta-ia');
+    divResposta.innerHTML = "🔮 Clarinha está analisando o mercado...";
     try {
-        const resposta = await fetch('/obter_sugestao_ia', {
-            method: 'POST'
-        });
+        const resposta = await fetch('/obter_sugestao_ia', { method: 'POST' });
         const json = await resposta.json();
         if (json.sugestao) {
-            div.innerText = json.sugestao;
+            divResposta.innerHTML = `💡 <pre>${json.sugestao}</pre>`;
         } else {
-            div.innerText = json.erro || 'Erro desconhecido.';
+            divResposta.innerText = json.erro || "Erro inesperado.";
         }
-    } catch (erro) {
-        div.innerText = 'Erro ao obter sugestão: ' + erro;
+    } catch (error) {
+        divResposta.innerText = "Erro ao consultar a IA: " + error;
     }
 }
