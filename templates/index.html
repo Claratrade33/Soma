@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>ClaraVerse</title>
+    <title>ClaraVerse | Início</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Bem-vindo ao ClaraVerse</h1>
-    <a href="{{ url_for('register') }}">Cadastrar</a>
-    <a href="{{ url_for('login') }}">Login</a>
+    <div class="header">🚀 ClaraVerse — Inteligência Financeira</div>
+    <div class="container">
+        <h2>Bem-vindo(a) à ClaraVerse!</h2>
+        <p>Automatize decisões financeiras com IA integrada ao mercado cripto.</p>
+        <a href="/login" class="button">Acessar Plataforma</a>
+    </div>
 </body>
 </html>
