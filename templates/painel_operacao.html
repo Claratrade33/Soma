@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Operações</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Painel de Operações</h1>
+    <p>Saldo: R$ {{ saldo }}</p>
+    <div id="dados-mercado">
+        <p>Carregando dados do mercado...</p>
+    </div>
+    <div class="botao-acoes">
+        <button id="executar-entrada">Entrada</button>
+        <button id="executar-stop">Stop</button>
+        <button id="executar-alvo">Alvo</button>
+        <button id="executar-automatico">Alternar Automático</button>
+        <button id="logout">Logout</button>
+    </div>
+
+    <script>
+        function atualizarDadosMercado() {
+            $.ajax({
+                type: 'GET',
+                url: '/dados_mercado',
+                success: function(data) {
+                    if (data.erro) {
+                        $('#dados-mercado').html('<p>' + data.erro + '</p>');
+                    } else {
+                        $('#dados-mercado').html('<p>Preço BTC/USDT: ' + data.preco + '</p>');
+                    }
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        $('#executar-entrada').click(function() {
+            $.ajax({
+                type: 'POST',
+                url: '/executar_acao',
+                data: JSON.stringify({ acao: 'entrada' }),
+                contentType: 'application/json',
+                success: function(response) {
+                    alert(response.status);
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        // Adicione os outros botões da mesma forma...
+
+        $('#logout').click(function() {
+            window.location.href = '/logout';
+        });
+
+        // Atualiza os dados de mercado ao carregar a página
+        $(document).ready(function() {
+            atualizarDadosMercado();
+            setInterval(atualizarDadosMercado, 10000); // Atualiza a cada 10 segundos
+        });
+    </script>
+</body>
+</html>
