@@ -2,51 +2,45 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel ClaraVerse</title>
+    <title>Painel de Operações • ClaraVerse</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/dashboard.js" defer></script>
 </head>
 <body>
     <div class="painel-container">
         <header>
-            <h1>💫 ClaraVerse</h1>
-            <div class="saldo">💰 Saldo Simulado: ${{ saldo }}</div>
-            <a href="/logout" class="logout-btn">Sair</a>
+            <h1>✨ ClaraVerse - Painel de Operações</h1>
+            <div class="saldo">💰 Saldo Simulado: R$ {{ saldo }}</div>
         </header>
 
         <main class="painel-grid">
-
-            <section class="grafico">
-                <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol=BINANCE:BTCUSDT&locale=br" width="100%" height="220" frameborder="0"></iframe>
-            </section>
-
             <section class="botoes">
-                <button onclick="executarAcao('entrada')">⚡ ENTRADA</button>
-                <button onclick="executarAcao('stop')">🛑 STOP</button>
-                <button onclick="executarAcao('alvo')">🎯 ALVO</button>
-                <button onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
+                <button onclick="executarAcao('entrada')">⚡ Entrada</button>
+                <button onclick="executarAcao('stop')">🛑 Stop</button>
+                <button onclick="executarAcao('alvo')">🎯 Alvo</button>
+                <button onclick="executarAcao('automatico')">🤖 Alternar Automático</button>
+                <a href="/logout" class="logout-btn">🚪 Logout</a>
             </section>
 
             <section class="sugestao-ia">
-                <h3>🔮 Sugestão da IA Clarinha</h3>
-                <div id="resposta-ia">Clique em "Obter Sugestão"</div>
-                <button onclick="obterSugestaoIA()">Obter Sugestão</button>
+                <h3>🔮 Resposta da IA Clarinha</h3>
+                <div id="resposta-ia">Clique abaixo para consultar 👇</div>
+                <button onclick="obterSugestaoIA()">📩 Obter Sugestão da IA</button>
             </section>
 
             <section class="configuracao-chaves">
                 <h3>🔐 Configuração das Chaves API</h3>
                 {% if not chaves_preenchidas %}
                 <form action="/salvar_chaves" method="POST">
-                    <input type="text" name="openai_key" placeholder="OpenAI API Key" required>
-                    <input type="text" name="binance_key" placeholder="Binance API Key" required>
-                    <input type="text" name="binance_secret" placeholder="Binance Secret" required>
-                    <button type="submit">Salvar Chaves</button>
+                    <input type="text" name="openai_key" placeholder="🔑 OpenAI API Key" required>
+                    <input type="text" name="binance_key" placeholder="📘 Binance API Key" required>
+                    <input type="text" name="binance_secret" placeholder="📘 Binance Secret Key" required>
+                    <button type="submit">💾 Salvar Chaves</button>
                 </form>
                 {% else %}
-                <p>✅ Chaves já configuradas!</p>
+                <p>✅ Chaves já configuradas com sucesso!</p>
                 {% endif %}
             </section>
-
         </main>
     </div>
 </body>
