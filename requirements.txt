@@ -4,4 +4,3 @@ python-binance
 cryptography
 gunicorn
 requests
-aiohttp
