@@ -1,67 +1,53 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Operações</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Painel ClaraVerse</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/dashboard.js" defer></script>
 </head>
 <body>
-    <h1>Painel de Operações</h1>
-    <p>Saldo: R$ {{ saldo }}</p>
-    <div id="dados-mercado">
-        <p>Carregando dados do mercado...</p>
+    <div class="painel-container">
+        <header>
+            <h1>💫 ClaraVerse</h1>
+            <div class="saldo">💰 Saldo Simulado: ${{ saldo }}</div>
+            <a href="/logout" class="logout-btn">Sair</a>
+        </header>
+
+        <main class="painel-grid">
+
+            <section class="grafico">
+                <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol=BINANCE:BTCUSDT&locale=br" width="100%" height="220" frameborder="0"></iframe>
+            </section>
+
+            <section class="botoes">
+                <button onclick="executarAcao('entrada')">⚡ ENTRADA</button>
+                <button onclick="executarAcao('stop')">🛑 STOP</button>
+                <button onclick="executarAcao('alvo')">🎯 ALVO</button>
+                <button onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
+            </section>
+
+            <section class="sugestao-ia">
+                <h3>🔮 Sugestão da IA Clarinha</h3>
+                <div id="resposta-ia">Clique em "Obter Sugestão"</div>
+                <button onclick="obterSugestaoIA()">Obter Sugestão</button>
+            </section>
+
+            <section class="configuracao-chaves">
+                <h3>🔐 Configuração das Chaves API</h3>
+                {% if not chaves_preenchidas %}
+                <form action="/salvar_chaves" method="POST">
+                    <input type="text" name="openai_key" placeholder="OpenAI API Key" required>
+                    <input type="text" name="binance_key" placeholder="Binance API Key" required>
+                    <input type="text" name="binance_secret" placeholder="Binance Secret" required>
+                    <button type="submit">Salvar Chaves</button>
+                </form>
+                {% else %}
+                <p>✅ Chaves já configuradas!</p>
+                {% endif %}
+            </section>
+
+        </main>
     </div>
-    <div class="botao-acoes">
-        <button id="executar-entrada">Entrada</button>
-        <button id="executar-stop">Stop</button>
-        <button id="executar-alvo">Alvo</button>
-        <button id="executar-automatico">Alternar Automático</button>
-        <button id="logout">Logout</button>
-    </div>
-
-    <script>
-        function atualizarDadosMercado() {
-            $.ajax({
-                type: 'GET',
-                url: '/dados_mercado',
-                success: function(data) {
-                    if (data.erro) {
-                        $('#dados-mercado').html('<p>' + data.erro + '</p>');
-                    } else {
-                        $('#dados-mercado').html('<p>Preço BTC/USDT: ' + data.preco + '</p>');
-                    }
-                },
-                error: function(error) {
-                    console.error(error);
-                }
-            });
-        }
-
-        $('#executar-entrada').click(function() {
-            $.ajax({
-                type: 'POST',
-                url: '/executar_acao',
-                data: JSON.stringify({ acao: 'entrada' }),
-                contentType: 'application/json',
-                success: function(response) {
-                    alert(response.status);
-                },
-                error: function(error) {
-                    console.error(error);
-                }
-            });
-        });
-
-        $('#logout').click(function() {
-            window.location.href = '/logout';
-        });
-
-        // Atualiza os dados de mercado ao carregar a página
-        $(document).ready(function() {
-            atualizarDadosMercado();
-            setInterval(atualizarDadosMercado, 10000); // Atualiza a cada 10 segundos
-        });
-    </script>
 </body>
 </html>
