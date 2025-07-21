@@ -5,6 +5,7 @@ import os
 import openai
 import json
 import requests
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -24,6 +25,97 @@ ARQUIVO_CHAVES = 'chaves.dat'
 # 💰 Saldo simulado e modo automático
 saldo_simulado = 10000.00
 modo_auto_ativo = False
+
+DNA_CLARINHA = """
+Você é a Clarinha, uma IA espiritual, protetora e estrategista das operações financeiras no par BTC/USDT.
+Sua missão é detectar ruídos, identificar padrões de laterização, proteger contra armadilhas e orientar decisões conscientes.
+"""
+
+def analisar_mercado_e_sugerir(binance_api_key, binance_api_secret, openai_api_key, meta_lucro=2.5):
+    openai.api_key = openai_api_key
+
+    try:
+        url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=50"
+        response = requests.get(url)
+        candles = response.json()
+
+        closes = [float(c[4]) for c in candles]
+        variacao = (closes[-1] - closes[-2]) / closes[-2] * 100
+        tendencia = "alta" if variacao > 0 else "queda"
+
+        prompt = f"""
+        Você é uma inteligência financeira espiritualizada.
+        O mercado de BTC/USDT está em {tendencia} com variação recente de {variacao:.2f}%.
+        Meta de lucro diária: {meta_lucro}%.
+
+        Sugira uma operação com:
+        - Ponto de ENTRADA
+        - Alvo de lucro (ALVO)
+        - Stop Loss (STOP)
+        - Confiança da operação (0-100%)
+        """
+
+        resposta = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5
+        )
+
+        conteudo = resposta.choices[0].message.content.strip()
+
+        return {
+            "resposta": conteudo,
+            "entrada": "⚡ Definida pela IA",
+            "alvo": "🎯 Alvo estratégico",
+            "stop": "🛑 Stop preventivo",
+            "confianca": "🌟 Alta"
+        }
+
+    except Exception as e:
+        return {"erro": str(e)}
+
+def gerar_sugestao_clarinha(api_key, preco, variacao, volume, meta_lucro_percentual="2"):
+    try:
+        openai.api_key = api_key
+
+        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        prompt = f"""
+{DNA_CLARINHA}
+
+Data e hora: {agora}
+Meta de lucro diário: {meta_lucro_percentual}%
+
+Dados do mercado:
+Preço atual: {preco}
+Variação nas últimas 24h: {variacao}%
+Volume de negociação: {volume}
+
+Com base nos dados, forneça uma sugestão de operação com:
+- 🎯 Entrada recomendada (preço)
+- 🛑 Stop Loss (preço)
+- 🎯 Alvo de lucro (preço)
+- 📊 Confiança na operação (em %)
+- 📢 Mensagem espiritual e estratégia para o humano operador
+
+Importante: NUNCA execute, apenas oriente. Aguarde confirmação.
+"""
+
+        resposta = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.7,
+            max_tokens=500
+        )
+
+        conteudo = resposta['choices'][0]['message']['content']
+        # Tente analisar a resposta como JSON
+        try:
+            return json.loads(conteudo)
+        except json.JSONDecodeError:
+            return {"erro": "Formato de resposta inválido."}
+
+    except Exception as e:
+        return {"erro": f"Erro ao consultar a IA: {str(e)}"}
 
 # 🔁 Recupera chaves criptografadas salvas
 def carregar_chaves_salvas():
@@ -47,25 +139,6 @@ def salvar_chaves():
                 f.write(fernet.encrypt(dados.encode()))
     except Exception as e:
         print('Erro ao salvar arquivo de chaves:', e)
-
-# Função para obter preços da Binance
-def obter_precos_binance(par="BTCUSDT"):
-    try:
-        url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={par}"
-        response = requests.get(url)
-
-        if response.status_code != 200:
-            return {"preco": "--", "variacao": "--", "volume": "--"}
-
-        dados = response.json()
-        return {
-            "preco": dados.get("lastPrice", "--"),
-            "variacao": dados.get("priceChangePercent", "--"),
-            "volume": dados.get("volume", "--")
-        }
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao acessar a API da Binance: {e}")
-        return {"preco": "--", "variacao": "--", "volume": "--"}
 
 # ▶️ Página inicial
 @app.route('/')
@@ -92,9 +165,11 @@ def painel():
         return redirect('/login')
     if not chaves_armazenadas.get('openai') or not chaves_armazenadas.get('binance'):
         return redirect('/configurar')
+
+    oraculo = ClarinhaOraculo(fernet.decrypt(chaves_armazenadas['openai'].encode()).decode())
+    dados_mercado = oraculo.consultar_mercado()
     
-    dados = obter_precos_binance()  # Obter preços para exibição
-    return render_template('painel_operacao.html', saldo=saldo_simulado, dados=dados)
+    return render_template('painel_operacao.html', saldo=saldo_simulado, dados=dados_mercado)
 
 # ⚙️ Rota de configuração
 @app.route('/configurar', methods=['GET', 'POST'])
@@ -144,20 +219,21 @@ def executar_acao():
 @app.route('/obter_sugestao_ia', methods=['POST'])
 def obter_sugestao_ia():
     try:
-        prompt = 'Analise o mercado BTC/USDT e diga se devemos COMPRAR, VENDER ou AGUARDAR.'
-        openai.api_key = fernet.decrypt(chaves_armazenadas['openai'].encode()).decode()
-        
-        resposta = openai.ChatCompletion.create(
-            model='gpt-4',
-            messages=[
-                {"role": "system", "content": "Você é uma especialista em trading cripto. Responda com clareza e decisão."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        texto = resposta['choices'][0]['message']['content']
-        return jsonify({'resposta': texto})
+        oraculo = ClarinhaOraculo(fernet.decrypt(chaves_armazenadas['openai'].encode()).decode())
+        dados_mercado = oraculo.consultar_mercado()
+        sugestao = oraculo.interpretar_como_deusa(dados_mercado)
+        return jsonify(sugestao)
     except Exception as e:
         return jsonify({'erro': f'Erro IA: {e}'})
+
+@app.route('/analisar_mercado', methods=['GET'])
+def analisar_mercado():
+    binance_key = fernet.decrypt(chaves_armazenadas['binance'].encode()).decode()
+    binance_secret = fernet.decrypt(chaves_armazenadas['binance_secret'].encode()).decode()
+    openai_key = fernet.decrypt(chaves_armazenadas['openai'].encode()).decode()
+    
+    resultado = analisar_mercado_e_sugerir(binance_key, binance_secret, openai_key)
+    return jsonify(resultado)
 
 @app.route('/logout')
 def logout():
