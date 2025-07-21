@@ -42,10 +42,12 @@ def salvar_chaves():
     except Exception as e:
         print('Erro ao salvar chaves:', e)
 
+# ROTA INICIAL: index.html
 @app.route('/')
-def home():
-    return redirect('/login')
+def index():
+    return render_template('index.html')
 
+# LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -58,6 +60,7 @@ def login():
             return render_template('login.html', erro='Credenciais inválidas.')
     return render_template('login.html')
 
+# PAINEL
 @app.route('/painel')
 def painel():
     if 'usuario' not in session:
@@ -150,6 +153,7 @@ def logout():
     session.pop('usuario', None)
     return redirect('/login')
 
+# Carregar as chaves assim que inicia o servidor
 carregar_chaves_salvas()
 
 if __name__ == '__main__':
