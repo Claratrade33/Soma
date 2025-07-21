@@ -1,7 +1,11 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 from cryptography.fernet import Fernet
 from datetime import timedelta, datetime
-import os, json, requests, openai
+import os
+import json
+import requests
+import openai
+from binance.client import Client
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -147,6 +151,30 @@ Responda com:
         return jsonify({'sugestao': conteudo})
     except Exception as e:
         return jsonify({'erro': f'Erro IA: {e}'})
+
+@app.route('/obter_dados_binance', methods=['GET'])
+def obter_dados_binance():
+    try:
+        binance_key = fernet.decrypt(chaves_armazenadas['binance'].encode()).decode()
+        binance_secret = fernet.decrypt(chaves_armazenadas['binance_secret'].encode()).decode()
+
+        client = Client(binance_key, binance_secret)
+        # Obtenha dados de mercado, por exemplo, candlesticks
+        candles = client.get_klines(symbol='BTCUSDT', interval=Client.KLINE_INTERVAL_15MINUTE, limit=50)
+        
+        # Formatar dados para retorno
+        dados_candles = [{
+            'open_time': datetime.fromtimestamp(candle[0] / 1000),
+            'open': candle[1],
+            'high': candle[2],
+            'low': candle[3],
+            'close': candle[4],
+            'volume': candle[5]
+        } for candle in candles]
+        
+        return jsonify(dados_candles)
+    except Exception as e:
+        return jsonify({'erro': f'Erro ao obter dados da Binance: {e}'})
 
 @app.route('/logout')
 def logout():
