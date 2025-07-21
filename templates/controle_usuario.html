@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Usuários</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>👤 Controle de Usuários</h1>
+    <table>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Papel</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+        {% for u in usuarios %}
+        <tr>
+            <td>{{ u.nome }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.papel }}</td>
+            <td>{{ u.status }}</td>
+            <td>
+                <a href="/editar/{{ u.id }}">Editar</a>
+                <a href="/desativar/{{ u.id }}">Desativar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">Nenhum usuário encontrado.</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/painel">← Voltar ao Painel</a>
+</body>
+</html>
