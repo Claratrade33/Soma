@@ -30,3 +30,18 @@ async function obterSugestaoIA() {
         divResposta.innerText = "Erro ao consultar a IA: " + error;
     }
 }
+
+async function carregarChavesAPI() {
+    try {
+        const resposta = await fetch('/painel'); // Adapte a URL conforme necessário
+        const json = await resposta.json();
+        document.getElementById('openai-key').innerText = json.openai_key || 'Chave não disponível';
+        document.getElementById('binance-key').innerText = json.binance_key || 'Chave não disponível';
+        document.getElementById('binance-secret').innerText = json.binance_secret || 'Chave não disponível';
+    } catch (error) {
+        console.error('Erro ao carregar chaves:', error);
+    }
+}
+
+// Chama a função para carregar as chaves assim que a página é carregada
+window.onload = carregarChavesAPI;
