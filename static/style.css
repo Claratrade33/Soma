@@ -1,15 +1,93 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f0f1c;
+    color: #f0f0f0;
 }
 
-h1 {
-    color: #007bff;
+.header {
+    background-color: #1a1a2e;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #00ffe7;
 }
 
-a {
-    display: inline-block;
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.form-container {
+    background-color: #1f1f2f;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 0 10px #00ffe7;
+    margin-top: 20px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+button {
+    width: 100%;
+    padding: 12px;
     margin: 10px 0;
-    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+input {
+    background-color: #29293d;
+    color: #fff;
+}
+
+button {
+    background-color: #00ffe7;
+    color: #0f0f1c;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #00c7b2;
+}
+
+.botao-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-top: 25px;
+}
+
+.status-box {
+    background-color: #2c2c3c;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 15px;
+}
+
+.resposta-ia {
+    background-color: #141423;
+    color: #00ffe7;
+    border-left: 4px solid #00ffe7;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 6px;
+    font-style: italic;
+}
+
+/* Responsivo */
+@media screen and (max-width: 600px) {
+    .form-container {
+        width: 95%;
+    }
 }
