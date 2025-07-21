@@ -1,34 +1,41 @@
 async function executarAcao(acao) {
+    const botao = document.querySelector(`button[onclick*="${acao}"]`);
+    if (botao) botao.disabled = true;
+
     try {
         const resposta = await fetch('/executar_acao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ acao: acao })
         });
+
         const resultado = await resposta.json();
         alert(resultado.status || resultado.erro);
-        if (resultado.status && resultado.status.includes('+')) {
-            location.reload(); // Atualiza saldo após lucro
+        if (resultado.status && resultado.status.includes('+') || resultado.status.includes('-')) {
+            location.reload();
         }
-    } catch (error) {
-        alert('Erro ao executar ação: ' + error);
+    } catch (erro) {
+        alert('Erro: ' + erro);
+    } finally {
+        if (botao) botao.disabled = false;
     }
 }
 
 async function obterSugestaoIA() {
-    const divResposta = document.getElementById('resposta-ia');
-    divResposta.innerText = "🔄 Consultando Clarinha...";
+    const div = document.getElementById('resposta-ia');
+    div.innerText = '🔮 Consultando Clarinha...';
+
     try {
         const resposta = await fetch('/obter_sugestao_ia', {
             method: 'POST'
         });
-        const resultado = await resposta.json();
-        if (resultado.sugestao) {
-            divResposta.innerText = resultado.sugestao;
+        const json = await resposta.json();
+        if (json.sugestao) {
+            div.innerText = json.sugestao;
         } else {
-            divResposta.innerText = resultado.erro || 'Erro desconhecido.';
+            div.innerText = json.erro || 'Erro desconhecido.';
         }
-    } catch (error) {
-        divResposta.innerText = 'Erro: ' + error;
+    } catch (erro) {
+        div.innerText = 'Erro ao obter sugestão: ' + erro;
     }
 }
