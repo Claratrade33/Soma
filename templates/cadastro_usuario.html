@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários Cadastrados</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>👥 Usuários Cadastrados</h1>
+    <table>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>
+        {% for usuario in usuarios %}
+        <tr>
+            <td>{{ usuario.nome }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>{{ usuario.status }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">Nenhum usuário cadastrado ainda.</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/painel">← Voltar ao Painel</a>
+</body>
+</html>
