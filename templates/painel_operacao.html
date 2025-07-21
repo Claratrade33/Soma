@@ -2,43 +2,58 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Operações</title>
+    <title>ClaraVerse • Painel de Operações</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/dashboard.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <h2>Painel de Operações</h2>
-        <p>Saldo: R$ {{ saldo }}</p>
-        <p>Carregando dados do mercado...</p>
+    <div class="top-bar">
+        <span class="logo">🔷 ClaraVerse • Painel de Operações</span>
+        <span class="saldo">💰 Saldo Simulado: {{ saldo }} USDT</span>
+        <a href="/logout" class="btn-sair">Sair</a>
+    </div>
 
-        <div class="botoes">
-            <button onclick="executarAcao('entrada')">⚡ Entrada</button>
-            <button onclick="executarAcao('stop')">🛑 Stop</button>
-            <button onclick="executarAcao('alvo')">🎯 Alvo</button>
-            <button onclick="executarAcao('automatico')">🤖 Alternar Automático</button>
-            <a href="/logout"><button>🚪 Logout</button></a>
-        </div>
+    <div class="painel-grafico">
+        <iframe src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_12345&symbol=BINANCE:BTCUSDT&interval=1&hidesidetoolbar=1&theme=dark"
+                frameborder="0" allowtransparency="true" scrolling="no" width="100%" height="300"></iframe>
+    </div>
 
-        <div class="ia">
-            <h3>🔮 Sugestão da IA Clarinha</h3>
-            <div id="resposta-ia">Clique abaixo para consultar 👇</div>
-            <button onclick="obterSugestaoIA()">📩 Obter Sugestão</button>
-        </div>
+    <div class="indicadores">
+        <p>📈 <strong>Preço:</strong> --</p>
+        <p>📊 <strong>Variação:</strong> --%</p>
+        <p>📦 <strong>Volume:</strong> --</p>
+        <p>🧠 <strong>RSI:</strong> --</p>
+        <p>📉 <strong>Suporte:</strong> --</p>
+        <p>📈 <strong>Resistência:</strong> --</p>
+    </div>
 
-        <div class="config">
-            <h3>🔐 Configuração das Chaves</h3>
-            {% if not chaves_preenchidas %}
-            <form action="/salvar_chaves" method="POST">
-                <input type="text" name="openai_key" placeholder="🔑 OpenAI Key" required><br>
-                <input type="text" name="binance_key" placeholder="📘 Binance Key" required><br>
-                <input type="text" name="binance_secret" placeholder="📘 Binance Secret" required><br>
-                <button type="submit">💾 Salvar Chaves</button>
-            </form>
-            {% else %}
-            <p>✅ Chaves configuradas.</p>
-            {% endif %}
-        </div>
+    <div class="estrategia">
+        <h3>💡 <span style="color:#00ffe5">Estratégia da Clarinha:</span></h3>
+        <div id="resposta-ia">Aguardando sugestão da IA...</div>
+        <button onclick="obterSugestaoIA()">📩 Consultar IA</button>
+    </div>
+
+    <div class="botoes-operacoes">
+        <button onclick="executarAcao('entrada')">✅ ENTRADA</button>
+        <button onclick="executarAcao('stop')">🔴 STOP</button>
+        <button onclick="executarAcao('alvo')">🎯 ALVO</button>
+        <button onclick="executarAcao('executar')">🚀 EXECUTAR</button>
+        <button onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
+        <a href="/painel#config"><button>⚙️ CONFIGURAR</button></a>
+    </div>
+
+    <div class="configuracao" id="config">
+        <h3>🔐 Configuração das Chaves</h3>
+        {% if not chaves_preenchidas %}
+        <form action="/salvar_chaves" method="POST">
+            <input type="text" name="openai_key" placeholder="🔑 OpenAI API Key" required><br>
+            <input type="text" name="binance_key" placeholder="📘 Binance API Key" required><br>
+            <input type="text" name="binance_secret" placeholder="📘 Binance Secret Key" required><br>
+            <button type="submit">💾 Salvar Chaves</button>
+        </form>
+        {% else %}
+        <p>✅ Chaves configuradas.</p>
+        {% endif %}
     </div>
 </body>
 </html>
