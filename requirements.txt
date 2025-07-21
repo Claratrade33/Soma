@@ -1,6 +1,7 @@
-Flask>=2.0,<3.0
-Werkzeug>=2.0,<3.0
+flask
 openai
-requests
-cryptography
 python-binance
+cryptography
+gunicorn
+requests
+aiohttp
