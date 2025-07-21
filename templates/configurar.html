@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurar Chaves - ClaraVerse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="configurar-container">
+        <h1>🔐 Configuração de Chaves API</h1>
+        <form method="POST" action="/salvar_chaves" class="form-config">
+            <label for="binance_api_key">Binance API Key</label>
+            <input type="text" id="binance_api_key" name="binance_api_key" required>
+
+            <label for="binance_api_secret">Binance API Secret</label>
+            <input type="text" id="binance_api_secret" name="binance_api_secret" required>
+
+            <label for="openai_api_key">OpenAI API Key</label>
+            <input type="text" id="openai_api_key" name="openai_api_key" required>
+
+            <button type="submit" class="botao-salvar">Salvar Chaves</button>
+        </form>
+        <a href="/painel" class="voltar-painel">← Voltar ao Painel</a>
+    </div>
+</body>
+</html>
