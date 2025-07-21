@@ -39,7 +39,7 @@
         <button onclick="executarAcao('alvo')">🎯 ALVO</button>
         <button onclick="executarAcao('executar')">🚀 EXECUTAR</button>
         <button onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
-        <a href="/painel#config"><button>⚙️ CONFIGURAR</button></a>
+        <a href="/configurar"><button>⚙️ CONFIGURAR</button></a> <!-- Corrigido para direcionar para a página de configuração -->
     </div>
 
     <div class="configuracao" id="config">
@@ -53,9 +53,9 @@
         </form>
         {% else %}
         <p>✅ Chaves configuradas.</p>
-        <p><strong>OpenAI:</strong> <span id="openai-key"></span></p>
-        <p><strong>Binance:</strong> <span id="binance-key"></span></p>
-        <p><strong>Binance Secret:</strong> <span id="binance-secret"></span></p>
+        <p><strong>OpenAI:</strong> <span id="openai-key">{{ chaves_armazenadas['openai'] }}</span></p>
+        <p><strong>Binance:</strong> <span id="binance-key">{{ chaves_armazenadas['binance'] }}</span></p>
+        <p><strong>Binance Secret:</strong> <span id="binance-secret">{{ chaves_armazenadas['binance_secret'] }}</span></p>
         <button onclick="carregarChavesAPI()">🔄 Atualizar Chaves</button>
         {% endif %}
     </div>
