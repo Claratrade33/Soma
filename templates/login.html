@@ -1,19 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Login</title>
+    <title>Login - ClaraVerse</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Login</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {{ form.email.label }} {{ form.email() }}<br>
-        {{ form.password.label }} {{ form.password() }}<br>
-        {{ form.submit() }}
-    </form>
-    <a href="{{ url_for('index') }}">Voltar</a>
+    <div class="header">🔐 Login ClaraVerse</div>
+    <div class="container">
+        {% if erro %}
+        <div class="card" style="background-color: #8b0000;">{{ erro }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="input-group">
+                <label for="usuario">Usuário</label>
+                <input type="text" name="usuario" required>
+            </div>
+            <div class="input-group">
+                <label for="senha">Senha</label>
+                <input type="password" name="senha" required>
+            </div>
+            <button class="button" type="submit">Entrar</button>
+        </form>
+    </div>
 </body>
 </html>
