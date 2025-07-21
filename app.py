@@ -33,7 +33,7 @@ def carregar_chaves_salvas():
                 conteudo = f.read()
                 if conteudo:
                     decodificado = fernet.decrypt(conteudo).decode()
-                    chaves_armazenadas = json.loads(decodificado)
+                    chaves_armazenadas.update(json.loads(decodificado))
         except Exception as e:
             print('Erro ao carregar chaves:', e)
 
@@ -93,9 +93,9 @@ def salvar_chaves_route():
             salvar_chaves()
             return redirect('/painel')
         else:
-            return 'Preencha todos os campos.'
+            return jsonify({'erro': 'Preencha todos os campos.'}), 400
     except Exception as e:
-        return f'Erro ao salvar as chaves: {e}'
+        return jsonify({'erro': f'Erro ao salvar as chaves: {e}'}), 500
 
 @app.route('/executar_acao', methods=['POST'])
 def executar_acao():
@@ -117,7 +117,7 @@ def executar_acao():
         status = 'ativado' if modo_auto_ativo else 'desativado'
         return jsonify({'status': f'🤖 Modo automático {status}.'})
     else:
-        return jsonify({'erro': 'Ação inválida.'})
+        return jsonify({'erro': 'Ação inválida.'}), 400
 
 @app.route('/obter_sugestao_ia', methods=['POST'])
 def obter_sugestao_ia():
@@ -150,7 +150,7 @@ Responda com:
         conteudo = resposta.choices[0].message.content.strip()
         return jsonify({'sugestao': conteudo})
     except Exception as e:
-        return jsonify({'erro': f'Erro IA: {e}'})
+        return jsonify({'erro': f'Erro IA: {e}'}), 500
 
 @app.route('/obter_dados_binance', methods=['GET'])
 def obter_dados_binance():
@@ -174,7 +174,7 @@ def obter_dados_binance():
         
         return jsonify(dados_candles)
     except Exception as e:
-        return jsonify({'erro': f'Erro ao obter dados da Binance: {e}'})
+        return jsonify({'erro': f'Erro ao obter dados da Binance: {e}'}), 500
 
 @app.route('/logout')
 def logout():
