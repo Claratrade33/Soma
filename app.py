@@ -198,7 +198,14 @@ def painel():
     if 'usuario' not in session:
         return redirect('/login')
 
-    return render_template('painel_operacao.html', saldo=10000.00)  # Ajuste conforme necessário
+    openai_key = session.get('openai_key')
+    binance_key = session.get('binance_key')
+    binance_secret = session.get('binance_secret')
+
+    # Exibir chaves para testes (remover em produção)
+    print(f"OpenAI Key: {openai_key}, Binance Key: {binance_key}, Binance Secret: {binance_secret}")
+
+    return render_template('painel_operacao.html', saldo=10000.00)
 
 @app.route('/consultar_mercado', methods=['GET'])
 def consultar_mercado_route():
@@ -206,8 +213,11 @@ def consultar_mercado_route():
         return jsonify({"erro": "Usuário não autenticado."}), 401
 
     openai_key = session.get('openai_key')
-    if not openai_key:
-        return jsonify({"erro": "Chave da API não configurada."}), 400
+    binance_key = session.get('binance_key')
+    binance_secret = session.get('binance_secret')
+
+    if not openai_key or not binance_key or not binance_secret:
+        return jsonify({"erro": "Chaves da API não configuradas."}), 400
 
     clarinha = ClarinhaOraculo(openai_key)
     dados_mercado = clarinha.consultar_mercado()
@@ -218,8 +228,14 @@ def consultar_mercado_route():
 @app.route('/salvar_chaves', methods=['POST'])
 def salvar_chaves_route():
     openai_key = request.form.get('openai_key')
+    binance_key = request.form.get('binance_key')
+    binance_secret = request.form.get('binance_secret')
+
     session['openai_key'] = openai_key
-    return redirect('/configurar')
+    session['binance_key'] = binance_key
+    session['binance_secret'] = binance_secret
+
+    return redirect('/painel')  # Redireciona para o painel após salvar
 
 @app.route('/configurar')
 def configurar():
@@ -229,6 +245,8 @@ def configurar():
 def logout():
     session.pop('usuario', None)
     session.pop('openai_key', None)  # Remove a chave da API também
+    session.pop('binance_key', None)  # Remove a chave da Binance
+    session.pop('binance_secret', None)  # Remove o segredo da Binance
     return redirect('/login')
 
 if __name__ == '__main__':
