@@ -699,3 +699,472 @@
                             <small class="text-muted">Acumulação Baleias</small><br>
                             <span class="badge ${cosmic.hidden_patterns.whale_accumulation ? 'bg-info' : 'bg-secondary'}">
                                 ${cosmic.hidden
+                                </span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${cosmic.manipulation_detected ? `
+                <div class="mt-3">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Atenção:</strong> Possível manipulação de mercado detectada!
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="mt-3">
+                    <h6>🤖 Previsão ML:</h6>
+                    <span class="badge bg-primary">${cosmic.ml_prediction.direction}</span>
+                    <small class="text-muted ms-2">Confiança: ${(cosmic.ml_prediction.confidence * 100).toFixed(1)}%</small>
+                </div>
+            `;
+            
+            document.getElementById('cosmic-analysis').innerHTML = html;
+        }
+
+        function requestOracleAnalysis() {
+            const symbol = currentAnalysisSymbol;
+            showLoadingInElement('oracle-analysis', '🔮 Consultando o oráculo...');
+            
+            fetch('/api/intelligent_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ symbol: symbol })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayOracleAnalysis(data.oracle);
+                
+                if (notificationsEnabled && data.oracle.prediction !== 'NEUTRAL') {
+                    showNotification(`🔮 Previsão Oracular: ${data.oracle.prediction}`, 'info');
+                }
+            })
+            .catch(error => {
+                document.getElementById('oracle-analysis').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Erro na consulta oracular: ${error.message}
+                    </div>
+                `;
+            });
+        }
+
+        function displayOracleAnalysis(oracle) {
+            const predictionClass = getSignalClass(oracle.prediction);
+            const sentimentColor = getSentimentColor(oracle.sentiment.label);
+            
+            const html = `
+                <div class="oracle-prediction ${predictionClass}">
+                    <i class="bi bi-eye"></i> ${oracle.prediction}
+                </div>
+                <div class="mt-3">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6 class="text-muted">Confiança</h6>
+                            <div class="confidence-bar">
+                                <div class="confidence-level" style="width: ${oracle.confidence * 100}%"></div>
+                            </div>
+                            <small>${(oracle.confidence * 100).toFixed(1)}%</small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Score Total</h6>
+                            <h4 class="${oracle.score > 0 ? 'text-success' : oracle.score < 0 ? 'text-danger' : 'text-muted'}">
+                                ${oracle.score > 0 ? '+' : ''}${oracle.score}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>📊 Análise de Sentimento</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <span class="badge bg-${sentimentColor}">${oracle.sentiment.label}</span>
+                        </div>
+                        <div class="col-6">
+                            <small>Fear & Greed: ${oracle.sentiment.fear_greed_index || 50}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>🐋 Dados On-Chain</h6>
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="text-muted">Atividade Baleias</small><br>
+                            <span class="badge ${getActivityColor(oracle.onchain.whale_activity)}">
+                                ${oracle.onchain.whale_activity}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Fluxo Exchange</small><br>
+                            <span class="badge bg-info">${oracle.onchain.exchange_flows}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Comportamento</small><br>
+                            <span class="badge bg-secondary">${oracle.onchain.holder_behavior}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>⏰ Análise Temporal</h6>
+                    <small class="text-muted">
+                        Tendência Semanal: <strong>${oracle.temporal.weekly_trend}</strong> | 
+                        Score Temporal: ${(oracle.temporal.current_time_score * 100).toFixed(0)}%
+                    </small>
+                </div>
+            `;
+            
+            document.getElementById('oracle-analysis').innerHTML = html;
+        }
+
+        // ============= EXECUÇÃO DE TRADES =============
+        function quickTrade(symbol, side, quantity = 0.001) {
+            if (!confirm(`Confirmar ${side} de ${quantity} ${symbol}?`)) {
+                return;
+            }
+            
+            executeTrade(symbol, side, quantity);
+        }
+
+        function executeIntelligentTrade(side) {
+            const symbol = document.getElementById('trade-symbol').value;
+            const quantity = parseFloat(document.getElementById('trade-quantity').value);
+            const tradeType = document.getElementById('trade-type').value;
+            const limitPrice = parseFloat(document.getElementById('limit-price').value);
+            
+            if (!quantity || quantity <= 0) {
+                showNotification('⚠️ Digite uma quantidade válida!', 'error');
+                return;
+            }
+            
+            if (tradeType === 'LIMIT' && (!limitPrice || limitPrice <= 0)) {
+                showNotification('⚠️ Digite um preço limite válido!', 'error');
+                return;
+            }
+            
+            executeTrade(symbol, side, quantity, tradeType, limitPrice);
+        }
+
+        function executeTrade(symbol, side, quantity, type = 'MARKET', limitPrice = null) {
+            showNotification(`⚡ Executando ${side} ${symbol}...`, 'info');
+            
+            const payload = {
+                symbol: symbol,
+                side: side,
+                quantity: quantity,
+                type: type
+            };
+            
+            if (type === 'LIMIT' && limitPrice) {
+                payload.limit_price = limitPrice;
+            }
+            
+            fetch('/api/execute_real_trade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(
+                        `✅ ${side} executado! ID: ${data.trade_id} | Preço: $${data.price}`,
+                        'success'
+                    );
+                    
+                    // Atualizar saldo e histórico
+                    updateAccountInfo();
+                    refreshTradeHistory();
+                    
+                    // Auto-análise após trade
+                    if (autoAnalysisEnabled) {
+                        setTimeout(() => {
+                            requestCosmicAnalysis();
+                            requestOracleAnalysis();
+                        }, 1000);
+                    }
+                } else {
+                    showNotification(`❌ Erro: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification(`🔥 Erro de conexão: ${error.message}`, 'error');
+                console.error('Trade error:', error);
+            });
+        }
+
+        // ============= FUNÇÕES AUXILIARES =============
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connection-status');
+            if (statusElement) {
+                if (connected) {
+                    statusElement.innerHTML = '<i class="bi bi-wifi"></i> Conectado';
+                    statusElement.className = 'ms-3 status-connected';
+                } else {
+                    statusElement.innerHTML = '<i class="bi bi-wifi-off"></i> Desconectado';
+                    statusElement.className = 'ms-3 status-disconnected';
+                }
+            }
+        }
+
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = now.toLocaleTimeString('pt-BR');
+        }
+
+        function showLoadingInElement(elementId, message) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <div class="mt-2">${message}</div>
+                </div>
+            `;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="bi bi-${getNotificationIcon(type)}"></i>
+                ${message}
+                <button class="btn-close btn-close-white ms-2" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Mostrar notificação
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Remover automaticamente
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+            
+            // Som de notificação
+            if (notificationsEnabled) {
+                playNotificationSound(type);
+            }
+        }
+
+        function updateAccountInfo() {
+            fetch('/api/account_info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar P&L
+                    const pnlElement = document.getElementById('total-pnl');
+                    if (pnlElement) {
+                        pnlElement.textContent = `R$ ${data.profit_loss.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                        pnlElement.className = data.profit_loss >= 0 ? 'price-up' : 'price-down';
+                    }
+                    
+                    // Atualizar win rate
+                    const winRateBar = document.querySelector('.progress-bar');
+                    if (winRateBar) {
+                        winRateBar.style.width = `${data.win_rate}%`;
+                        winRateBar.textContent = `${data.win_rate.toFixed(1)}%`;
+                    }
+                }
+            })
+            .catch(error => console.error('Erro ao atualizar conta:', error));
+        }
+
+        function refreshTradeHistory() {
+            fetch('/api/user_trades')
+            .then(response => response.json())
+            .then(trades => {
+                const tbody = document.getElementById('trades-table');
+                tbody.innerHTML = '';
+                
+                trades.slice(0, 20).forEach(trade => {
+                    const row = tbody.insertRow();
+                    const date = new Date(trade.timestamp);
+                    const pnlClass = trade.profit_loss > 0 ? 'text-success' : trade.profit_loss < 0 ? 'text-danger' : '';
+                    
+                    row.innerHTML = `
+                        <td>${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</td>
+                        <td>${trade.symbol}</td>
+                        <td class="${trade.side === 'BUY' ? 'text-success' : 'text-danger'}">${trade.side}</td>
+                        <td>${parseFloat(trade.quantity).toFixed(6)}</td>
+                        <td>$${parseFloat(trade.entry_price).toLocaleString()}</td>
+                        <td>${trade.exit_price ? '$' + parseFloat(trade.exit_price).toLocaleString() : '<span class="text-muted">-</span>'}</td>
+                        <td class="${pnlClass}">${trade.profit_loss ? '$' + parseFloat(trade.profit_loss).toFixed(2) : '<span class="text-muted">-</span>'}</td>
+                        <td><span class="badge ${getStatusBadgeClass(trade.status)}">${trade.status}</span></td>
+                        <td><small class="text-muted">${trade.strategy_used || 'Manual'}</small></td>
+                    `;
+                });
+            })
+            .catch(error => console.error('Erro ao carregar histórico:', error));
+        }
+
+        function setupEventListeners() {
+            // Trade type change
+            document.getElementById('trade-type').addEventListener('change', function() {
+                const limitPriceInput = document.getElementById('limit-price');
+                limitPriceInput.disabled = this.value !== 'LIMIT';
+                if (this.value !== 'LIMIT') {
+                    limitPriceInput.value = '';
+                }
+            });
+            
+            // Symbol change para análises
+            document.getElementById('trade-symbol').addEventListener('change', function() {
+                currentAnalysisSymbol = this.value.replace('USDT', '');
+                if (autoAnalysisEnabled) {
+                    requestCosmicAnalysis();
+                    requestOracleAnalysis();
+                }
+            });
+            
+            // Settings modal
+            document.getElementById('update-interval')?.addEventListener('input', function() {
+                updateInterval = this.value * 1000;
+                document.getElementById('interval-value').textContent = `${this.value}s`;
+            });
+            
+            document.getElementById('enable-notifications')?.addEventListener('change', function() {
+                notificationsEnabled = this.checked;
+            });
+            
+            document.getElementById('auto-analysis')?.addEventListener('change', function() {
+                autoAnalysisEnabled = this.checked;
+            });
+        }
+
+        // ============= UTILITÁRIOS DE INTERFACE =============
+        function getSignalClass(signal) {
+            const classes = {
+                'STRONG_BUY': 'signal-strong-buy',
+                'BUY': 'signal-buy',
+                'NEUTRAL': 'signal-neutral',
+                'SELL': 'signal-sell',
+                'STRONG_SELL': 'signal-strong-sell'
+            };
+            return classes[signal] || 'signal-neutral';
+        }
+
+        function getSentimentColor(sentiment) {
+            const colors = {
+                'EXTREME_FEAR': 'success',
+                'FEAR': 'primary',
+                'NEUTRAL': 'secondary',
+                'GREED': 'warning',
+                'EXTREME_GREED': 'danger'
+            };
+            return colors[sentiment] || 'secondary';
+        }
+
+        function getActivityColor(activity) {
+            const colors = {
+                'HIGH': 'bg-danger',
+                'MEDIUM': 'bg-warning',
+                'LOW': 'bg-success'
+            };
+            return colors[activity] || 'bg-secondary';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'FILLED': 'bg-success',
+                'OPEN': 'bg-primary',
+                'CANCELLED': 'bg-secondary',
+                'PARTIALLY_FILLED': 'bg-warning'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'error': 'x-circle',
+                'info': 'info-circle',
+                'warning': 'exclamation-triangle'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        function playNotificationSound(type) {
+            // Som simples usando Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Frequências diferentes para tipos diferentes
+                const frequencies = {
+                    'success': 880,  // A5
+                    'error': 220,    // A3
+                    'info': 440,     // A4
+                    'warning': 330   // E4
+                };
+                
+                oscillator.frequency.setValueAtTime(frequencies[type] || 440, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.log('Som de notificação não suportado');
+            }
+        }
+
+        // ============= ATALHOS DE TECLADO =============
+        document.addEventListener('keydown', function(event) {
+            // Ctrl+B = Comprar
+            if (event.ctrlKey && event.key === 'b') {
+                event.preventDefault();
+                executeIntelligentTrade('BUY');
+            }
+            
+            // Ctrl+S = Vender
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                executeIntelligentTrade('SELL');
+            }
+            
+            // Ctrl+R = Atualizar dados
+            if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault();
+                location.reload();
+            }
+            
+            // Ctrl+1 = Análise Cósmica
+            if (event.ctrlKey && event.key === '1') {
+                event.preventDefault();
+                requestCosmicAnalysis();
+            }
+            
+            // Ctrl+2 = Análise Oracular
+            if (event.ctrlKey && event.key === '2') {
+                event.preventDefault();
+                requestOracleAnalysis();
+            }
+        });
+
+        // ============= INICIALIZAÇÃO FINAL =============
+        console.log('🚀 ClaraVerse Trading System Initialized');
+        console.log('🎯 Atalhos: Ctrl+B (Buy), Ctrl+S (Sell), Ctrl+1 (Cosmo), Ctrl+2 (Oráculo)');
+        
+        // Mostrar notificação de boas-vindas
+        setTimeout(() => {
+            showNotification('🌌 Sistema ClaraVerse inicializado com sucesso! Trading inteligente ativo.', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>
