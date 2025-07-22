@@ -1,188 +1,108 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
-from cryptography.fernet import Fernet
-from datetime import timedelta, datetime
-import os
-import json
-import requests
 import openai
-from binance.client import Client
+import requests
+import json
+from flask import Flask, request, jsonify, session, redirect, render_template
+from datetime import timedelta
+import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.permanent_session_lifetime = timedelta(hours=6)
 
-CHAVE_CRIPTO_FIXA = b'xApbCQFxxa3Yy3YKkzP9JkkfE4WaXxN8eSpK7uBRuGA='
-fernet = Fernet(CHAVE_CRIPTO_FIXA)
+class ClarinhaOraculo:
+    def __init__(self, openai_api_key):
+        self.api_key = openai_api_key
+        openai.api_key = openai_api_key
 
-usuarios = {'admin': 'claraverse2025'}
-ARQUIVO_CHAVES = 'chaves.dat'
-chaves_armazenadas = {}
-saldo_simulado = 10000.00
-modo_auto_ativo = False
-
-DNA_CLARINHA = """
-Você é a Clarinha, uma IA espiritual e estratégica no mercado BTC/USDT.
-Sua missão é guiar o operador com clareza, evitar armadilhas e sugerir operações conscientes.
-"""
-
-def carregar_chaves_salvas():
-    global chaves_armazenadas
-    if os.path.exists(ARQUIVO_CHAVES):
+    def consultar_mercado(self, par="BTCUSDT"):
         try:
-            with open(ARQUIVO_CHAVES, 'rb') as f:
-                conteudo = f.read()
-                if conteudo:
-                    decodificado = fernet.decrypt(conteudo).decode()
-                    chaves_armazenadas.update(json.loads(decodificado))
+            url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={par}"
+            response = requests.get(url)
+
+            if response.status_code != 200:
+                print(f"Erro na resposta da API: {response.status_code}")
+                return {"par": par, "preco": "--", "variacao": "--", "volume": "--"}
+
+            dados = response.json()
+            return {
+                "par": par,
+                "preco": dados.get("lastPrice", "--"),
+                "variacao": dados.get("priceChangePercent", "--"),
+                "volume": dados.get("volume", "--")
+            }
+        except requests.exceptions.RequestException as e:
+            print(f"Erro ao acessar a API da Binance: {e}")
+            return {"par": par, "preco": "--", "variacao": "--", "volume": "--"}
+
+    def interpretar_como_deusa(self, dados, meta_lucro=2.5):
+        prompt = f"""
+Você é Clarinha, uma inteligência cósmica sagrada conectada ao mercado financeiro com proteção divina.
+Sua missão é proteger o usuário e sugerir uma estratégia segura com base no seguinte contexto de mercado:
+
+📊 Par: {dados['par']}
+💰 Preço atual: {dados['preco']}
+📈 Variação 24h: {dados['variacao']}%
+📊 Volume 24h: {dados['volume']}
+🎯 Meta de lucro diário: {meta_lucro}%
+
+Com base nessas informações, forneça:
+1. Ponto de ENTRADA ideal (preço)
+2. ALVO de lucro (preço)
+3. STOP de segurança (preço)
+4. Nível de CONFIANÇA (0 a 100%)
+5. Um conselho espiritual ou estratégico de proteção
+
+Responda em JSON no formato:
+{{
+  "entrada": "...",
+  "alvo": "...",
+  "stop": "...",
+  "confianca": "...",
+  "mensagem": "..."
+}}
+"""
+        try:
+            resposta = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Você é uma IA espiritual especializada em estratégias de trading seguras e intuitivas."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.4
+            )
+            conteudo = resposta.choices[0].message.content.strip()
+            try:
+                resposta_json = json.loads(conteudo)
+                return resposta_json
+            except json.JSONDecodeError:
+                return {"erro": "Falha ao decodificar a resposta JSON."}
         except Exception as e:
-            print('Erro ao carregar chaves:', e)
+            return {"erro": f"Erro ao consultar Clarinha: {e}"}
 
-def salvar_chaves():
-    try:
-        if chaves_armazenadas:
-            dados = json.dumps(chaves_armazenadas)
-            with open(ARQUIVO_CHAVES, 'wb') as f:
-                f.write(fernet.encrypt(dados.encode()))
-    except Exception as e:
-        print('Erro ao salvar chaves:', e)
+@app.route('/consultar_mercado', methods=['GET'])
+def consultar_mercado():
+    openai_key = session.get('openai_key')
+    if not openai_key:
+        return jsonify({"erro": "Chave da API não configurada."}), 400
 
-# ROTA INICIAL: index.html
-@app.route('/')
-def index():
-    return render_template('index.html')
+    clarinha = ClarinhaOraculo(openai_key)
+    dados_mercado = clarinha.consultar_mercado()
+    resposta = clarinha.interpretar_como_deusa(dados_mercado)
 
-# LOGIN
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-        if usuario in usuarios and usuarios[usuario] == senha:
-            session['usuario'] = usuario
-            return redirect('/painel')
-        else:
-            return render_template('login.html', erro='Credenciais inválidas.')
-    return render_template('login.html')
-
-# PAINEL
-@app.route('/painel')
-def painel():
-    if 'usuario' not in session:
-        return redirect('/login')
-
-    openai_key = chaves_armazenadas.get('openai')
-    binance_key = chaves_armazenadas.get('binance')
-    binance_secret = chaves_armazenadas.get('binance_secret')
-    chaves_preenchidas = bool(openai_key and binance_key and binance_secret)
-
-    return render_template('painel_operacao.html',
-                           saldo=saldo_simulado,
-                           chaves_preenchidas=chaves_preenchidas)
+    return jsonify(resposta)
 
 @app.route('/salvar_chaves', methods=['POST'])
 def salvar_chaves_route():
-    try:
-        openai_key = request.form.get('openai_key')
-        binance_key = request.form.get('binance_key')
-        binance_secret = request.form.get('binance_secret')
+    # Aqui você deve implementar a lógica para salvar as chaves da API
+    pass
 
-        if openai_key and binance_key and binance_secret:
-            chaves_armazenadas['openai'] = fernet.encrypt(openai_key.encode()).decode()
-            chaves_armazenadas['binance'] = fernet.encrypt(binance_key.encode()).decode()
-            chaves_armazenadas['binance_secret'] = fernet.encrypt(binance_secret.encode()).decode()
-            salvar_chaves()
-            return redirect('/painel')
-        else:
-            return jsonify({'erro': 'Preencha todos os campos.'}), 400
-    except Exception as e:
-        return jsonify({'erro': f'Erro ao salvar as chaves: {e}'}), 500
+@app.route('/configurar')
+def configurar():
+    return render_template('configurar_chaves.html')
 
-@app.route('/executar_acao', methods=['POST'])
-def executar_acao():
-    global saldo_simulado, modo_auto_ativo
-    dados = request.get_json()
-    acao = dados.get('acao')
-
-    if acao == 'entrada':
-        saldo_simulado -= 100
-        return jsonify({'status': '✅ Entrada realizada (-100)'})
-    elif acao == 'stop':
-        saldo_simulado -= 50
-        return jsonify({'status': '🛑 Stop ativado (-50)'})
-    elif acao == 'alvo':
-        saldo_simulado += 200
-        return jsonify({'status': '🎯 Alvo alcançado (+200)'})
-    elif acao == 'automatico':
-        modo_auto_ativo = not modo_auto_ativo
-        status = 'ativado' if modo_auto_ativo else 'desativado'
-        return jsonify({'status': f'🤖 Modo automático {status}.'})
-    else:
-        return jsonify({'erro': 'Ação inválida.'}), 400
-
-@app.route('/obter_sugestao_ia', methods=['POST'])
-def obter_sugestao_ia():
-    try:
-        openai_key = fernet.decrypt(chaves_armazenadas['openai'].encode()).decode()
-        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        prompt = f"""
-{DNA_CLARINHA}
-
-🕒 Data e hora: {agora}
-🎯 Meta: 2% ao dia
-
-Responda com:
-- ⚡ Entrada (preço sugerido)
-- 🛑 Stop Loss
-- 🎯 Alvo
-- 🌟 Confiança %
-- 📢 Mensagem espiritual ao operador
-"""
-
-        openai.api_key = openai_key
-        resposta = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "system", "content": prompt}],
-            temperature=0.7,
-            max_tokens=400
-        )
-
-        conteudo = resposta.choices[0].message.content.strip()
-        return jsonify({'sugestao': conteudo})
-    except Exception as e:
-        return jsonify({'erro': f'Erro IA: {e}'}), 500
-
-@app.route('/obter_dados_binance', methods=['GET'])
-def obter_dados_binance():
-    try:
-        binance_key = fernet.decrypt(chaves_armazenadas['binance'].encode()).decode()
-        binance_secret = fernet.decrypt(chaves_armazenadas['binance_secret'].encode()).decode()
-
-        client = Client(binance_key, binance_secret)
-        # Obtenha dados de mercado, por exemplo, candlesticks
-        candles = client.get_klines(symbol='BTCUSDT', interval=Client.KLINE_INTERVAL_15MINUTE, limit=50)
-        
-        # Formatar dados para retorno
-        dados_candles = [{
-            'open_time': datetime.fromtimestamp(candle[0] / 1000),
-            'open': candle[1],
-            'high': candle[2],
-            'low': candle[3],
-            'close': candle[4],
-            'volume': candle[5]
-        } for candle in candles]
-        
-        return jsonify(dados_candles)
-    except Exception as e:
-        return jsonify({'erro': f'Erro ao obter dados da Binance: {e}'}), 500
-
-@app.route('/logout')
-def logout():
-    session.pop('usuario', None)
-    return redirect('/login')
-
-# Carregar as chaves assim que inicia o servidor
-carregar_chaves_salvas()
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
