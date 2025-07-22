@@ -110,24 +110,5 @@
         <button class="btn-acao" onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
         <a href="/configurar"><button class="btn-config">⚙️ CONFIGURAR</button></a>
     </div>
-
-    <div class="configuracao" id="config">
-        <h3>🔐 Configuração das Chaves</h3>
-        {% if not chaves_preenchidas %}
-        <form action="/salvar_chaves" method="POST">
-            <input type="text" name="openai_key" placeholder="🔑 OpenAI API Key" required><br>
-            <input type="text" name="binance_key" placeholder="📘 Binance API Key" required><br>
-            <input type="text" name="binance_secret" placeholder="📘 Binance Secret Key" required><br>
-            <button type="submit">💾 Salvar Chaves</button>
-        </form>
-        <p>⚠️ As chaves ainda não estão configuradas. Por favor, insira as chaves acima.</p>
-        {% else %}
-        <p>✅ Chaves configuradas.</p>
-        <p><strong>OpenAI:</strong> <span id="openai-key">{{ chaves_armazenadas['openai'] }}</span></p>
-        <p><strong>Binance:</strong> <span id="binance-key">{{ chaves_armazenadas['binance'] }}</span></p>
-        <p><strong>Binance Secret:</strong> <span id="binance-secret">{{ chaves_armazenadas['binance_secret'] }}</span></p>
-        <button onclick="carregarChavesAPI()">🔄 Atualizar Chaves</button>
-        {% endif %}
-    </div>
 </body>
 </html>
