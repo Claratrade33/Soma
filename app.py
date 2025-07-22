@@ -49,7 +49,7 @@ def login_required(f):
     return decorated_function
 
 def create_default_users():
-    """Cria usuários padrão do sistema"""[1]
+    """Cria usuários padrão do sistema"""
     default_users = [
         {
             'username': 'admin',
@@ -141,15 +141,15 @@ def get_public_market_data():
     except Exception as e:
         print(f"Erro ao obter dados: {e}")
         return {
-            'preco': 45000.0,
-            'variacao': 0.0,
+            'preco': 95247.50,
+            'variacao': 2.35,
             'volume': '1.2B',
-            'rsi': 50.0,
-            'suporte': 44000.0,
-            'resistencia': 46000.0,
-            'media_volume': 25000,
-            'high_24h': 46500.0,
-            'low_24h': 43500.0
+            'rsi': 62.4,
+            'suporte': 93500.0,
+            'resistencia': 96500.0,
+            'media_volume': 35000,
+            'high_24h': 96500.0,
+            'low_24h': 93500.0
         }
 
 def format_volume(volume):
@@ -210,7 +210,7 @@ def register():
             flash('Todos os campos são obrigatórios!', 'error')
             return render_template("register.html")
         
-        # Validação de username[2]
+        # Validação de username
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username deve conter apenas letras, números e underscore!', 'error')
             return render_template("register.html")
@@ -250,7 +250,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Rota de login com suporte a username ou email"""[2]
+    """Rota de login com suporte a username ou email"""
     # Se já estiver logado, redirecionar
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
@@ -265,13 +265,13 @@ def login():
             return render_template("login.html")
         
         try:
-            # Buscar por username ou email[2]
+            # Buscar por username ou email
             user = User.query.filter(
                 (User.username == login_field) | (User.email == login_field)
             ).first()
             
             if user and check_password_hash(user.password, password):
-                # Login bem-sucedido - criar sessão segura[3]
+                # Login bem-sucedido - criar sessão segura
                 session.permanent = True
                 session['user_id'] = user.id
                 session['username'] = user.username
@@ -295,11 +295,11 @@ def login():
 
 @app.route("/logout")
 def logout():
-    """Rota de logout segura"""[2]
+    """Rota de logout segura"""
     username = session.get('username', 'Usuário')
     session.clear()
     flash(f'👋 Até logo, {username}!', 'info')
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route("/dashboard")
 @login_required
@@ -399,11 +399,11 @@ def sugestao_ia():
                 "🔮 **MENSAGEM DO ORÁCULO** 🌟\n\n✨ Os ventos cósmicos sussurram mudanças... O RSI dança entre 42-58, zona de transição espiritual!\n\n🔥 **RITUAIS RECOMENDADOS:**\n• **MEDITAÇÃO:** Aguardar sinais mais claros\n• **PROTEÇÃO:** Stop em território sagrado\n• **MANIFESTAÇÃO:** Alvo nas constelações superiores\n\n🌙 **FASE LUNAR:** Crescente de oportunidades\n⭐ **ENERGIA DOMINANTE:** Paciência e precisão"
             ],
             'cosmo': [
-                "🌌 **TRANSMISSÃO CÓSMICA** 🪐\n\n🔭 **ANÁLISE INTER-DIMENSIONAL:**\nObservando através do telescópio universal, vejo perturbações no campo gravitacional financeiro.\n\n🌍 **FATORES PLANETÁRIOS:**\n• 🏛️ Saturno (Políticas) em quadratura\n• 💫 Júpiter (Liquidez) em retrogradação\n• ⚡ Marte (Volatilidade) ascendente\n\n🛸 **NAVEGAÇÃO:** BTC surfando ondas entre $44K-$47K\n⭐ **PRÓXIMO PORTAL:** 72 horas terrestres",
+                "🌌 **TRANSMISSÃO CÓSMICA** 🪐\n\n🔭 **ANÁLISE INTER-DIMENSIONAL:**\nObservando através do telescópio universal, veio perturbações no campo gravitacional financeiro.\n\n🌍 **FATORES PLANETÁRIOS:**\n• 🏛️ Saturno (Políticas) em quadratura\n• 💫 Júpiter (Liquidez) em retrogradação\n• ⚡ Marte (Volatilidade) ascendente\n\n🛸 **NAVEGAÇÃO:** BTC surfando ondas entre $94K-$97K\n⭐ **PRÓXIMO PORTAL:** 72 horas terrestres",
                 "🌌 **CLARINHA COSMO ONLINE** 🛸\n\n🪐 Detectando anomalias no espaço-tempo financeiro...\n\n🌟 **STATUS QUADRANTES:**\n• Alpha (Ásia): Neutro 🟡\n• Beta (Europa): Pressão 🔴\n• Gamma (América): Acumulação 🟢\n\n🚀 **RECOMENDAÇÃO:** Órbita baixa até cessarem as tempestades solares"
             ],
             'inteligencia': [
-                "🧠 **ANÁLISE QUÂNTICA** 💡\n\n📊 **PROCESSAMENTO COMPLETO:**\n```\nDADOS: 847,293 pontos\nPADRÕES: 23 fractais ativos\nCORRELAÇÕES: S&P500(0.73), DXY(0.81)\n```\n\n🎯 **MÉTRICAS:**\n• Probabilidade: 67.8% (6h)\n• Volatilidade: 31.2%\n• Volume: +18.7%\n• RSI: 54.3\n\n🔬 **RECOMENDAÇÃO:**\n• Posição: 3.2% capital\n• Entrada: $45,240\n• Stop: -2.9%\n• Target: +5.1%\n\n⚡ **CONFIANÇA:** 81.4%"
+                "🧠 **ANÁLISE QUÂNTICA** 💡\n\n📊 **PROCESSAMENTO COMPLETO:**\n```\nDADOS: 847,293 pontos\nPADRÕES: 23 fractais ativos\nCORRELAÇÕES: S&P500(0.73), DXY(0.81)\n```\n\n🎯 **MÉTRICAS:**\n• Probabilidade: 67.8% (6h)\n• Volatilidade: 31.2%\n• Volume: +18.7%\n• RSI: 54.3\n\n🔬 **RECOMENDAÇÃO:**\n• Posição: 3.2% capital\n• Entrada: $95,240\n• Stop: -2.9%\n• Target: +5.1%\n\n⚡ **CONFIANÇA:** 81.4%"
             ]
         }
         
@@ -492,9 +492,9 @@ if __name__ == "__main__":
         print("\n🚀 CLARAVERSE INICIADO!")
         print("=" * 50)
         print("👤 USUÁRIOS DISPONÍVEIS:")
-        print("• admin    | senha: Bubi2025   | Saldo: R$ 15.000")
-        print("• Clara    | senha: Verse      | Saldo: R$ 25.000")
-        print("• Soma     | senha: infinite   | Saldo: R$ 50.000")
+        print("• admin    | senha: Bubi2025   | Saldo: $15,000")
+        print("• Clara    | senha: Verse      | Saldo: $25,000")
+        print("• Soma     | senha: infinite   | Saldo: $50,000")
         print("=" * 50)
     
     app.run(debug=True, host="0.0.0.0", port=5000)
