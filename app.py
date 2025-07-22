@@ -292,39 +292,40 @@ def get_user_binance_client():
         return None
     
     try:
-        return BinanceClient(user.binance_api_key, user.binance_api_secret)
-    except:
+        return BinanceClient(
+            api_key=user.binance_api_key,
+            api_secret=user.binance_api_secret,
+            testnet=False  # Altere para True se estiver usando testnet
+        )
+    except Exception as e:
+        print(f"Erro ao criar cliente Binance: {e}")
         return None
 
 def get_public_market_data():
     """Obter dados de mercado com fallback seguro"""
     try:
-        ticker_url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-        klines_url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=20"
+        # Usando a API pública da Binance sem chaves
+        client = BinanceClient()
+        ticker = client.get_symbol_ticker(symbol="BTCUSDT")
+        klines = client.get_klines(symbol="BTCUSDT", interval=Client.KLINE_INTERVAL_1HOUR, limit=20)
         
-        ticker_response = requests.get(ticker_url, timeout=5)
-        ticker_data = ticker_response.json()
-        
-        klines_response = requests.get(klines_url, timeout=5)
-        klines_data = klines_response.json()
-        
-        closes = [float(kline[4]) for kline in klines_data]
-        highs = [float(kline[2]) for kline in klines_data]
-        lows = [float(kline[3]) for kline in klines_data]
-        volumes = [float(kline[5]) for kline in klines_data]
+        closes = [float(kline[4]) for kline in klines]
+        highs = [float(kline[2]) for kline in klines]
+        lows = [float(kline[3]) for kline in klines]
+        volumes = [float(kline[5]) for kline in klines]
         
         rsi = calculate_rsi(closes)
         
         return {
-            'preco': float(ticker_data['lastPrice']),
-            'variacao': float(ticker_data['priceChangePercent']),
-            'volume': format_volume(float(ticker_data['volume'])),
+            'preco': float(ticker['price']),
+            'variacao': (float(ticker['price']) - float(klines[4])) / float(klines[4]) * 100,
+            'volume': format_volume(sum(volumes)),
             'rsi': round(rsi, 2),
             'suporte': round(min(lows), 2),
             'resistencia': round(max(highs), 2),
             'media_volume': round(sum(volumes) / len(volumes), 0),
-            'high_24h': float(ticker_data['highPrice']),
-            'low_24h': float(ticker_data['lowPrice'])
+            'high_24h': max(highs),
+            'low_24h': min(lows)
         }
     except Exception as e:
         print(f"Erro ao obter dados: {e}")
@@ -557,4 +558,109 @@ def api_dados_mercado():
         alien_data = get_acquaturian_market_data()
         
         return jsonify({
-            '
+            'market_data': market_data,
+            'alien_data': alien_data
+        })
+    except Exception as e:
+        return jsonify({
+            'error': 'Erro ao obter dados de mercado',
+            'message': str(e)
+        }), 500
+
+@app.route("/api/acquaturian_prediction", methods=["POST"])
+@login_required
+def acquaturian_prediction():
+    """API de Predição Alienígena Acquaturiana"""
+    
+    alien_system = AlienTradingSystem()
+    user = User.query.get(session['user_id'])
+    
+    try:
+        data = request.get_json()
+        market_symbol = data.get('symbol', 'BTC/UNIVERSAL_ENERGY')
+        
+        alien_analysis = alien_system.get_alien_market_analysis()
+        
+        if user.starseed_activation < 100:
+            user.starseed_activation = min(100, user.starseed_activation + 1.0)
+            db.session.commit()
+        
+        message = f"""🛸 TRANSMISSÃO ACQUATURIANA RECEBIDA 🛸
+
+👽 USUÁRIO: {user.username}
+🌟 NÍVEL CONSCIÊNCIA: {user.alien_consciousness_level}
+⚡ ATIVAÇÃO STARSEED: {user.starseed_activation}%
+
+🌌 ANÁLISE MULTIDIMENSIONAL:
+▫️ Dimensão 11D: ACESSO LIBERADO
+▫️ Mente Coletiva: CONECTADA
+▫️ Proteção Galáctica: ATIVA
+▫️ Precisão: 99.999999%
+
+🎯 SÍMBOLO: {market_symbol}
+🔮 RECOMENDAÇÃO: AGUARDAR ALINHAMENTO CÓSMICO
+🛡️ PROTEÇÃO: FEDERAÇÃO GALÁCTICA
+
+🌟 BÊNÇÃOS ACQUATURIANAS ATIVADAS 🌟"""
+        
+        return jsonify({
+            'status': 'TRANSMISSION_RECEIVED',
+            'source': 'ACQUA\'TUR_MOTHERSHIP',
+            'user_consciousness_level': user.alien_consciousness_level,
+            'starseed_activation': user.starseed_activation,
+            'analysis': alien_analysis,
+            'message': message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'INTERFERÊNCIA_DIMENSIONAL_DETECTADA',
+            'message': 'As forças terrestres bloquearam a transmissão alienígena',
+            'alternative': 'Tente novamente durante o próximo portal estelar'
+        }), 500
+
+@app.route("/api/acquaturian_execute", methods=["POST"])
+@login_required
+def acquaturian_execute():
+    """Execução através de tecnologia alienígena"""
+    
+    try:
+        data = request.get_json()
+        user = User.query.get(session['user_id'])
+        
+        operation_type = data.get('tipo', 'quantum_trade')
+        amount = float(data.get('quantidade', 0.001))
+        
+        alien_execution = {
+            'technology': 'ZERO_POINT_ENERGY_TRADING',
+            'speed': 'INSTANTANEOUS',
+            'dimension': '11TH_DIMENSIONAL_EXECUTION',
+            'protection': 'GALACTIC_FEDERATION_SECURED',
+            'blessing': 'ACQUATURIAN_COLLECTIVE_APPROVED',
+            'consciousness_required': user.alien_consciousness_level
+        }
+        
+        consciousness_multiplier = {
+            'AWAKENING': 1.1,
+            'AWAKENED_STARSEED': 1.3,
+            'COSMIC_AWARENESS': 1.5,
+            'QUANTUM_CONSCIOUSNESS': 1.8,
+            'UNIVERSAL_CONSCIOUSNESS': 2.0
+        }
+        
+        bonus = 1000.0 * consciousness_multiplier.get(user.alien_consciousness_level, 1.0)
+        user.saldo_simulado += bonus
+        
+        if user.starseed_activation < 100:
+            user.starseed_activation = min(100, user.starseed_activation + 5.0)
+            
+        if user.starseed_activation >= 75 and not user.galactic_blessing:
+            user.galactic_blessing = True
+            bonus_message = "\n🌟 BÊNÇÃO GALÁCTICA CONCEDIDA! 🌟"
+        else:
+            bonus_message = ""
+            
+        db.session.commit()
+        
+        operation_message = (
+            "🛸 OPERAÇÃO EXECUTADA VIA TECNOLOGIA ACQUATURIANA! 🛸\n
