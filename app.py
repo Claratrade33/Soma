@@ -31,7 +31,7 @@ class User(db.Model):
 
 # DECORADOR DE PROTEÇÃO DE ROTAS
 def login_required(f):
-    """Decorador para proteger rotas que requerem autenticação"""[1]
+    """Decorador para proteger rotas que requerem autenticação"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -47,6 +47,53 @@ def login_required(f):
             
         return f(*args, **kwargs)
     return decorated_function
+
+def create_default_users():
+    """Cria usuários padrão do sistema"""[1]
+    default_users = [
+        {
+            'username': 'admin',
+            'email': 'admin@claraverse.com',
+            'password': 'Bubi2025',
+            'saldo': 15000.0,
+            'is_premium': True
+        },
+        {
+            'username': 'Clara',
+            'email': 'clara@claraverse.com', 
+            'password': 'Verse',
+            'saldo': 25000.0,
+            'is_premium': True
+        },
+        {
+            'username': 'Soma',
+            'email': 'soma@claraverse.com',
+            'password': 'infinite',
+            'saldo': 50000.0,
+            'is_premium': True
+        }
+    ]
+    
+    for user_data in default_users:
+        # Verificar se usuário já existe
+        existing_user = User.query.filter_by(username=user_data['username']).first()
+        
+        if not existing_user:
+            new_user = User(
+                username=user_data['username'],
+                email=user_data['email'],
+                password=generate_password_hash(user_data['password']),
+                saldo_simulado=user_data['saldo'],
+                is_premium=user_data['is_premium']
+            )
+            db.session.add(new_user)
+    
+    try:
+        db.session.commit()
+        print("✅ Usuários padrão criados com sucesso!")
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erro ao criar usuários: {e}")
 
 def get_user_binance_client():
     user_id = session.get('user_id')
@@ -142,7 +189,7 @@ def calculate_rsi(prices, period=14):
     
     return rsi
 
-# ROTAS PRINCIPAIS CORRIGIDAS
+# ROTAS PRINCIPAIS
 @app.route("/")
 def index():
     """Rota principal - redireciona conforme autenticação"""
@@ -152,7 +199,7 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Rota de registro com validação aprimorada"""[3]
+    """Rota de registro com validação aprimorada"""
     if request.method == "POST":
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
@@ -163,7 +210,7 @@ def register():
             flash('Todos os campos são obrigatórios!', 'error')
             return render_template("register.html")
         
-        # Validação de username[3]
+        # Validação de username[2]
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username deve conter apenas letras, números e underscore!', 'error')
             return render_template("register.html")
@@ -203,25 +250,28 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Rota de login com segurança aprimorada"""[1]
+    """Rota de login com suporte a username ou email"""[2]
     # Se já estiver logado, redirecionar
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
     if request.method == "POST":
-        email = request.form.get('email', '').strip()
+        login_field = request.form.get('username', '').strip()  # Pode ser username ou email
         password = request.form.get('password', '')
         
         # Validação básica
-        if not email or not password:
-            flash('Email e senha são obrigatórios!', 'error')
+        if not login_field or not password:
+            flash('Login e senha são obrigatórios!', 'error')
             return render_template("login.html")
         
         try:
-            user = User.query.filter_by(email=email).first()
+            # Buscar por username ou email[2]
+            user = User.query.filter(
+                (User.username == login_field) | (User.email == login_field)
+            ).first()
             
             if user and check_password_hash(user.password, password):
-                # Login bem-sucedido - criar sessão segura
+                # Login bem-sucedido - criar sessão segura[3]
                 session.permanent = True
                 session['user_id'] = user.id
                 session['username'] = user.username
@@ -235,16 +285,17 @@ def login():
                     return redirect(next_page)
                 return redirect(url_for('dashboard'))
             else:
-                flash('🚫 Email ou senha incorretos!', 'error')
+                flash('🚫 Login ou senha incorretos!', 'error')
                 
         except Exception as e:
             flash('Erro no sistema. Tente novamente.', 'error')
+            print(f"Erro no login: {e}")
     
     return render_template("login.html")
 
 @app.route("/logout")
 def logout():
-    """Rota de logout segura"""[3]
+    """Rota de logout segura"""[2]
     username = session.get('username', 'Usuário')
     session.clear()
     flash(f'👋 Até logo, {username}!', 'info')
@@ -253,7 +304,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    """Dashboard principal - protegido por decorador"""[1]
+    """Dashboard principal - protegido por decorador"""
     user = User.query.get(session['user_id'])
     market_data = get_public_market_data()
     
@@ -437,3 +488,13 @@ def internal_error(error):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        create_default_users()  # Criar usuários padrão
+        print("\n🚀 CLARAVERSE INICIADO!")
+        print("=" * 50)
+        print("👤 USUÁRIOS DISPONÍVEIS:")
+        print("• admin    | senha: Bubi2025   | Saldo: R$ 15.000")
+        print("• Clara    | senha: Verse      | Saldo: R$ 25.000")
+        print("• Soma     | senha: infinite   | Saldo: R$ 50.000")
+        print("=" * 50)
+    
+    app.run(debug=True, host="0.0.0.0", port=5000)
