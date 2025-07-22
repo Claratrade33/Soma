@@ -7,13 +7,16 @@ import requests
 import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import re
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'claraverse_secret_key_2025'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///claraverse.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_quantum_secret_2025')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# MODELO DE USUÁRIO
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -25,6 +28,25 @@ class User(db.Model):
     saldo_simulado = db.Column(db.Float, default=10000.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_premium = db.Column(db.Boolean, default=False)
+
+# DECORADOR DE PROTEÇÃO DE ROTAS
+def login_required(f):
+    """Decorador para proteger rotas que requerem autenticação"""[1]
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Você precisa fazer login para acessar esta página!', 'warning')
+            return redirect(url_for('login'))
+        
+        # Verificar se usuário ainda existe no banco
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            flash('Sessão inválida. Faça login novamente.', 'error')
+            return redirect(url_for('login'))
+            
+        return f(*args, **kwargs)
+    return decorated_function
 
 def get_user_binance_client():
     user_id = session.get('user_id')
@@ -45,10 +67,10 @@ def get_public_market_data():
         ticker_url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
         klines_url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=20"
         
-        ticker_response = requests.get(ticker_url)
+        ticker_response = requests.get(ticker_url, timeout=10)
         ticker_data = ticker_response.json()
         
-        klines_response = requests.get(klines_url)
+        klines_response = requests.get(klines_url, timeout=10)
         klines_data = klines_response.json()
         
         closes = [float(kline[4]) for kline in klines_data]
@@ -120,68 +142,119 @@ def calculate_rsi(prices, period=14):
     
     return rsi
 
-# ROTAS PRINCIPAIS
+# ROTAS PRINCIPAIS CORRIGIDAS
 @app.route("/")
 def index():
+    """Rota principal - redireciona conforme autenticação"""
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
     return render_template("index.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """Rota de registro com validação aprimorada"""[3]
     if request.method == "POST":
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         
+        # Validação de entrada
+        if not username or not email or not password:
+            flash('Todos os campos são obrigatórios!', 'error')
+            return render_template("register.html")
+        
+        # Validação de username[3]
+        if not re.match(r'^[A-Za-z0-9_]+$', username):
+            flash('Username deve conter apenas letras, números e underscore!', 'error')
+            return render_template("register.html")
+        
+        # Validação de email
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            flash('Email inválido!', 'error')
+            return render_template("register.html")
+        
+        # Verificar duplicatas
         if User.query.filter_by(username=username).first():
-            flash('Usuário já existe!')
-            return redirect(url_for('register'))
+            flash('Username já existe! Escolha outro.', 'error')
+            return render_template("register.html")
         
         if User.query.filter_by(email=email).first():
-            flash('Email já cadastrado!')
-            return redirect(url_for('register'))
+            flash('Email já cadastrado! Use outro email.', 'error')
+            return render_template("register.html")
         
-        user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password)
-        )
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Usuário criado com sucesso!')
-        return redirect(url_for('login'))
+        try:
+            user = User(
+                username=username,
+                email=email,
+                password=generate_password_hash(password)
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            flash('🎉 Conta criada com sucesso! Faça login para continuar.', 'success')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Erro ao criar conta. Tente novamente.', 'error')
+            return render_template("register.html")
     
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Rota de login com segurança aprimorada"""[1]
+    # Se já estiver logado, redirecionar
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    
     if request.method == "POST":
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         
-        user = User.query.filter_by(email=email).first()
+        # Validação básica
+        if not email or not password:
+            flash('Email e senha são obrigatórios!', 'error')
+            return render_template("login.html")
         
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Credenciais inválidas!')
+        try:
+            user = User.query.filter_by(email=email).first()
+            
+            if user and check_password_hash(user.password, password):
+                # Login bem-sucedido - criar sessão segura
+                session.permanent = True
+                session['user_id'] = user.id
+                session['username'] = user.username
+                session['logged_in'] = True
+                
+                flash(f'🚀 Bem-vindo(a), {user.username}!', 'success')
+                
+                # Redirecionar para página solicitada ou dashboard
+                next_page = request.args.get('next')
+                if next_page and next_page.startswith('/'):
+                    return redirect(next_page)
+                return redirect(url_for('dashboard'))
+            else:
+                flash('🚫 Email ou senha incorretos!', 'error')
+                
+        except Exception as e:
+            flash('Erro no sistema. Tente novamente.', 'error')
     
     return render_template("login.html")
 
 @app.route("/logout")
 def logout():
+    """Rota de logout segura"""[3]
+    username = session.get('username', 'Usuário')
     session.clear()
+    flash(f'👋 Até logo, {username}!', 'info')
     return redirect(url_for('index'))
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    user_id = session.get('user_id')
-    if not user_id:
-        return redirect(url_for('login'))
-    
-    user = User.query.get(user_id)
+    """Dashboard principal - protegido por decorador"""[1]
+    user = User.query.get(session['user_id'])
     market_data = get_public_market_data()
     
     return render_template("dashboard.html", 
@@ -190,36 +263,40 @@ def dashboard():
                          market_data=market_data)
 
 @app.route("/configurar", methods=["GET", "POST"])
+@login_required
 def configurar():
-    user_id = session.get('user_id')
-    if not user_id:
-        return redirect(url_for('login'))
-    
-    user = User.query.get(user_id)
+    """Rota de configurações - protegida"""
+    user = User.query.get(session['user_id'])
     
     if request.method == "POST":
-        user.binance_api_key = request.form.get('binance_api_key', '').strip()
-        user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
-        user.openai_api_key = request.form.get('openai_api_key', '').strip()
-        
-        db.session.commit()
-        flash('🚀 Configurações atualizadas com sucesso!')
-        return redirect(url_for('dashboard'))
+        try:
+            # Sanitizar entrada
+            user.binance_api_key = request.form.get('binance_api_key', '').strip()
+            user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
+            user.openai_api_key = request.form.get('openai_api_key', '').strip()
+            
+            db.session.commit()
+            flash('🚀 Configurações atualizadas com sucesso!', 'success')
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Erro ao salvar configurações. Tente novamente.', 'error')
     
     return render_template("configurar.html", user=user)
 
-# APIS DO DASHBOARD
+# APIS DO DASHBOARD - TODAS PROTEGIDAS
 @app.route("/api/dados_mercado")
+@login_required
 def dados_mercado():
+    """API para dados de mercado"""
     return jsonify(get_public_market_data())
 
 @app.route("/api/saldo")
+@login_required
 def api_saldo():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'erro': 'Usuário não logado'}), 401
-    
-    user = User.query.get(user_id)
+    """API para saldo do usuário"""
+    user = User.query.get(session['user_id'])
     
     if user.binance_api_key:
         client = get_user_binance_client()
@@ -228,110 +305,135 @@ def api_saldo():
                 account_info = client.get_account()
                 usdt_balance = next((item for item in account_info['balances'] if item['asset'] == 'USDT'), None)
                 return jsonify({'saldo': usdt_balance['free'] if usdt_balance else '0', 'tipo': 'real'})
-            except:
-                pass
+            except Exception as e:
+                print(f"Erro Binance API: {e}")
     
     return jsonify({'saldo': f"{user.saldo_simulado:.2f}", 'tipo': 'simulado'})
 
 @app.route("/api/sugestao_ia", methods=["POST"])
+@login_required
 def sugestao_ia():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'erro': 'Usuário não logado'}), 401
+    """API para sugestões de IA"""
+    user = User.query.get(session['user_id'])
     
-    user = User.query.get(user_id)
-    data = request.json
-    prompt = data.get('prompt', '')
-    contexto = data.get('contexto', 'oraculo')
-    
-    if user.openai_api_key:
-        try:
-            openai.api_key = user.openai_api_key
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=600,
-                temperature=0.7
-            )
-            return jsonify({'resposta': response.choices.message.content})
-        except Exception as e:
-            return jsonify({'erro': f'Erro na API OpenAI: {str(e)}'}), 500
-    
-    # Respostas simuladas por contexto
-    respostas_contexto = {
-        'oraculo': [
-            "🔮 **VISÃO ORÁCULO** ✨\n\n🌟 **PREVISÃO MÍSTICA:**\nAs energias cósmicas revelam turbulência no éter digital! O BTC navega entre dimensões paralelas.\n\n⚡ **TRÊS CENÁRIOS REVELADOS:**\n• **🚀 ASCENSÃO:** Rompimento da barreira etérea → +7.3%\n• **⚖️ EQUILÍBRIO:** Dança entre portais dimensionais\n• **📉 PURIFICAÇÃO:** Teste das forças anciãs → -4.8%\n\n🎯 **ENTRADA SAGRADA:** Aguardar o alinhamento dos cristais\n🛡️ **PROTEÇÃO MÁGICA:** Escudo em 3.2% abaixo\n⏰ **CICLO TEMPORAL:** 4-8 horas terrestres\n\n✨ **CONFIANÇA ORÁCULO:** 79% das visões se alinham",
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'erro': 'Dados JSON inválidos'}), 400
             
-            "🔮 **MENSAGEM DO ORÁCULO** 🌟\n\n✨ Os ventos cósmicos sussurram mudanças... O RSI dança entre 42-58, zona de transição espiritual!\n\n🔥 **RITUAIS RECOMENDADOS:**\n• **MEDITAÇÃO:** Aguardar sinais mais claros\n• **PROTEÇÃO:** Stop em território sagrado\n• **MANIFESTAÇÃO:** Alvo nas constelações superiores\n\n🌙 **FASE LUNAR:** Crescente de oportunidades\n⭐ **ENERGIA DOMINANTE:** Paciência e precisão"
-        ],
+        prompt = data.get('prompt', '').strip()
+        contexto = data.get('contexto', 'oraculo')
         
-        'cosmo': [
-            "🌌 **TRANSMISSÃO CÓSMICA** 🪐\n\n🔭 **ANÁLISE INTER-DIMENSIONAL:**\nObservando através do telescópio universal, vejo perturbações no campo gravitacional financeiro. As forças macro-econômicas estão em dança celestial complexa.\n\n🌍 **FATORES PLANETÁRIOS EM AÇÃO:**\n• 🏛️ Saturno (Políticas Monetárias) em quadratura\n• 💫 Júpiter (Liquidez Global) em retrogradação\n• ⚡ Marte (Volatilidade) ascendente\n• 🌙 Lua (Sentimento) em eclipse parcial\n\n🛸 **NAVEGAÇÃO INTERGALÁCTICA:**\nAs correntes estelares sugerem cautela nos próximos parsecs. O BTC está surfando ondas gravitacionais entre $44K-$47K.\n\n⭐ **CONSTELAÇÃO DOMINANTE:** Paciência Cósmica\n🌟 **PRÓXIMO PORTAL:** 72 horas terrestres",
-            
-            "🌌 **CLARINHA COSMO ONLINE** 🛸\n\n🪐 Detectando anomalias no espaço-tempo financeiro... Os buracos negros institucionais estão sugando liquidez!\n\n🌟 **STATUS DOS QUADRANTES:**\n• Quadrante Alpha (Ásia): Energia neutra 🟡\n• Quadrante Beta (Europa): Pressão vendedora 🔴\n• Quadrante Gamma (América): Acumulação 🟢\n\n🚀 **RECOMENDAÇÃO UNIVERSAL:**\nMantenham órbita baixa até que as tempestades solares cessem. O cosmos nos enviará sinais mais claros quando Mercúrio sair da retrogradação financeira.\n\n🔮 **PROBABILIDADE CÓSMICA:** Aguardar 67%"
-        ],
+        if not prompt:
+            return jsonify({'erro': 'Prompt é obrigatório'}), 400
         
-        'inteligencia': [
-            "🧠 **ANÁLISE QUÂNTICA ATIVADA** 💡\n\n📊 **PROCESSAMENTO NEURAL COMPLETO:**\n```\nDADOS PROCESSADOS: 847,293 pontos\nPADRÕES IDENTIFICADOS: 23 fractais ativos\nCORRELAÇÕES: 0.73 com S&P500, 0.81 com DXY\n```\n\n🎯 **MÉTRICAS CRÍTICAS:**\n• **Probabilidade Alta:** 67.8% (próximas 6h)\n• **Volatilidade Implícita:** 31.2%\n• **Volume Anômalo:** +18.7% acima da média\n• **Força Relativa:** RSI(14) = 54.3\n\n🔬 **ALGORITMO RECOMENDA:**\n• **POSIÇÃO:** 3.2% do capital total\n• **ENTRADA:** $45,240 ± $50\n• **STOP LOSS:** -2.9% ($43,870)\n• **TAKE PROFIT:** +5.1% ($47,550)\n\n⚡ **CONFIANÇA ALGORÍTMICA:** 81.4%",
-            
-            "🧠 **SISTEMA NEURAL ONLINE** 📈\n\n💾 **SCAN COMPLETO EXECUTADO:**\n```\nAnalysing 1,247,891 data points...\nPattern recognition: ACTIVE\nRisk assessment: CALCULATED\nProbability matrix: UPDATED\n```\n\n🔢 **INDICADORES QUÂNTICOS:**\n• **Sharpe Ratio Projetado:** 2.17\n• **Drawdown Máximo:** 3.8%\n• **Win Rate Histórico:** 74.2%\n• **Média de Retorno:** +4.6%\n\n🎯 **ESTRATÉGIA OTIMIZADA:**\nEsperar breakout com volume confirmado. Modelo indica 79.3% de sucesso com confluência de 3+ indicadores.\n\n⚗️ **PRECISÃO CALCULADA:** 84.7%"
-        ]
-    }
-    
-    import random
-    return jsonify({'resposta': random.choice(respostas_contexto.get(contexto, respostas_contexto['oraculo']))})
+        if user.openai_api_key:
+            try:
+                openai.api_key = user.openai_api_key
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=600,
+                    temperature=0.7
+                )
+                return jsonify({'resposta': response.choices.message.content})
+            except Exception as e:
+                print(f"Erro OpenAI: {e}")
+                return jsonify({'erro': 'Erro na API OpenAI. Verifique sua chave.'}), 500
+        
+        # Respostas simuladas por contexto
+        respostas_contexto = {
+            'oraculo': [
+                "🔮 **VISÃO ORÁCULO** ✨\n\n🌟 **PREVISÃO MÍSTICA:**\nAs energias cósmicas revelam turbulência no éter digital! O BTC navega entre dimensões paralelas.\n\n⚡ **TRÊS CENÁRIOS REVELADOS:**\n• **🚀 ASCENSÃO:** Rompimento da barreira etérea → +7.3%\n• **⚖️ EQUILÍBRIO:** Dança entre portais dimensionais\n• **📉 PURIFICAÇÃO:** Teste das forças anciãs → -4.8%\n\n🎯 **ENTRADA SAGRADA:** Aguardar o alinhamento dos cristais\n🛡️ **PROTEÇÃO MÁGICA:** Escudo em 3.2% abaixo\n⏰ **CICLO TEMPORAL:** 4-8 horas terrestres\n\n✨ **CONFIANÇA ORÁCULO:** 79% das visões se alinham",
+                "🔮 **MENSAGEM DO ORÁCULO** 🌟\n\n✨ Os ventos cósmicos sussurram mudanças... O RSI dança entre 42-58, zona de transição espiritual!\n\n🔥 **RITUAIS RECOMENDADOS:**\n• **MEDITAÇÃO:** Aguardar sinais mais claros\n• **PROTEÇÃO:** Stop em território sagrado\n• **MANIFESTAÇÃO:** Alvo nas constelações superiores\n\n🌙 **FASE LUNAR:** Crescente de oportunidades\n⭐ **ENERGIA DOMINANTE:** Paciência e precisão"
+            ],
+            'cosmo': [
+                "🌌 **TRANSMISSÃO CÓSMICA** 🪐\n\n🔭 **ANÁLISE INTER-DIMENSIONAL:**\nObservando através do telescópio universal, vejo perturbações no campo gravitacional financeiro.\n\n🌍 **FATORES PLANETÁRIOS:**\n• 🏛️ Saturno (Políticas) em quadratura\n• 💫 Júpiter (Liquidez) em retrogradação\n• ⚡ Marte (Volatilidade) ascendente\n\n🛸 **NAVEGAÇÃO:** BTC surfando ondas entre $44K-$47K\n⭐ **PRÓXIMO PORTAL:** 72 horas terrestres",
+                "🌌 **CLARINHA COSMO ONLINE** 🛸\n\n🪐 Detectando anomalias no espaço-tempo financeiro...\n\n🌟 **STATUS QUADRANTES:**\n• Alpha (Ásia): Neutro 🟡\n• Beta (Europa): Pressão 🔴\n• Gamma (América): Acumulação 🟢\n\n🚀 **RECOMENDAÇÃO:** Órbita baixa até cessarem as tempestades solares"
+            ],
+            'inteligencia': [
+                "🧠 **ANÁLISE QUÂNTICA** 💡\n\n📊 **PROCESSAMENTO COMPLETO:**\n```\nDADOS: 847,293 pontos\nPADRÕES: 23 fractais ativos\nCORRELAÇÕES: S&P500(0.73), DXY(0.81)\n```\n\n🎯 **MÉTRICAS:**\n• Probabilidade: 67.8% (6h)\n• Volatilidade: 31.2%\n• Volume: +18.7%\n• RSI: 54.3\n\n🔬 **RECOMENDAÇÃO:**\n• Posição: 3.2% capital\n• Entrada: $45,240\n• Stop: -2.9%\n• Target: +5.1%\n\n⚡ **CONFIANÇA:** 81.4%"
+            ]
+        }
+        
+        import random
+        return jsonify({'resposta': random.choice(respostas_contexto.get(contexto, respostas_contexto['oraculo']))})
+        
+    except Exception as e:
+        return jsonify({'erro': 'Erro interno do servidor'}), 500
 
 @app.route("/api/executar_operacao", methods=["POST"])
+@login_required
 def executar_operacao():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'erro': 'Usuário não logado'}), 401
+    """API para execução de operações"""
+    user = User.query.get(session['user_id'])
     
-    user = User.query.get(user_id)
-    data = request.json
-    tipo = data.get('tipo')
-    quantidade = data.get('quantidade', 0.001)
-    
-    if user.binance_api_key:
-        client = get_user_binance_client()
-        if client:
-            try:
-                if tipo == 'comprar':
-                    order = client.order_market_buy(symbol='BTCUSDT', quantity=quantidade)
-                elif tipo == 'vender':
-                    order = client.order_market_sell(symbol='BTCUSDT', quantity=quantidade)
-                else:
-                    return jsonify({'erro': 'Tipo de operação inválido'}), 400
-                
-                return jsonify({
-                    'mensagem': f'✅ {tipo.capitalize()} executada com sucesso!', 
-                    'detalhes': order,
-                    'tipo': 'real'
-                })
-            except Exception as e:
-                return jsonify({'erro': f'Erro na execução: {str(e)}'}), 500
-    
-    # Simulação
-    market_data = get_public_market_data()
-    preco_atual = market_data['preco']
-    valor_operacao = preco_atual * quantidade
-    
-    if tipo == 'comprar':
-        if user.saldo_simulado >= valor_operacao:
-            user.saldo_simulado -= valor_operacao
-            mensagem = f'🚀 Compra simulada! -{valor_operacao:.2f} USDT'
-        else:
-            return jsonify({'erro': 'Saldo insuficiente'}), 400
-    elif tipo == 'vender':
-        user.saldo_simulado += valor_operacao
-        mensagem = f'💰 Venda simulada! +{valor_operacao:.2f} USDT'
-    else:
-        return jsonify({'erro': 'Tipo de operação inválido'}), 400
-    
-    db.session.commit()
-    return jsonify({'mensagem': mensagem, 'tipo': 'simulado'})
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'erro': 'Dados JSON inválidos'}), 400
+            
+        tipo = data.get('tipo')
+        quantidade = float(data.get('quantidade', 0.001))
+        
+        if tipo not in ['comprar', 'vender']:
+            return jsonify({'erro': 'Tipo de operação inválido'}), 400
+            
+        if quantidade <= 0:
+            return jsonify({'erro': 'Quantidade deve ser maior que zero'}), 400
+        
+        # Tentar operação real primeiro
+        if user.binance_api_key:
+            client = get_user_binance_client()
+            if client:
+                try:
+                    if tipo == 'comprar':
+                        order = client.order_market_buy(symbol='BTCUSDT', quantity=quantidade)
+                    else:
+                        order = client.order_market_sell(symbol='BTCUSDT', quantity=quantidade)
+                    
+                    return jsonify({
+                        'mensagem': f'✅ {tipo.capitalize()} executada com sucesso!', 
+                        'detalhes': order,
+                        'tipo': 'real'
+                    })
+                except Exception as e:
+                    print(f"Erro Binance: {e}")
+                    # Fallback para simulação
+        
+        # Operação simulada
+        market_data = get_public_market_data()
+        preco_atual = market_data['preco']
+        valor_operacao = preco_atual * quantidade
+        
+        if tipo == 'comprar':
+            if user.saldo_simulado >= valor_operacao:
+                user.saldo_simulado -= valor_operacao
+                mensagem = f'🚀 Compra simulada! -{valor_operacao:.2f} USDT'
+            else:
+                return jsonify({'erro': 'Saldo insuficiente'}), 400
+        else:  # vender
+            user.saldo_simulado += valor_operacao
+            mensagem = f'💰 Venda simulada! +{valor_operacao:.2f} USDT'
+        
+        db.session.commit()
+        return jsonify({'mensagem': mensagem, 'tipo': 'simulado'})
+        
+    except ValueError:
+        return jsonify({'erro': 'Quantidade inválida'}), 400
+    except Exception as e:
+        return jsonify({'erro': 'Erro interno do servidor'}), 500
+
+# TRATAMENTO DE ERROS
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host="0.0.0.0", port=5000)
