@@ -59,6 +59,7 @@
             margin-bottom: 20px;
             font-size: 0.9em;
             text-align: center;
+            transition: opacity 0.3s ease;
         }
 
         .alert-success {
@@ -184,6 +185,8 @@
         .divider span {
             background: rgba(10, 10, 15, 0.9);
             padding: 0 15px;
+            position: relative;
+            z-index: 1;
         }
 
         @media (max-width: 480px) {
@@ -204,7 +207,7 @@
             <p>QUANTUM TRADING PORTAL</p>
         </div>
 
-        <!-- Exibir mensagens flash -->
+        <!-- Mensagens do sistema -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -223,6 +226,7 @@
                     placeholder="Digite seu usuário ou email"
                     required
                     autocomplete="username"
+                    autofocus
                 >
             </div>
 
@@ -255,11 +259,6 @@
     </div>
 
     <script>
-        // Focar no primeiro campo ao carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('username').focus();
-        });
-
         // Validação básica no frontend
         document.querySelector('form').addEventListener('submit', function(e) {
             const username = document.getElementById('username').value.trim();
@@ -278,7 +277,7 @@
                 setTimeout(() => {
                     alert.style.opacity = '0';
                     setTimeout(() => {
-                        alert.remove();
+                        alert.style.display = 'none';
                     }, 300);
                 }, 5000);
             });
