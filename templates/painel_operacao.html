@@ -3,121 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClaraVerse - Trading Real</title>
+    <title>ClaraVerse - Trading Inteligente</title>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
-        .price-up { color: #00d4aa; }
-        .price-down { color: #ff6b6b; }
-        .card-crypto { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-br { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .live-indicator { 
-            width: 10px; 
-            height: 10px; 
-            background: #00d4aa; 
-            border-radius: 50%; 
+        :root {
+            --primary-color: #667eea;
+            --success-color: #00d4aa;
+            --danger-color: #ff6b6b;
+            --warning-color: #ffa726;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: rgba(22, 33, 62, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .price-up {
+            color: var(--success-color);
+            animation: flash-green 1s ease-in-out;
+        }
+
+        .price-down {
+            color: var(--danger-color);
+            animation: flash-red 1s ease-in-out;
+        }
+
+        @keyframes flash-green {
+            0%, 100% { color: var(--success-color); }
+            50% { color: white; }
+        }
+
+        @keyframes flash-red {
+            0%, 100% { color: var(--danger-color); }
+            50% { color: white; }
+        }
+
+        .live-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--success-color);
+            border-radius: 50%;
             animation: pulse 2s infinite;
+            display: inline-block;
         }
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
         }
+
+        .cosmic-signal {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            text-align: center;
+            margin: 5px;
+        }
+
+        .signal-strong-buy { background: linear-gradient(45deg, #00d4aa, #4ade80); }
+        .signal-buy { background: linear-gradient(45deg, #4ade80, #22c55e); }
+        .signal-neutral { background: linear-gradient(45deg, #64748b, #94a3b8); }
+        .signal-sell { background: linear-gradient(45deg, #f59e0b, #fbbf24); }
+        .signal-strong-sell { background: linear-gradient(45deg, #ef4444, #dc2626); }
+
+        .trade-button {
+            border-radius: 25px;
+            padding: 10px 25px;
+            border: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .trade-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .analysis-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .confidence-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--danger-color), var(--warning-color), var(--success-color));
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confidence-level {
+            background: rgba(255, 255, 255, 0.3);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success { background: var(--success-color); }
+        .notification.error { background: var(--danger-color); }
+        .notification.info { background: var(--primary-color); }
+
+        .market-chart {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .trade-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status-connected { color: var(--success-color); }
+        .status-disconnected { color: var(--danger-color); }
     </style>
 </head>
-<body class="bg-dark text-light">
-    <div class="container-fluid">
-        <!-- Header -->
+
+<body>
+    <div class="container-fluid p-4">
+        <!-- Header com Status -->
         <div class="row mb-4">
             <div class="col-12">
-                <nav class="navbar navbar-dark bg-primary rounded">
-                    <span class="navbar-brand">
-                        <div class="live-indicator d-inline-block me-2"></div>
-                        ClaraVerse - Trading Ao Vivo
-                    </span>
-                    <span class="text-light">
-                        Bem-vindo, {{ user.username }} | Saldo: R$ {{ "{:,.2f}".format(user.saldo_simulado) }}
-                        <a href="/logout" class="btn btn-outline-light btn-sm ms-2">Sair</a>
-                    </span>
+                <nav class="navbar navbar-expand-lg card">
+                    <div class="container-fluid">
+                        <span class="navbar-brand h1 mb-0">
+                            <div class="live-indicator me-2"></div>
+                            🌌 ClaraVerse - Sistema Inteligente de Trading
+                        </span>
+                        <div class="navbar-nav">
+                            <span class="nav-link text-light">
+                                Olá, <strong>{{ user.username }}</strong> | 
+                                Saldo: <span class="text-success">R$ {{ "{:,.2f}".format(user.saldo_simulado) }}</span>
+                                <span id="connection-status" class="ms-3 status-connected">
+                                    <i class="bi bi-wifi"></i> Conectado
+                                </span>
+                            </span>
+                            <a href="/logout" class="btn btn-outline-light btn-sm ms-2">
+                                <i class="bi bi-box-arrow-right"></i> Sair
+                            </a>
+                        </div>
+                    </div>
                 </nav>
             </div>
         </div>
 
-        <!-- Mercado Crypto -->
+        <!-- Mercado Crypto em Tempo Real -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card card-crypto text-white">
+            <div class="col-xl-8">
+                <div class="card">
                     <div class="card-header">
-                        <h5><i class="bi bi-currency-bitcoin"></i> Criptomoedas</h5>
+                        <h5><i class="bi bi-currency-bitcoin text-warning"></i> Mercado de Criptomoedas - Tempo Real</h5>
+                        <small class="text-muted">Última atualização: <span id="last-update">{{ datetime.now().strftime('%H:%M:%S') }}</span></small>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-6">
-                                <h6>Bitcoin (BTC)</h6>
-                                <h3 id="btc-price">${{ "{:,.2f}".format(crypto_data.BTC.price) }}</h3>
-                                <span id="btc-change" class="{% if crypto_data.BTC.change_24h > 0 %}price-up{% else %}price-down{% endif %}">
-                                    {{ "{:+.2f}".format(crypto_data.BTC.change_24h) }}%
-                                </span>
+                        <div class="row" id="crypto-data">
+                            {% for symbol, data in crypto_data.items() %}
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted">{{ symbol }}</h6>
+                                    <h4 id="{{ symbol.lower() }}-price">${{ "{:,.2f}".format(data.price) }}</h4>
+                                    <span id="{{ symbol.lower() }}-change" 
+                                          class="{% if data.change_24h > 0 %}price-up{% else %}price-down{% endif %}">
+                                        {{ "{:+.2f}".format(data.change_24h) }}%
+                                    </span>
+                                    <div class="mt-2">
+                                        <small class="text-muted">RSI: <span id="{{ symbol.lower() }}-rsi">{{ data.rsi }}</span></small>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button class="btn btn-success btn-sm trade-button" 
+                                                onclick="quickTrade('{{ symbol }}USDT', 'BUY')">
+                                            <i class="bi bi-arrow-up-circle"></i> Comprar
+                                        </button>
+                                        <button class="btn btn-danger btn-sm trade-button" 
+                                                onclick="quickTrade('{{ symbol }}USDT', 'SELL')">
+                                            <i class="bi bi-arrow-down-circle"></i> Vender
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-6">
-                                <h6>Ethereum (ETH)</h6>
-                                <h3 id="eth-price">${{ "{:,.2f}".format(crypto_data.ETH.price) }}</h3>
-                                <span id="eth-change" class="{% if crypto_data.ETH.change_24h > 0 %}price-up{% else %}price-down{% endif %}">
-                                    {{ "{:+.2f}".format(crypto_data.ETH.change_24h) }}%
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-6">
-                                <button class="btn btn-success btn-sm" onclick="executeTrade('BTCUSDT', 'BUY')">
-                                    Comprar BTC
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="executeTrade('BTCUSDT', 'SELL')">
-                                    Vender BTC
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button class="btn btn-success btn-sm" onclick="executeTrade('ETHUSDT', 'BUY')">
-                                    Comprar ETH
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="executeTrade('ETHUSDT', 'SELL')">
-                                    Vender ETH
-                                </button>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Mercado Brasileiro -->
-            <div class="col-md-6">
-                <div class="card card-br text-white">
+            <div class="col-xl-4">
+                <div class="card">
                     <div class="card-header">
-                        <h5><i class="bi bi-graph-up"></i> Mercado Brasileiro</h5>
+                        <h5><i class="bi bi-flag text-success"></i> Mercado Brasileiro</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-4">
-                                <h6>Ibovespa</h6>
-                                <h4 id="ibov-price">{{ "{:,.0f}".format(br_data.IBOV.price) }}</h4>
-                                <span id="ibov-change" class="{% if br_data.IBOV.change_percent > 0 %}price-up{% else %}price-down{% endif %}">
-                                    {{ "{:+.2f}".format(br_data.IBOV.change_percent) }}%
-                                </span>
+                            <div class="col-12 mb-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted">Ibovespa</h6>
+                                    <h4 id="ibov-price">{{ "{:,.0f}".format(br_data.IBOV.price) }}</h4>
+                                    <span id="ibov-change" 
+                                          class="{% if br_data.IBOV.change_percent > 0 %}price-up{% else %}price-down{% endif %}">
+                                        {{ "{:+.2f}".format(br_data.IBOV.change_percent) }}%
+                                    </span>
+                                </div>
                             </div>
-                            <div class="col-4">
-                                <h6>Dólar</h6>
-                                <h4 id="usd-price">R$ {{ "{:.2f}".format(br_data.USD_BRL.price) }}</h4>
-                                <span id="usd-change" class="{% if br_data.USD_BRL.change_percent > 0 %}price-down{% else %}price-up{% endif %}">
-                                    {{ "{:+.2f}".format(br_data.USD_BRL.change_percent) }}%
-                                </span>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6 class="text-muted">USD/BRL</h6>
+                                    <h5 id="usd-price">R$ {{ "{:.2f}".format(br_data.USD_BRL.price) }}</h5>
+                                    <small id="usd-change" 
+                                           class="{% if br_data.USD_BRL.change_percent > 0 %}price-down{% else %}price-up{% endif %}">
+                                        {{ "{:+.2f}".format(br_data.USD_BRL.change_percent) }}%
+                                    </small>
+                                </div>
                             </div>
-                            <div class="col-4">
-                                <h6>Petrobras</h6>
-                                <h4 id="petr-price">R$ {{ "{:.2f}".format(br_data.PETR4.price) }}</h4>
-                                <span id="petr-change" class="{% if br_data.PETR4.change_percent > 0 %}price-up{% else %}price-down{% endif %}">
-                                    {{ "{:+.2f}".format(br_data.PETR4.change_percent) }}%
-                                </span>
+                            {% if br_data.COFFEE %}
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6 class="text-muted">Café</h6>
+                                    <small>Arábica: R$ {{ br_data.COFFEE.arabica }}</small><br>
+                                    <small>Conilon: R$ {{ br_data.COFFEE.conilon }}</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema de Análise Inteligente -->
+        <div class="row mb-4">
+            <div class="col-xl-6">
+                <div class="card analysis-card">
+                    <div class="card-header">
+                        <h5>🌌 Clarinha Cosmo - Análise Cósmica</h5>
+                        <button class="btn btn-primary btn-sm float-end" onclick="requestCosmicAnalysis()">
+                            <i class="bi bi-arrow-clockwise"></i> Analisar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="cosmic-analysis">
+                            <div class="text-center">
+                                <button class="btn btn-outline-primary" onclick="requestCosmicAnalysis()">
+                                    Iniciar Análise Cósmica
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card analysis-card">
+                    <div class="card-header">
+                        <h5>🔮 Clarinha Oráculo - Previsões IA</h5>
+                        <button class="btn btn-info btn-sm float-end" onclick="requestOracleAnalysis()">
+                            <i class="bi bi-eye"></i> Consultar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="oracle-analysis">
+                            <div class="text-center">
+                                <button class="btn btn-outline-info" onclick="requestOracleAnalysis()">
+                                    Consultar Oráculo
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -125,98 +306,155 @@
             </div>
         </div>
 
-        <!-- Painel de Trading -->
+        <!-- Painel de Execução de Trades -->
         <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="card bg-secondary">
+            <div class="col-xl-8">
+                <div class="card">
                     <div class="card-header">
-                        <h5>Executar Operação</h5>
+                        <h5>⚡ Execução Inteligente de Trades</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3">
-                                <label>Ativo:</label>
+                                <label class="form-label">Ativo:</label>
                                 <select id="trade-symbol" class="form-select">
                                     <option value="BTCUSDT">Bitcoin (BTC)</option>
                                     <option value="ETHUSDT">Ethereum (ETH)</option>
+                                    <option value="BNBUSDT">Binance Coin (BNB)</option>
+                                    <option value="ADAUSDT">Cardano (ADA)</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label>Quantidade:</label>
-                                <input type="number" id="trade-quantity" class="form-control" value="0.001" step="0.001">
+                            <div class="col-md-2">
+                                <label class="form-label">Quantidade:</label>
+                                <input type="number" id="trade-quantity" class="form-control" 
+                                       value="0.001" step="0.0001" min="0.0001">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Tipo:</label>
+                                <select id="trade-type" class="form-select">
+                                    <option value="MARKET">Mercado</option>
+                                    <option value="LIMIT">Limitada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Preço Limite:</label>
+                                <input type="number" id="limit-price" class="form-control" 
+                                       disabled step="0.01">
                             </div>
                             <div class="col-md-3">
-                                <label>Operação:</label>
-                                <div class="btn-group w-100">
-                                    <button class="btn btn-success" onclick="executeTradeForm('BUY')">COMPRAR</button>
-                                    <button class="btn btn-danger" onclick="executeTradeForm('SELL')">VENDER</button>
+                                <label class="form-label">Ação:</label>
+                                <div class="d-grid gap-2">
+                                    <div class="btn-group">
+                                        <button class="btn btn-success trade-button" onclick="executeIntelligentTrade('BUY')">
+                                            <i class="bi bi-arrow-up-circle"></i> COMPRAR
+                                        </button>
+                                        <button class="btn btn-danger trade-button" onclick="executeIntelligentTrade('SELL')">
+                                            <i class="bi bi-arrow-down-circle"></i> VENDER
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Status Connection -->
-            <div class="col-md-4">
-                <div class="card bg-info">
+
+            <!-- Resumo da Conta -->
+            <div class="col-xl-4">
+                <div class="card">
                     <div class="card-header">
-                        <h6>Status da Conexão</h6>
+                        <h6>📊 Resumo da Conta</h6>
                     </div>
                     <div class="card-body">
-                        <div id="connection-status" class="text-center">
-                            <div class="live-indicator mx-auto mb-2"></div>
-                            <small>Conectado ao mercado ao vivo</small>
-                        </div>
-                        <div class="mt-2">
-                            <small>Última atualização: <span id="last-update">--:--:--</span></small>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6 class="text-muted">P&L Total</h6>
+                                <h5 id="total-pnl" class="{% if user.profit_loss >= 0 %}price-up{% else %}price-down{% endif %}">
+                                    R$ {{ "{:,.2f}".format(user.profit_loss) }}
+                                </h5>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-muted">Trades</h6>
+                                <h5>{{ user.total_trades }}</h5>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <h6 class="text-muted">Win Rate</h6>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: {{ user.win_rate }}%">
+                                        {{ "{:.1f}".format(user.win_rate) }}%
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Histórico de Operações -->
+        <!-- Histórico de Trades -->
         <div class="row">
             <div class="col-12">
-                <div class="card bg-secondary">
+                <div class="card">
                     <div class="card-header">
-                        <h5>Últimas Operações</h5>
+                        <h5>📈 Histórico de Operações</h5>
+                        <button class="btn btn-outline-primary btn-sm float-end" onclick="refreshTradeHistory()">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar
+                        </button>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-dark">
-                                <thead>
-                                    <tr>
-                                        <th>Data/Hora</th>
-                                        <th>Ativo</th>
-                                        <th>Operação</th>
-                                        <th>Quantidade</th>
-                                        <th>Preço</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="trades-table">
-                                    {% for trade in trades %}
-                                    <tr>
-                                        <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
-                                        <td>{{ trade.symbol }}</td>
-                                        <td class="{% if trade.side == 'BUY' %}price-up{% else %}price-down{% endif %}">
-                                            {{ trade.side }}
-                                        </td>
-                                        <td>{{ trade.quantity }}</td>
-                                        <td>${{ "{:,.2f}".format(trade.price) }}</td>
-                                        <td>${{ "{:,.2f}".format(trade.quantity * trade.price) }}</td>
-                                        <td>
-                                            <span class="badge {% if trade.status == 'REAL' %}bg-success{% else %}bg-warning{% endif %}">
-                                                {{ trade.status }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="trade-history">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Data/Hora</th>
+                                            <th>Ativo</th>
+                                            <th>Lado</th>
+                                            <th>Quantidade</th>
+                                            <th>Preço Entrada</th>
+                                            <th>Preço Saída</th>
+                                            <th>P&L</th>
+                                            <th>Status</th>
+                                            <th>Estratégia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trades-table">
+                                        {% for trade in trades %}
+                                        <tr>
+                                            <td>{{ trade.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td>{{ trade.symbol }}</td>
+                                            <td class="{% if trade.side == 'BUY' %}text-success{% else %}text-danger{% endif %}">
+                                                {{ trade.side }}
+                                            </td>
+                                            <td>{{ "{:.6f}".format(trade.quantity) }}</td>
+                                            <td>${{ "{:,.2f}".format(trade.entry_price) }}</td>
+                                            <td>
+                                                {% if trade.exit_price %}
+                                                    ${{ "{:,.2f}".format(trade.exit_price) }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="{% if trade.profit_loss %}{% if trade.profit_loss > 0 %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                                                {% if trade.profit_loss %}
+                                                    ${{ "{:+.2f}".format(trade.profit_loss) }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if trade.status == 'FILLED' %}bg-success{% elif trade.status == 'OPEN' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                                    {{ trade.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ trade.strategy_used or 'Manual' }}</small>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -224,110 +462,240 @@
         </div>
     </div>
 
-    <!-- JavaScript para Funcionalidade Real -->
+    <!-- Modal para Configurações Rápidas -->
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title">⚙️ Configurações Rápidas</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Atualização Automática (segundos):</label>
+                        <input type="range" class="form-range" id="update-interval" min="1" max="30" value="5">
+                        <span id="interval-value">5s</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable-notifications" checked>
+                            <label class="form-check-label">Notificações Sonoras</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="auto-analysis" checked>
+                            <label class="form-check-label">Análise Automática</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Funcional Completo -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Conectar ao WebSocket
-        const socket = io();
-        
-        socket.on('connect', function() {
-            console.log('Conectado ao servidor');
-            socket.emit('subscribe_market');
+        // ============= CONFIGURAÇÕES GLOBAIS =============
+        let socket;
+        let updateInterval = 5000;
+        let notificationsEnabled = true;
+        let autoAnalysisEnabled = true;
+        let currentAnalysisSymbol = 'BTC';
+
+        // ============= INICIALIZAÇÃO =============
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWebSocket();
+            startMarketUpdates();
+            setupEventListeners();
+            
+            // Auto-análise inicial se habilitada
+            if (autoAnalysisEnabled) {
+                setTimeout(() => {
+                    requestCosmicAnalysis();
+                    requestOracleAnalysis();
+                }, 2000);
+            }
         });
 
-        // Receber atualizações do mercado
-        socket.on('market_update', function(data) {
-            updateMarketData(data);
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-        });
-
-        // Atualizar dados na interface
-        function updateMarketData(data) {
-            // Crypto
-            if (data.crypto.BTC) {
-                document.getElementById('btc-price').textContent = '$' + data.crypto.BTC.price.toLocaleString();
-                updateChangeClass('btc-change', data.crypto.BTC.change_24h);
-                document.getElementById('btc-change').textContent = data.crypto.BTC.change_24h.toFixed(2) + '%';
-            }
+        // ============= WEBSOCKET CONNECTION =============
+        function initializeWebSocket() {
+            socket = io();
             
-            if (data.crypto.ETH) {
-                document.getElementById('eth-price').textContent = '$' + data.crypto.ETH.price.toLocaleString();
-                updateChangeClass('eth-change', data.crypto.ETH.change_24h);
-                document.getElementById('eth-change').textContent = data.crypto.ETH.change_24h.toFixed(2) + '%';
-            }
+            socket.on('connect', function() {
+                console.log('🔌 Conectado ao servidor WebSocket');
+                updateConnectionStatus(true);
+                socket.emit('subscribe_market');
+            });
 
-            // Mercado Brasileiro
-            if (data.brazilian.IBOV) {
-                document.getElementById('ibov-price').textContent = data.brazilian.IBOV.price.toLocaleString();
-                updateChangeClass('ibov-change', data.brazilian.IBOV.change_percent);
-                document.getElementById('ibov-change').textContent = data.brazilian.IBOV.change_percent.toFixed(2) + '%';
-            }
-            
-            if (data.brazilian.USD_BRL) {
-                document.getElementById('usd-price').textContent = 'R$ ' + data.brazilian.USD_BRL.price.toFixed(2);
-                updateChangeClass('usd-change', data.brazilian.USD_BRL.change_percent);
-                document.getElementById('usd-change').textContent = data.brazilian.USD_BRL.change_percent.toFixed(2) + '%';
-            }
-        }
+            socket.on('disconnect', function() {
+                console.log('❌ Desconectado do servidor');
+                updateConnectionStatus(false);
+            });
 
-        function updateChangeClass(elementId, change) {
-            const element = document.getElementById(elementId);
-            element.className = change > 0 ? 'price-up' : 'price-down';
-        }
-
-        // Executar operação
-        function executeTradeForm(side) {
-            const symbol = document.getElementById('trade-symbol').value;
-            const quantity = document.getElementById('trade-quantity').value;
-            
-            if (!quantity || quantity <= 0) {
-                alert('Digite uma quantidade válida!');
-                return;
-            }
-            
-            executeTrade(symbol, side, quantity);
-        }
-
-        function executeTrade(symbol, side, quantity = 0.001) {
-            if (!confirm(`Confirma ${side} ${quantity} ${symbol}?`)) {
-                return;
-            }
-            
-            fetch('/api/execute_trade', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    symbol: symbol,
-                    side: side,
-                    quantity: parseFloat(quantity)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification(`Operação executada: ${side} ${symbol} por $${data.price}`, 'success');
-                    loadUserTrades();
-                } else {
-                    showNotification('Erro: ' + data.error, 'error');
-                }
-            })
-            .catch(error => {
-                showNotification('Erro de conexão: ' + error, 'error');
+            socket.on('market_update', function(data) {
+                updateMarketDisplay(data);
+                updateLastUpdateTime();
             });
         }
 
-        // Carregar histórico de operações
-        function loadUserTrades() {
-            fetch('/api/user_trades')
-            .then(response => response.json())
-            .then(trades => {
-                const tbody = document.getElementById('trades-table');
-                tbody.innerHTML = '';
-                
-                trades.slice(0, 10).forEach(trade => {
-                    const row = tbody.insertRow();
-                    const date = new Date(trade.timestamp);
+        // ============= ATUALIZAÇÃO DE DADOS DE MERCADO =============
+        function startMarketUpdates() {
+            setInterval(function() {
+                fetch('/api/market_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.crypto && data.brazilian) {
+                        updateMarketDisplay(data);
+                        updateLastUpdateTime();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar dados:', error);
+                    updateConnectionStatus(false);
+                });
+            }, updateInterval);
+        }
+
+        function updateMarketDisplay(data) {
+            // Atualizar crypto data
+            if (data.crypto) {
+                Object.keys(data.crypto).forEach(symbol => {
+                    const symbolData = data.crypto[symbol];
+                    const symbolLower = symbol.toLowerCase();
                     
-                    row.innerHTML = `
-                        <td>${date.toLocaleDateString()} ${date.toLocaleTime
+                    // Preço
+                    const priceElement = document.getElementById(`${symbolLower}-price`);
+                    if (priceElement) {
+                        const oldPrice = parseFloat(priceElement.textContent.replace('$', '').replace(',', ''));
+                        const newPrice = symbolData.price;
+                        
+                        priceElement.textContent = `$${newPrice.toLocaleString()}`;
+                        
+                        // Animação de mudança de preço
+                        if (newPrice > oldPrice) {
+                            priceElement.className = 'price-up';
+                        } else if (newPrice < oldPrice) {
+                            priceElement.className = 'price-down';
+                        }
+                    }
+                    
+                    // Variação
+                    const changeElement = document.getElementById(`${symbolLower}-change`);
+                    if (changeElement) {
+                        changeElement.textContent = `${symbolData.change_24h > 0 ? '+' : ''}${symbolData.change_24h.toFixed(2)}%`;
+                        changeElement.className = symbolData.change_24h > 0 ? 'price-up' : 'price-down';
+                    }
+                    
+                    // RSI
+                    const rsiElement = document.getElementById(`${symbolLower}-rsi`);
+                    if (rsiElement) {
+                        rsiElement.textContent = symbolData.rsi.toFixed(1);
+                    }
+                });
+            }
+            
+            // Atualizar dados brasileiros
+            if (data.brazilian) {
+                // Ibovespa
+                if (data.brazilian.IBOV) {
+                    const ibovPrice = document.getElementById('ibov-price');
+                    const ibovChange = document.getElementById('ibov-change');
+                    
+                    if (ibovPrice) ibovPrice.textContent = data.brazilian.IBOV.price.toLocaleString();
+                    if (ibovChange) {
+                        ibovChange.textContent = `${data.brazilian.IBOV.change_percent > 0 ? '+' : ''}${data.brazilian.IBOV.change_percent.toFixed(2)}%`;
+                        ibovChange.className = data.brazilian.IBOV.change_percent > 0 ? 'price-up' : 'price-down';
+                    }
+                }
+                
+                // Dólar
+                if (data.brazilian.USD_BRL) {
+                    const usdPrice = document.getElementById('usd-price');
+                    const usdChange = document.getElementById('usd-change');
+                    
+                    if (usdPrice) usdPrice.textContent = `R$ ${data.brazilian.USD_BRL.price.toFixed(2)}`;
+                    if (usdChange) {
+                        usdChange.textContent = `${data.brazilian.USD_BRL.change_percent > 0 ? '+' : ''}${data.brazilian.USD_BRL.change_percent.toFixed(2)}%`;
+                        usdChange.className = data.brazilian.USD_BRL.change_percent > 0 ? 'price-down' : 'price-up';
+                    }
+                }
+            }
+        }
+
+        // ============= ANÁLISES INTELIGENTES =============
+        function requestCosmicAnalysis() {
+            const symbol = currentAnalysisSymbol;
+            showLoadingInElement('cosmic-analysis', '🌌 Analisando padrões cósmicos...');
+            
+            fetch('/api/intelligent_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ symbol: symbol })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayCosmicAnalysis(data.cosmic);
+                
+                if (notificationsEnabled && data.cosmic.cosmic_signal !== 'NEUTRAL') {
+                    showNotification(`🌌 Sinal Cósmico: ${data.cosmic.cosmic_signal}`, 'info');
+                }
+            })
+            .catch(error => {
+                document.getElementById('cosmic-analysis').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Erro na análise cósmica: ${error.message}
+                    </div>
+                `;
+            });
+        }
+
+        function displayCosmicAnalysis(cosmic) {
+            const signalClass = getSignalClass(cosmic.cosmic_signal);
+            const riskColor = cosmic.risk_level === 'HIGH' ? 'danger' : cosmic.risk_level === 'MEDIUM' ? 'warning' : 'success';
+            
+            const html = `
+                <div class="cosmic-signal ${signalClass}">
+                    ${cosmic.cosmic_signal}
+                </div>
+                <div class="mt-3">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6 class="text-muted">Confiança da Entrada</h6>
+                            <div class="confidence-bar">
+                                <div class="confidence-level" style="width: ${cosmic.entry_confidence * 100}%"></div>
+                            </div>
+                            <small>${(cosmic.entry_confidence * 100).toFixed(1)}%</small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Nível de Risco</h6>
+                            <span class="badge bg-${riskColor}">${cosmic.risk_level}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>🔍 Padrões Detectados:</h6>
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="text-muted">Divergência Volume</small><br>
+                            <span class="badge ${cosmic.hidden_patterns.volume_divergence ? 'bg-warning' : 'bg-secondary'}">
+                                ${cosmic.hidden_patterns.volume_divergence ? 'Detectada' : 'Normal'}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Anomalia Price Action</small><br>
+                            <span class="badge ${cosmic.hidden_patterns.price_action_anomaly ? 'bg-warning' : 'bg-secondary'}">
+                                ${cosmic.hidden_patterns.price_action_anomaly ? 'Detectada' : 'Normal'}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Acumulação Baleias</small><br>
+                            <span class="badge ${cosmic.hidden_patterns.whale_accumulation ? 'bg-info' : 'bg-secondary'}">
+                                ${cosmic.hidden
