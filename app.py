@@ -1,190 +1,239 @@
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, session
+from flask_sqlalchemy import SQLAlchemy
+from binance.client import Client as BinanceClient
 import openai
-import requests
-import json
-from flask import Flask, request, jsonify, session, redirect, render_template
-from datetime import timedelta
 import os
+import requests
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
-app.permanent_session_lifetime = timedelta(hours=6)
+app.config['SECRET_KEY'] = 'sua_chave_secreta'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usuarios.db'
+db = SQLAlchemy(app)
 
-# === CLASSE CLARINHA ORÁCULO ===
-class ClarinhaOraculo:
-    def __init__(self, openai_api_key):
-        self.api_key = openai_api_key
-        openai.api_key = openai_api_key
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False, unique=True)
+    email = db.Column(db.String(150), nullable=False, unique=True)
+    binance_api_key = db.Column(db.String(200), nullable=True)
+    binance_api_secret = db.Column(db.String(200), nullable=True)
+    openai_api_key = db.Column(db.String(200), nullable=True)
+    saldo_simulado = db.Column(db.Float, default=1000.0)
 
-    def consultar_mercado(self, par="BTCUSDT"):
-        try:
-            url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={par}"
-            response = requests.get(url)
-            if response.status_code != 200:
-                return {"par": par, "preco": "--", "variacao": "--", "volume": "--"}
-            dados = response.json()
-            return {
-                "par": par,
-                "preco": dados.get("lastPrice", "--"),
-                "variacao": dados.get("priceChangePercent", "--"),
-                "volume": dados.get("volume", "--")
-            }
-        except:
-            return {"par": par, "preco": "--", "variacao": "--", "volume": "--"}
+# Função para obter cliente Binance do usuário
+def get_user_binance_client():
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+    
+    user = User.query.get(user_id)
+    if not user or not user.binance_api_key:
+        return None
+    
+    return BinanceClient(user.binance_api_key, user.binance_api_secret)
 
-    def interpretar_como_deusa(self, dados, meta_lucro=2.5):
-        prompt = f"""
-Você é Clarinha, uma inteligência cósmica conectada ao mercado financeiro com proteção divina.
-📊 Par: {dados['par']}
-💰 Preço: {dados['preco']}
-📈 Variação: {dados['variacao']}%
-📊 Volume: {dados['volume']}
-🎯 Meta de lucro: {meta_lucro}%
-
-Responda em JSON:
-{{
-  "entrada": "...",
-  "alvo": "...",
-  "stop": "...",
-  "confianca": "...",
-  "mensagem": "..."
-}}
-"""
-        try:
-            resposta = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "Você é uma IA espiritual de trading segura e protetora."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.4
-            )
-            conteudo = resposta.choices[0].message.content.strip()
-            return json.loads(conteudo)
-        except:
-            return {"erro": "Falha ao consultar Clarinha."}
-
-# === SUGESTÃO DA CLARINHA ===
-def analisar_mercado_e_sugerir(binance_api_key, binance_api_secret, openai_api_key, meta_lucro=2.5):
-    openai.api_key = openai_api_key
+# Função para obter dados públicos da Binance
+def get_public_market_data():
     try:
-        url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=50"
-        candles = requests.get(url).json()
-        closes = [float(c[4]) for c in candles]
-        variacao = (closes[-1] - closes[-2]) / closes[-2] * 100
-        tendencia = "alta" if variacao > 0 else "queda"
-
-        prompt = f"""
-Mercado BTC/USDT está em {tendencia} com variação de {variacao:.2f}% nas últimas velas.
-Meta diária: {meta_lucro}%.
-Forneça:
-- ENTRADA
-- ALVO
-- STOP
-- CONFIANÇA
-Responda de forma curta, objetiva e clara.
-"""
-
-        resposta = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.5
-        )
-
-        conteudo = resposta.choices[0].message.content.strip()
-
+        # Dados públicos da API da Binance
+        ticker_url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        klines_url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=14"
+        
+        ticker_response = requests.get(ticker_url)
+        ticker_data = ticker_response.json()
+        
+        klines_response = requests.get(klines_url)
+        klines_data = klines_response.json()
+        
+        # Calcular RSI básico
+        closes = [float(kline[4]) for kline in klines_data]
+        rsi = calculate_rsi(closes)
+        
+        # Calcular suporte e resistência básicos
+        high_prices = [float(kline[2]) for kline in klines_data]
+        low_prices = [float(kline[3]) for kline in klines_data]
+        
         return {
-            "resposta": conteudo,
-            "entrada": "⚡ Definida pela IA",
-            "alvo": "🎯 Alvo estratégico",
-            "stop": "🛑 Stop preventivo",
-            "confianca": "🌟 Alta"
+            'preco': ticker_data['lastPrice'],
+            'variacao': ticker_data['priceChangePercent'],
+            'volume': ticker_data['volume'],
+            'rsi': round(rsi, 2),
+            'suporte': round(min(low_prices), 2),
+            'resistencia': round(max(high_prices), 2)
+        }
+    except Exception as e:
+        return {
+            'preco': '0',
+            'variacao': '0',
+            'volume': '0',
+            'rsi': '50',
+            'suporte': '0',
+            'resistencia': '0'
         }
 
-    except Exception as e:
-        return {"erro": str(e)}
+# Função para calcular RSI
+def calculate_rsi(prices, period=14):
+    if len(prices) < period:
+        return 50
+    
+    gains = []
+    losses = []
+    
+    for i in range(1, len(prices)):
+        change = prices[i] - prices[i-1]
+        if change > 0:
+            gains.append(change)
+            losses.append(0)
+        else:
+            gains.append(0)
+            losses.append(abs(change))
+    
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    
+    if avg_loss == 0:
+        return 100
+    
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    return rsi
 
-# === USUÁRIOS PADRÃO ===
-usuarios = {
-    'admin': 'Bubi2025',
-    'Clara': 'Verse',
-    'Soma': 'infinite'
-}
-
-# === ROTAS FLASK ===
-@app.route('/')
+# Rotas principais
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-        if usuario in usuarios and usuarios[usuario] == senha:
-            session['usuario'] = usuario
-            return redirect('/painel')
-        return render_template('login.html', erro='Credenciais inválidas.')
-    return render_template('login.html')
+@app.route("/dashboard")
+def dashboard():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(user_id)
+    return render_template("dashboard.html", user=user, saldo=user.saldo_simulado)
 
-@app.route('/painel')
-def painel():
-    if 'usuario' not in session:
-        return redirect('/login')
-    return render_template('painel_operacao.html', saldo=10000.00)
-
-@app.route('/configurar')
+@app.route("/configurar", methods=["GET", "POST"])
 def configurar():
-    return render_template('configurar.html')
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(user_id)
+    
+    if request.method == "POST":
+        user.binance_api_key = request.form['binance_api_key']
+        user.binance_api_secret = request.form['binance_api_secret']
+        user.openai_api_key = request.form['openai_api_key']
+        db.session.commit()
+        flash('Chaves atualizadas com sucesso!')
+        return redirect(url_for('dashboard'))
+    
+    return render_template("configurar.html", user=user)
 
-@app.route('/salvar_chaves', methods=['POST'])
-def salvar_chaves():
-    session['openai_key'] = request.form.get('openai_key')
-    session['binance_key'] = request.form.get('binance_key')
-    session['binance_secret'] = request.form.get('binance_secret')
-    return redirect('/painel')
+# APIs do dashboard
+@app.route("/api/dados_mercado")
+def dados_mercado():
+    return jsonify(get_public_market_data())
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/login')
+@app.route("/api/saldo")
+def api_saldo():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'erro': 'Usuário não logado'}), 401
+    
+    user = User.query.get(user_id)
+    
+    # Se tem chaves da Binance, tenta obter saldo real
+    if user.binance_api_key:
+        client = get_user_binance_client()
+        if client:
+            try:
+                account_info = client.get_account()
+                usdt_balance = next((item for item in account_info['balances'] if item['asset'] == 'USDT'), None)
+                return jsonify({'saldo': usdt_balance['free'] if usdt_balance else '0'})
+            except:
+                pass
+    
+    # Retorna saldo simulado
+    return jsonify({'saldo': str(user.saldo_simulado)})
 
-@app.route('/consultar_mercado', methods=['GET'])
-def consultar_mercado_route():
-    if 'usuario' not in session:
-        return jsonify({"erro": "Usuário não autenticado."}), 401
+@app.route("/api/sugestao_ia", methods=["POST"])
+def sugestao_ia():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'erro': 'Usuário não logado'}), 401
+    
+    user = User.query.get(user_id)
+    prompt = request.json.get('prompt', 'Analise o mercado BTC/USDT.')
+    
+    # Se tem chave OpenAI, usa a API real
+    if user.openai_api_key:
+        try:
+            openai.api_key = user.openai_api_key
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=300
+            )
+            return jsonify({'resposta': response.choices[0].message.content})
+        except Exception as e:
+            return jsonify({'erro': str(e)}), 500
+    
+    # Resposta simulada
+    respostas_simuladas = [
+        "📊 Análise Técnica: BTC está em tendência lateral. RSI neutro indica equilíbrio. Aguarde rompimento para definir direção.",
+        "🔍 Recomendação: Mercado em consolidação. Suporte forte identificado. Considere entrada em pullbacks.",
+        "⚠️ Atenção: Volatilidade alta detectada. Gerencie risco adequadamente. Stop loss recomendado.",
+        "📈 Sinal de Alta: RSI em sobrevenda, possível reversão. Alvo em resistência próxima."
+    ]
+    
+    import random
+    return jsonify({'resposta': random.choice(respostas_simuladas)})
 
-    openai_key = session.get('openai_key')
-    clarinha = ClarinhaOraculo(openai_key)
-    dados_mercado = clarinha.consultar_mercado()
-    resposta = clarinha.interpretar_como_deusa(dados_mercado)
-    return jsonify(resposta)
+@app.route("/api/executar_operacao", methods=["POST"])
+def executar_operacao():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'erro': 'Usuário não logado'}), 401
+    
+    user = User.query.get(user_id)
+    data = request.json
+    tipo = data.get('tipo')
+    quantidade = data.get('quantidade', 0.001)
+    
+    # Se tem chaves da Binance, tenta operação real
+    if user.binance_api_key:
+        client = get_user_binance_client()
+        if client:
+            try:
+                if tipo == 'comprar':
+                    order = client.order_market_buy(symbol='BTCUSDT', quantity=quantidade)
+                elif tipo == 'vender':
+                    order = client.order_market_sell(symbol='BTCUSDT', quantity=quantidade)
+                else:
+                    return jsonify({'erro': 'Tipo de operação inválido'}), 400
+                
+                return jsonify({'mensagem': f'{tipo.capitalize()} realizada com sucesso!', 'detalhes': order})
+            except Exception as e:
+                return jsonify({'erro': str(e)}), 500
+    
+    # Simulação de operação
+    preco_atual = float(get_public_market_data()['preco'])
+    valor_operacao = preco_atual * quantidade
+    
+    if tipo == 'comprar':
+        user.saldo_simulado -= valor_operacao
+        mensagem = f'Compra simulada realizada! -{valor_operacao:.2f} USDT'
+    elif tipo == 'vender':
+        user.saldo_simulado += valor_operacao
+        mensagem = f'Venda simulada realizada! +{valor_operacao:.2f} USDT'
+    else:
+        return jsonify({'erro': 'Tipo de operação inválido'}), 400
+    
+    db.session.commit()
+    return jsonify({'mensagem': mensagem})
 
-@app.route('/obter_sugestao_ia', methods=['GET'])
-def obter_sugestao_ia():
-    if 'usuario' not in session:
-        return jsonify({"erro": "Usuário não autenticado."}), 401
-
-    openai_key = session.get('openai_key')
-    binance_key = session.get('binance_key')
-    binance_secret = session.get('binance_secret')
-
-    if not openai_key or not binance_key or not binance_secret:
-        return jsonify({"erro": "Chaves da API não configuradas."}), 400
-
-    try:
-        resposta = analisar_mercado_e_sugerir(binance_key, binance_secret, openai_key)
-        if "erro" in resposta:
-            return jsonify({"erro": resposta["erro"]})
-        return jsonify({
-            "entrada": resposta.get("entrada"),
-            "alvo": resposta.get("alvo"),
-            "stop": resposta.get("stop"),
-            "confianca": resposta.get("confianca"),
-            "mensagem": resposta.get("resposta")
-        })
-    except Exception as e:
-        return jsonify({"erro": f"Erro ao consultar IA: {str(e)}"})
-
-# === EXECUÇÃO ===
-if __name__ == '__main__':
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
