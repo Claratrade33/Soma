@@ -1,26 +1,26 @@
 # -- nome: Dockerfile (sem extensão) --
 
-# Usa Python 3.11 slim (já tem wheel p/ scikit-learn)
+# 1. Usa Python 3.11-slim para garantir wheels pré-compiladas
 FROM python:3.11-slim
 
-# Não rodar prompts interativos
+# 2. Evita prompts interativos no apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Atualiza pip, setuptools e wheel
+# 3. Atualiza pip, setuptools e wheel
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Define diretório de trabalho
+# 4. Define o diretório de trabalho
 WORKDIR /app
 
-# Copia e instala dependências
+# 5. Copia e instala apenas as dependências
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o restante do código
+# 6. Copia todo o código da aplicação
 COPY . .
 
-# Expõe porta
+# 7. Expõe a porta usada pelo Gunicorn
 EXPOSE 5000
 
-# Comando de inicialização
+# 8. Comando de inicialização
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
