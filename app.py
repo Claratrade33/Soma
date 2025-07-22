@@ -177,7 +177,7 @@ class ClarinhaOraculo:
         fear_greed = random.randint(0, 100)
         labels = ['EXTREME_FEAR', 'FEAR', 'NEUTRAL', 'GREED', 'EXTREME_GREED']
         
-        if fear_greed < 20: label = labels[0] # Corrected: labels instead of labels[0] for the first condition
+        if fear_greed < 20: label = labels[0]
         elif fear_greed < 45: label = labels[1]
         elif fear_greed < 55: label = labels[2]
         elif fear_greed < 80: label = labels[3]
@@ -522,7 +522,6 @@ def execute_trade():
 def user_trades():
     try:
         trades = Trade.query.filter_by(user_id=session['user_id']).order_by(Trade.timestamp.desc()).limit(50).all()
-        # Corrected line 525: Removed the duplicate jsonify call
         return jsonify([trade.to_dict() for trade in trades])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -645,4 +644,3 @@ if __name__ == '__main__':
         print("\n🛑 Servidor interrompido pelo usuário")
     except Exception as e:
         print(f"❌ Erro ao iniciar servidor: {e}")
-
