@@ -49,7 +49,7 @@ def login_required(f):
     return decorated_function
 
 def create_default_users():
-    """Cria usuários padrão do sistema"""[1]
+    """Cria usuários padrão do sistema"""
     default_users = [
         {
             'username': 'admin',
@@ -199,7 +199,7 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Rota de registro com validação aprimorada"""
+    """Rota de registro com validação aprimorada - ATUALIZADA"""
     if request.method == "POST":
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
@@ -210,7 +210,7 @@ def register():
             flash('Todos os campos são obrigatórios!', 'error')
             return render_template("register.html")
         
-        # Validação de username[2]
+        # Validação de username
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username deve conter apenas letras, números e underscore!', 'error')
             return render_template("register.html")
@@ -238,19 +238,20 @@ def register():
             db.session.add(user)
             db.session.commit()
             
-            flash('🎉 Conta criada com sucesso! Faça login para continuar.', 'success')
-            return redirect(url_for('login'))
+            flash('🎉 Conta criada com sucesso! Bem-vindo ao ClaraVerse!', 'success')
+            return redirect(url_for('index'))  # REDIRECIONA PARA INDEX
             
         except Exception as e:
             db.session.rollback()
             flash('Erro ao criar conta. Tente novamente.', 'error')
+            print(f"Erro ao criar usuário: {e}")
             return render_template("register.html")
     
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Rota de login com suporte a username ou email"""[2]
+    """Rota de login com suporte a username ou email"""
     # Se já estiver logado, redirecionar
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
@@ -265,13 +266,13 @@ def login():
             return render_template("login.html")
         
         try:
-            # Buscar por username ou email[2]
+            # Buscar por username ou email
             user = User.query.filter(
                 (User.username == login_field) | (User.email == login_field)
             ).first()
             
             if user and check_password_hash(user.password, password):
-                # Login bem-sucedido - criar sessão segura[3]
+                # Login bem-sucedido - criar sessão segura
                 session.permanent = True
                 session['user_id'] = user.id
                 session['username'] = user.username
@@ -295,7 +296,7 @@ def login():
 
 @app.route("/logout")
 def logout():
-    """Rota de logout segura"""[2]
+    """Rota de logout segura"""
     username = session.get('username', 'Usuário')
     session.clear()
     flash(f'👋 Até logo, {username}!', 'info')
