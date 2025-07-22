@@ -1,35 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Configurar APIs</title>
+    <title>ClaraVerse • Configurações</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos consistentes com o dashboard */
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>⚙️ Configurar APIs</h1>
-        
-        <form method="POST">
-            <div class="form-group">
-                <label>🔑 Binance API Key:</label>
-                <input type="text" name="binance_api_key" value="{{ user.binance_api_key or '' }}">
-            </div>
+    <div class="header">
+        <div class="logo">
+            <h1>🌌 ClaraVerse</h1>
+        </div>
+        <div class="user-info">
+            <span class="welcome">Configurações • {{ user.username }}</span>
+            <a href="{{ url_for('dashboard') }}" class="btn-logout">Voltar</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="market-section">
+            <div class="section-title">⚙️ Configurações da Conta</div>
             
-            <div class="form-group">
-                <label>🔐 Binance API Secret:</label>
-                <input type="password" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}">
-            </div>
+            <form method="POST">
+                <div class="form-group">
+                    <label>🔑 Binance API Key</label>
+                    <input type="text" name="binance_api_key" 
+                           value="{{ user.binance_api_key or '' }}"
+                           placeholder="Sua chave API da Binance">
+                </div>
+                
+                <div class="form-group">
+                    <label>🔒 Binance API Secret</label>
+                    <input type="password" name="binance_api_secret" 
+                           value="{{ user.binance_api_secret or '' }}"
+                           placeholder="Seu segredo API da Binance">
+                </div>
+                
+                <div class="form-group">
+                    <label>🤖 OpenAI API Key</label>
+                    <input type="password" name="openai_api_key" 
+                           value="{{ user.openai_api_key or '' }}"
+                           placeholder="Sua chave API da OpenAI">
+                </div>
+                
+                <div class="controls">
+                    <button type="submit" class="btn">💾 Salvar Configurações</button>
+                </div>
+            </form>
             
-            <div class="form-group">
-                <label>🤖 OpenAI API Key:</label>
-                <input type="text" name="openai_api_key" value="{{ user.openai_api_key or '' }}">
+            <div class="section-title" style="margin-top: 40px;">⚠️ Área de Risco</div>
+            <div class="controls">
+                <button class="btn" style="background: linear-gradient(135deg, #ff0066, #ff6600);">
+                    🚨 Resetar Conta
+                </button>
             </div>
-            
-            <button type="submit">💾 Salvar Configurações</button>
-        </form>
-        
-        <a href="{{ url_for('dashboard') }}" class="btn-voltar">← Voltar ao Dashboard</a>
+        </div>
     </div>
 </body>
 </html>
