@@ -48,7 +48,7 @@ class AcquaturianCore:
     def scan_hyperspace_economics(self):
         return {
             'dimension_1_to_3': 'STANDARD_MARKET_FORCES',
-            'dimension_4_to_7': 'TEMPORAL_ECONOMIC_FLOWS',
+            'dimension_4_to极7': 'TEMPORAL_ECONOMIC_FLOWS',
             'dimension_8_to_11': 'PURE_CONSCIOUSNESS_TRADING',
             'hyperspace_anomalies': ['DRACONIAN_MANIPULATION', 'PLEADIAN_SUPPORT'],
             'quantum_entanglement_level': 'MAXIMUM'
@@ -65,7 +65,7 @@ class AcquaturianCore:
             ]
         }
         
-    def read_collective_market_m mind(self):
+    def read_collective_market_mind(self):
         return {
             'fear_index': 'LOW',
             'greed_index': 'CONTROLLED',
@@ -78,7 +78,7 @@ class AcquaturianCore:
         return {
             'next_portal_opening': '3.7 Earth hours',
             'optimal_entry_signal': 'NEXT_SOLAR_FLARE',
-            'cosmic_alignment': 'URANUS_CONJUNCT_VEGA',
+            'cos极mic_alignment': 'URANUS_CONJUNCT_VEGA',
             'divine_timing_active': True
         }
         
@@ -198,7 +198,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     binance_api_key = db.Column(db.String(200), nullable=True)
     binance_api_secret = db.Column(db.String(200), nullable=True)
-    openai_api_key = db.Column(db.String(200), nullable=True)
+    openai_api_key =极 Column(db.String(200), nullable=True)
     saldo_simulado = db.Column(db.Float, default=10000.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_premium = db.Column(db.Boolean, default=False)
@@ -225,7 +225,8 @@ def login_required(f):
 
 def create_default_users():
     """Cria usuários padrão do sistema com poderes acquaturianos"""
-    default_users = [        {
+    default_users = [
+        {
             'username': 'admin',
             'email': 'admin@claraverse.com',
             'password': 'Bubi2025',
@@ -308,16 +309,16 @@ def get_public_market_data():
         ticker = client.get_symbol_ticker(symbol="BTCUSDT")
         klines = client.get_klines(symbol="BTCUSDT", interval=BinanceClient.KLINE_INTERVAL_1HOUR, limit=20)
         
-        closes = [float(kline[4]) for kline in klines]
-        highs = [float(kline[2]) for kline in klines]
-        lows = [float(kline[3]) for kline in klines]
-        volumes = [float(kline[5]) for kline in klines]
+        closes = [float(kline) for kline in klines]
+        highs = [float(kline) for kline in klines]
+        lows = [float(kline) for kline in klines]
+        volumes = [float(kline) for kline in klines]
         
         rsi = calculate_rsi(closes)
         
         return {
             'preco': float(ticker['price']),
-            'variacao': (float(ticker['price']) - float(klines[4])) / float(klines[4]) * 100,
+            'variacao': (float(ticker['price']) - float(klines)) / float(klines) * 100,
             'volume': format_volume(sum(volumes)),
             'rsi': round(rsi, 2),
             'suporte': round(min(lows), 2),
@@ -358,4 +359,81 @@ def calculate_rsi(prices, period=14):
     losses = []
     
     for i in range(1, len(prices)):
-        change = prices
+        change = prices[i] - prices[i-1]
+        if change > 0:
+            gains.append(change)
+            losses.append(0)
+        else:
+            gains.append(0)
+            losses.append(abs(change))
+    
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    
+    if avg_loss == 0:
+        return 100
+    
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    return rsi
+
+# ============= ROTAS PRINCIPAIS =============
+@app.route("/")
+def index():
+    """Rota principal - redireciona conforme autenticação"""
+    if 'user_id' in session:
+        return redirect(url_for('painel_operacao'))
+    return render_template("index.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Rota de registro com validação aprimorada"""
+    if request.method == "POST":
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        
+        if not username or not email or not password:
+            flash('Todos os campos são obrigatórios!', 'error')
+            return render_template("register.html")
+        
+        if not re.match(r'^[A-Za-z0-9_]+$', username):
+            flash('Username deve conter apenas letras, números e underscore!', 'error')
+            return render_template("register.html")
+        
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            flash('Email inválido!', 'error')
+            return render_template("register.html")
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username já existe! Escolha outro.', 'error')
+            return render_template("register.html")
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email já cadastrado! Use outro email.', 'error')
+            return render_template("register.html")
+        
+        try:
+            user = User(
+                username=username,
+                email=email,
+                password=generate_password_hash(password),
+                alien_consciousness_level='AWAKENING',
+                starseed_activation=10.0
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            flash('🛸 Conta criada com sucesso! Bem-vindo ao ClaraVerse Acquaturiano! 🛸', 'success')
+            return redirect(url_for('index'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Erro ao criar conta. Tente novamente.', 'error')
+            print(f"Erro ao criar usuário: {e}")
+            return render_template("register.html")
+    
+    return render_template("register.html")
+
+@app.route("/login
