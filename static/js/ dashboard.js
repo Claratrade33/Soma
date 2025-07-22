@@ -1,11 +1,9 @@
 // static/js/Dashboard.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1) Conexão WebSocket (Socket.IO)
-  const socket = io();  // exige <script src="/socket.io/socket.io.js"></script> no base.html
+  const socket = io();  // precisa de <script src="/socket.io/socket.io.js"></script> no base.html
 
   socket.on('connect', () => {
-    console.log('WebSocket conectado');
     socket.emit('subscribe_market');
   });
 
@@ -14,12 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBrTable(data.brazilian);
   });
 
-  socket.on('error', err => {
-    console.error('Socket error:', err);
-  });
-
-
-  // 2) Funções para atualização de tabelas
   function updateCryptoTable(crypto) {
     const tbody = document.querySelector('#crypto-table tbody');
     if (!tbody) return;
@@ -54,95 +46,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-
-  // 3) Chamada de análise inteligente
   const analyzeForm = document.getElementById('analyze-form');
   if (analyzeForm) {
     analyzeForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const symbol = analyzeForm.elements['symbol'].value;
-      try {
-        const res = await fetch('/api/intelligent_analysis', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ symbol })
-        });
-        const body = await res.json();
-        if (body.success) {
-          displayAnalysis(body);
-        } else {
-          alert('Erro na análise: ' + body.error);
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Falha na requisição de análise');
-      }
+      const symbol = analyzeForm.symbol.value;
+      const res = await fetch('/api/intelligent_analysis', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ symbol })
+      });
+      const body = await res.json();
+      document.getElementById('analysis-output').innerText =
+        body.success ? JSON.stringify(body, null, 2) : `Erro: ${body.error}`;
     });
   }
 
-  function displayAnalysis(data) {
-    const out = document.getElementById('analysis-output');
-    if (!out) return;
-    out.innerHTML = `
-      <pre>${JSON.stringify(data, null, 2)}</pre>
-    `;
-  }
-
-
-  // 4) Chamada de execução de trade
   const tradeForm = document.getElementById('trade-form');
   if (tradeForm) {
     tradeForm.addEventListener('submit', async e => {
       e.preventDefault();
-      const symbol = tradeForm.elements['symbol'].value;
-      const side   = tradeForm.elements['side'].value;
-      const qty    = tradeForm.elements['quantity'].value;
-      try {
-        const res = await fetch('/api/execute_trade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ symbol, side, quantity: qty })
-        });
-        const body = await res.json();
-        if (body.success) {
-          alert(`Trade executado: P&L = ${body.pnl.toFixed(2)}`);
-          // opcional: recarregar estatísticas / tabela de trades
-          loadUserTrades();
-        } else {
-          alert('Erro no trade: ' + body.error);
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Falha na requisição de trade');
-      }
+      const symbol = tradeForm.symbol.value;
+      const side   = tradeForm.side.value;
+      const qty    = tradeForm.quantity.value;
+      const res = await fetch('/api/execute_trade', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ symbol, side, quantity: qty })
+      });
+      const b = await res.json();
+      alert(b.success ? `P&L: ${b.pnl.toFixed(2)}` : `Erro: ${b.error}`);
+      loadUserTrades();
     });
   }
 
-  // 5) Carregar últimas operações
   async function loadUserTrades() {
-    try {
-      const res = await fetch('/api/user_trades');
-      const arr = await res.json();
-      const tbody = document.querySelector('#trades-table tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      arr.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${new Date(t.timestamp).toLocaleTimeString()}</td>
-          <td>${t.symbol}</td>
-          <td>${t.side}</td>
-          <td>${t.quantity}</td>
-          <td>${t.entry_price.toFixed(2)}</td>
-          <td style="color:${t.profit_loss>=0?'green':'red'}">
-            ${t.profit_loss.toFixed(2)}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch (e) { console.error(e) }
+    const res = await fetch('/api/user_trades');
+    const arr = await res.json();
+    const tbody = document.querySelector('#trades-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    arr.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(t.timestamp).toLocaleTimeString()}</td>
+        <td>${t.symbol}</td>
+        <td>${t.side}</td>
+        <td>${t.quantity}</td>
+        <td>${t.entry_price.toFixed(2)}</td>
+        <td style="color:${t.profit_loss>=0?'green':'red'}">
+          ${t.profit_loss.toFixed(2)}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
-  // Executa ao carregar a página
   loadUserTrades();
 });
