@@ -386,7 +386,7 @@ def calculate_rsi(prices, period=14):
 def index():
     """Rota principal - redireciona conforme autenticação"""
     if 'user_id' in session:
-        return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
+        return redirect(url_for('painel_operacao'))
     return render_template("index.html")
 
 @app.route("/register", methods=["GET", "POST"])
@@ -423,7 +423,7 @@ def register():
                 email=email,
                 password=generate_password_hash(password),
                 alien_consciousness_level='AWAKENING',
-                starseed_activation=10.0  # Ativação inicial para novos usuários
+                starseed_activation=10.0
             )
             db.session.add(user)
             db.session.commit()
@@ -443,7 +443,7 @@ def register():
 def login():
     """Rota de login com suporte a username ou email"""
     if 'user_id' in session:
-        return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
+        return redirect(url_for('painel_operacao'))
     
     if request.method == "POST":
         login_field = request.form.get('username', '').strip()
@@ -475,7 +475,7 @@ def login():
                 next_page = request.args.get('next')
                 if next_page and next_page.startswith('/'):
                     return redirect(next_page)
-                return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
+                return redirect(url_for('painel_operacao'))
             else:
                 flash('🚫 Login ou senha incorretos!', 'error')
                 
@@ -493,7 +493,6 @@ def logout():
     flash(f'🛸 Até a próxima dimensão, {username}! 🛸', 'info')
     return redirect(url_for('index'))
 
-# CORREÇÃO: Rota renomeada de "dashboard" para "painel_operacao"
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
@@ -502,13 +501,12 @@ def painel_operacao():
     market_data = get_public_market_data()
     alien_data = get_acquaturian_market_data()
     
-    return render_template("painel_operacao.html",  # CORREÇÃO: template correto
+    return render_template("painel_operacao.html",
                          user=user, 
                          saldo=f"{user.saldo_simulado:,.2f}",
                          market_data=market_data,
                          alien_data=alien_data)
 
-# Mantém a rota dashboard para compatibilidade (redireciona para painel_operacao)
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -529,7 +527,7 @@ def configurar():
             
             db.session.commit()
             flash('🚀 Configurações atualizadas com sucesso!', 'success')
-            return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
+            return redirect(url_for('painel_operacao'))
             
         except Exception as e:
             db.session.rollback()
@@ -550,15 +548,12 @@ def acquaturian_prediction():
         data = request.get_json()
         market_symbol = data.get('symbol', 'BTC/UNIVERSAL_ENERGY')
         
-        # Análise multidimensional completa
         alien_analysis = alien_system.get_alien_market_analysis()
         
-        # Atualizar nível de consciência do usuário
         if user.starseed_activation < 100:
             user.starseed_activation = min(100, user.starseed_activation + 1.0)
             db.session.commit()
         
-        # CORREÇÃO: String unificada com triple quotes
         message = f"""🛸 TRANSMISSÃO ACQUATURIANA RECEBIDA 🛸
 
 👽 USUÁRIO: {user.username}
@@ -605,7 +600,6 @@ def acquaturian_execute():
         operation_type = data.get('tipo', 'quantum_trade')
         amount = float(data.get('quantidade', 0.001))
         
-        # Simulação de execução alienígena
         alien_execution = {
             'technology': 'ZERO_POINT_ENERGY_TRADING',
             'speed': 'INSTANTANEOUS',
@@ -615,7 +609,6 @@ def acquaturian_execute():
             'consciousness_required': user.alien_consciousness_level
         }
         
-        # Bônus baseado no nível de consciência
         consciousness_multiplier = {
             'AWAKENING': 1.1,
             'AWAKENED_STARSEED': 1.3,
@@ -627,11 +620,9 @@ def acquaturian_execute():
         bonus = 1000.0 * consciousness_multiplier.get(user.alien_consciousness_level, 1.0)
         user.saldo_simulado += bonus
         
-        # Aumentar ativação starseed
         if user.starseed_activation < 100:
             user.starseed_activation = min(100, user.starseed_activation + 5.0)
             
-        # Verificar se usuário merece bênção galáctica
         if user.starseed_activation >= 75 and not user.galactic_blessing:
             user.galactic_blessing = True
             bonus_message = "\n🌟 BÊNÇÃO GALÁCTICA CONCEDIDA! 🌟"
@@ -640,6 +631,18 @@ def acquaturian_execute():
             
         db.session.commit()
         
+        # CORREÇÃO: String multilinha completa e bem fechada
+        operation_message = (
+            "🛸 OPERAÇÃO EXECUTADA VIA TECNOLOGIA ACQUATURIANA! 🛸\n\n"
+            "⚡ Velocidade: Mais rápida que a luz\n"
+            "🌌 Dimensão: 11ª dimensional\n"
+            "🔮 Precisão: Consciência coletiva galáctica\n"
+            f"🎁 Bônus alienígena: +${bonus:,.2f} USDT\n"
+            f"⭐ Ativação Starseed: {user.starseed_activation}%\n"
+            f"🛡️ Proteção: {'GALÁCTICA' if user.galactic_blessing else 'PADRÃO'}\n\n"
+            f"👽 Os Acquaturianos abençoaram esta operação! 👽{bonus_message}"
+        )
+        
         return jsonify({
             'status': 'EXECUTED_WITH_ALIEN_TECHNOLOGY',
             'details': alien_execution,
@@ -647,8 +650,19 @@ def acquaturian_execute():
             'new_balance': user.saldo_simulado,
             'starseed_activation': user.starseed_activation,
             'galactic_blessing': user.galactic_blessing,
-            'message': f'🛸 OPERAÇÃO EXECUTADA VIA TECNOLOGIA ACQUATURIANA! 🛸\n\n'
-                      f'⚡ Velocidade: Mais rápida que a luz\n'
-                      f'🌌 Dimensão: 11ª dimensional\n'
-                      f'🔮 Precisão: Consciência coletiva galáctica\n'
-                      f'🎁 Bô
+            'message': operation_message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'ALIEN_TECHNOLOGY_INTERFERENCE',
+            'message': 'Tentativa de bloqueio por forças terrestres detectada'
+        }), 500
+
+# Inicialização do banco de dados
+with app.app_context():
+    db.create_all()
+    create_default_users()
+
+if __name__ == '__main__':
+    app.run(debug=True)
