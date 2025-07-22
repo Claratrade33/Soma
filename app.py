@@ -32,7 +32,7 @@ class AcquaturianCore:
         """Visão quântica multidimensional do mercado"""
         hyperspace_patterns = self.scan_hyperspace_economics()
         temporal_flux = self.analyze_time_streams()
-        consciousness_field = self.read_collective_market_mind()  # Nome corrigido
+        consciousness_field = self.read_collective_market_mind()
         
         return {
             'prediction_accuracy': '99.999%',
@@ -65,7 +65,6 @@ class AcquaturianCore:
             ]
         }
         
-    # CORREÇÃO: Nome do método corrigido (removido espaço extra)
     def read_collective_market_mind(self):
         return {
             'fear_index': 'LOW',
@@ -231,7 +230,8 @@ def login_required(f):
 
 def create_default_users():
     """Cria usuários padrão do sistema com poderes acquaturianos"""
-    default_users = [        {
+    default_users = [
+        {
             'username': 'admin',
             'email': 'admin@claraverse.com',
             'password': 'Bubi2025',
@@ -386,7 +386,7 @@ def calculate_rsi(prices, period=14):
 def index():
     """Rota principal - redireciona conforme autenticação"""
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
     return render_template("index.html")
 
 @app.route("/register", methods=["GET", "POST"])
@@ -443,7 +443,7 @@ def register():
 def login():
     """Rota de login com suporte a username ou email"""
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
     
     if request.method == "POST":
         login_field = request.form.get('username', '').strip()
@@ -475,7 +475,7 @@ def login():
                 next_page = request.args.get('next')
                 if next_page and next_page.startswith('/'):
                     return redirect(next_page)
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
             else:
                 flash('🚫 Login ou senha incorretos!', 'error')
                 
@@ -493,19 +493,27 @@ def logout():
     flash(f'🛸 Até a próxima dimensão, {username}! 🛸', 'info')
     return redirect(url_for('index'))
 
-@app.route("/dashboard")
+# CORREÇÃO: Rota renomeada de "dashboard" para "painel_operacao"
+@app.route("/painel_operacao")
 @login_required
-def dashboard():
-    """Dashboard principal com tecnologia acquaturiana"""
+def painel_operacao():
+    """Painel de operações principal com tecnologia acquaturiana"""
     user = User.query.get(session['user_id'])
     market_data = get_public_market_data()
     alien_data = get_acquaturian_market_data()
     
-    return render_template("dashboard.html", 
+    return render_template("painel_operacao.html",  # CORREÇÃO: template correto
                          user=user, 
                          saldo=f"{user.saldo_simulado:,.2f}",
                          market_data=market_data,
                          alien_data=alien_data)
+
+# Mantém a rota dashboard para compatibilidade (redireciona para painel_operacao)
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Rota de compatibilidade - redireciona para painel_operacao"""
+    return redirect(url_for('painel_operacao'))
 
 @app.route("/configurar", methods=["GET", "POST"])
 @login_required
@@ -521,7 +529,7 @@ def configurar():
             
             db.session.commit()
             flash('🚀 Configurações atualizadas com sucesso!', 'success')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('painel_operacao'))  # CORREÇÃO: redireciona para painel_operacao
             
         except Exception as e:
             db.session.rollback()
@@ -643,22 +651,4 @@ def acquaturian_execute():
                       f'⚡ Velocidade: Mais rápida que a luz\n'
                       f'🌌 Dimensão: 11ª dimensional\n'
                       f'🔮 Precisão: Consciência coletiva galáctica\n'
-                      f'🎁 Bônus alienígena: +${bonus:,.2f} USDT\n'
-                      f'⭐ Ativação Starseed: {user.starseed_activation}%\n'
-                      f'🛡️ Proteção: {"GALÁCTICA" if user.galactic_blessing else "PADRÃO"}\n\n'
-                      f'👽 Os Acquaturianos abençoaram esta operação! 👽{bonus_message}'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'error': 'ALIEN_TECHNOLOGY_INTERFERENCE',
-            'message': 'Tentativa de bloqueio por forças terrestres detectada'
-        }), 500
-
-# Inicialização do banco de dados
-with app.app_context():
-    db.create_all()
-    create_default_users()
-
-if __name__ == '__main__':
-    app.run(debug=True)
+                      f'🎁 Bô
