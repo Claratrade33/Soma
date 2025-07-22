@@ -3,63 +3,53 @@
 {% block content %}
   <h2>Painel de Operação</h2>
   <p>
-    <strong>Saldo simulado:</strong> R$ {{ '%.2f'|format(user.saldo_simulado) }}<br>
-    <strong>Total trades:</strong> {{ user.total_trades }} &mdash;
-    <strong>Win Rate:</strong> {{ '%.2f'|format(user.win_rate) }}%
+    <strong>Saldo simulado:</strong> R$ {{'%.2f'|format(user.saldo_simulado)}}<br>
+    <strong>Total trades:</strong> {{user.total_trades}} &mdash;
+    <strong>Win Rate:</strong> {{'%.2f'|format(user.win_rate)}}%
   </p>
 
   <h3>Mercado Cripto</h3>
-  <table>
+  <table id="crypto-table">
     <thead><tr>
       <th>Ativo</th><th>Preço</th><th>24h (%)</th><th>Volume</th><th>RSI</th>
     </tr></thead>
-    <tbody>
-      {% for sym, d in crypto_data.items() %}
-      <tr>
-        <td>{{ sym }}</td>
-        <td>{{ d.price }}</td>
-        <td>{{ d.change_24h }}</td>
-        <td>{{ d.volume_24h }}</td>
-        <td>{{ d.rsi }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <h3>Mercado Brasileiro</h3>
-  <table>
+  <table id="br-table">
     <thead><tr>
       <th>Índice</th><th>Preço</th><th>Variação (%)</th>
     </tr></thead>
-    <tbody>
-      {% for k, d in br_data.items() %}
-      <tr>
-        <td>{{ k }}</td>
-        <td>{{ d.price }}</td>
-        <td>{{ d.change_percent }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <h3>Últimas Operações</h3>
-  <table>
+  <table id="trades-table">
     <thead><tr>
       <th>Hora</th><th>Ativo</th><th>Tipo</th><th>Qty</th><th>Entry</th><th>P&L</th>
     </tr></thead>
-    <tbody>
-      {% for t in trades %}
-      <tr>
-        <td>{{ t.timestamp.strftime('%H:%M:%S') }}</td>
-        <td>{{ t.symbol }}</td>
-        <td>{{ t.side }}</td>
-        <td>{{ t.quantity }}</td>
-        <td>{{ '%.2f'|format(t.entry_price) }}</td>
-        <td style="color: {{ 'green' if t.profit_loss >= 0 else 'red' }};">
-          {{ '%.2f'|format(t.profit_loss) }}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
+    <tbody></tbody>
   </table>
+
+  <h3>Análise Inteligente</h3>
+  <form id="analyze-form">
+    <label>Simbolo (ex: BTC)</label>
+    <input type="text" name="symbol" value="BTC">
+    <button type="submit">Analisar</button>
+  </form>
+  <pre id="analysis-output"></pre>
+
+  <h3>Executar Trade</h3>
+  <form id="trade-form">
+    <label>Simbolo</label>
+    <input type="text" name="symbol" value="BTCUSDT">
+    <label>Lado</label>
+    <select name="side">
+      <option>BUY</option><option>SELL</option>
+    </select>
+    <label>Quantidade</label>
+    <input type="number" step="any" name="quantity" value="1">
+    <button type="submit">Executar</button>
+  </form>
 {% endblock %}
