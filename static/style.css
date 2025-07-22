@@ -1,101 +1,175 @@
 body {
-    background-color: #1b1b1b;
-    color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #0e0e1a;
+    color: #ffffff;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
 .top-bar {
+    background-color: #141426;
+    padding: 15px 30px;
     display: flex;
     justify-content: space-between;
-    padding: 15px;
-    background-color: #2b2b2b;
+    align-items: center;
+    border-bottom: 2px solid #1f1f3d;
 }
 
 .logo {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
+    color: #00ffe5;
 }
 
 .saldo {
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.btn-sair {
+    background-color: #ff4d4d;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
 }
 
 .painel-grafico {
-    padding: 20px;
-    background-color: #2e2e2e;
-    border-radius: 8px;
-    margin: 20px;
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
 }
 
 .indicadores {
+    background-color: #1b1b2e;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 800px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin: 20px;
-}
-
-.indicador {
-    background-color: #3c3c3c;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    text-align: left;
+    font-size: 14px;
+    color: #c1f5ff;
 }
 
 .estrategia {
+    background-color: #1c1c33;
     padding: 20px;
-    background-color: #2e2e2e;
-    border-radius: 8px;
-    margin: 20px;
+    margin: 30px auto;
+    max-width: 800px;
+    border-radius: 10px;
+    text-align: left;
 }
 
-.botoes-operacoes {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px;
+.estrategia h3 {
+    margin-bottom: 15px;
 }
 
-button {
-    padding: 15px;
-    font-size: 16px;
+.estrategia button {
+    margin-top: 10px;
+    background-color: #00ffe5;
     border: none;
-    border-radius: 5px;
+    color: #0e0e1a;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
 }
 
-.btn-acao {
-    background-color: #4CAF50; /* Verde */
+#resposta-ia {
+    margin-top: 15px;
+    background-color: #0f0f20;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: #d8faff;
+}
+
+.ia-sugestao p {
+    margin: 8px 0;
+}
+
+.botoes-operacoes {
+    max-width: 800px;
+    margin: 30px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.botoes-operacoes button {
+    background-color: #1a1a2f;
+    border: 2px solid #00ffe5;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s ease-in-out;
+}
+
+.botoes-operacoes button:hover {
+    background-color: #00ffe5;
+    color: #0e0e1a;
+}
+
+.configuracao {
+    background-color: #111122;
+    padding: 25px;
+    margin: 40px auto;
+    max-width: 800px;
+    border-radius: 12px;
+}
+
+.configuracao h3 {
+    margin-bottom: 15px;
+}
+
+.configuracao input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: none;
+    background-color: #202035;
     color: white;
 }
 
-.btn-erro {
-    background-color: #f44336; /* Vermelho */
-    color: white;
+.configuracao button {
+    background-color: #00ffe5;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #0e0e1a;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
-.btn-config {
-    background-color: #2196F3; /* Azul */
-    color: white;
-}
+/* Responsivo */
+@media (max-width: 600px) {
+    .top-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
 
-/* Estilos para mensagens com animação */
-.mensagem {
-    display: none; /* Inicialmente escondido */
-    transition: opacity 0.5s ease; /* Transição suave para a opacidade */
-    position: fixed; /* Fixa a mensagem na tela */
-    top: 20px; /* Distância do topo */
-    left: 50%; /* Centraliza horizontalmente */
-    transform: translateX(-50%); /* Ajusta a posição para centralizar */
-    z-index: 1000; /* Garante que a mensagem fique acima de outros elementos */
-    padding: 15px; /* Espaçamento interno */
-    border-radius: 5px; /* Bordas arredondadas */
-}
+    .botoes-operacoes {
+        grid-template-columns: 1fr;
+    }
 
-.mensagem.success {
-    background-color: #4CAF50; /* Verde */
-    color: white;
-}
-
-.mensagem.error {
-    background-color: #f44336; /* Vermelho */
-    color: white;
+    .indicadores {
+        grid-template-columns: 1fr;
+    }
 }
