@@ -2,55 +2,37 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}Claraverse{% endblock %}</title>
-  <style>
-    body{ font-family:sans-serif; background:#f5f5f5; color:#222; margin:0; padding:0; }
-    .container{ max-width:960px; margin:20px auto; padding:0 15px; }
-    header,footer{ background:#fff; padding:10px 0; text-align:center; border-bottom:1px solid #ddd; }
-    nav a{ margin:0 10px; color:#555; text-decoration:none; }
-    nav a:hover{ text-decoration:underline; }
-    .flash{ padding:10px; margin-bottom:15px; border-radius:4px; }
-    .flash.success{ background:#e0f7e9; color:#2d6a4f; }
-    .flash.error{ background:#ffe3e3; color:#9b1c1c; }
-    label{ display:block; margin:8px 0 4px; }
-    form input, form select{ width:100%; padding:8px; margin-bottom:10px;
-      border:1px solid #ccc; border-radius:4px; box-sizing:border-box; }
-    button{ padding:10px 20px; border:none; background:#007bff; color:#fff;
-      border-radius:4px; cursor:pointer; }
-    button:hover{ background:#0056b3; }
-    table{ width:100%; border-collapse:collapse; margin-bottom:20px; }
-    th,td{ padding:8px; border:1px solid #ddd; text-align:left; }
-    img.icon{ vertical-align:middle; margin-right:4px; }
-  </style>
+  <title>{% block title %}ClaraVerse{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="modo-escuro">
   <header>
-    <h1>Claraverse</h1>
+    <h1>🚀 ClaraVerse</h1>
     <nav>
       {% if session.user_id %}
         <a href="{{ url_for('painel_operacao') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/chart.svg') }}" alt="" width="20">
+          <img class="icon" src="{{ url_for('static',filename='icons/chart.svg') }}" alt="Painel" width="20">
           Painel
         </a>
         <a href="{{ url_for('configurar') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/settings.svg') }}" alt="" width="20">
+          <img class="icon" src="{{ url_for('static',filename='icons/settings.svg') }}" alt="Configurar" width="20">
           Configurar
         </a>
         <a href="{{ url_for('logout') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/logout.svg') }}" alt="" width="20">
-          Logout
+          <img class="icon" src="{{ url_for('static',filename='icons/logout.svg') }}" alt="Sair" width="20">
+          Sair
         </a>
       {% else %}
         <a href="{{ url_for('index') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/wallet.svg') }}" alt="" width="20">
-          Home
+          <img class="icon" src="{{ url_for('static',filename='icons/wallet.svg') }}" alt="Home" width="20">
+          Início
         </a>
         <a href="{{ url_for('login') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/ai.svg') }}" alt="" width="20">
+          <img class="icon" src="{{ url_for('static',filename='icons/ai.svg') }}" alt="Login" width="20">
           Login
         </a>
         <a href="{{ url_for('register') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/target.svg') }}" alt="" width="20">
+          <img class="icon" src="{{ url_for('static',filename='icons/target.svg') }}" alt="Registrar" width="20">
           Registrar
         </a>
       {% endif %}
@@ -65,15 +47,15 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
+
     {% block content %}{% endblock %}
   </div>
 
   <footer>
-    <small>&copy; {{ now().year }} Claraverse</small>
+    <small>&copy; {{ now().year }} ClaraVerse</small>
   </footer>
 
-  <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="{{ url_for('static', filename='js/Dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
