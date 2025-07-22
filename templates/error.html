@@ -1,7 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Erro {{ error_code }} – Claraverse{% endblock %}
+{% block title %}Erro {{ error_code }} • ClaraVerse{% endblock %}
+
 {% block content %}
-  <h2>Erro {{ error_code }}</h2>
-  <p>{{ error_message }}</p>
-  <p><a href="{{ url_for('index') }}"><button>Voltar à Home</button></a></p>
+  <div class="error-container">
+    <h2>🚫 Erro {{ error_code }}</h2>
+    <p>{{ error_message }}</p>
+    <a href="{{ url_for('index') }}">
+      <button>🔙 Voltar à Home</button>
+    </a>
+  </div>
 {% endblock %}
