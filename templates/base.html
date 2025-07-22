@@ -1,61 +1,53 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>{% block title %}ClaraVerse{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>{% block title %}ClaraVerse{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+    <!-- Script JS -->
+    <script src="{{ url_for('static', filename='js/Dashboard.js') }}" defer></script>
 </head>
-<body class="modo-escuro">
-  <header>
-    <h1>🚀 ClaraVerse</h1>
-    <nav>
-      {% if session.user_id %}
-        <a href="{{ url_for('painel_operacao') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/chart.svg') }}" alt="Painel" width="20">
-          Painel
-        </a>
-        <a href="{{ url_for('configurar') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/settings.svg') }}" alt="Configurar" width="20">
-          Configurar
-        </a>
-        <a href="{{ url_for('logout') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/logout.svg') }}" alt="Sair" width="20">
-          Sair
-        </a>
-      {% else %}
-        <a href="{{ url_for('index') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/wallet.svg') }}" alt="Home" width="20">
-          Início
-        </a>
-        <a href="{{ url_for('login') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/ai.svg') }}" alt="Login" width="20">
-          Login
-        </a>
-        <a href="{{ url_for('register') }}">
-          <img class="icon" src="{{ url_for('static',filename='icons/target.svg') }}" alt="Registrar" width="20">
-          Registrar
-        </a>
-      {% endif %}
-    </nav>
-  </header>
+<body>
 
-  <div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for cat,msg in messages %}
-          <div class="flash {{cat}}">{{msg}}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+    <div class="layout">
+        <aside class="menu-lateral">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo" class="logo-icon">
+                <span>ClaraVerse</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="{{ url_for('index') }}">
+                    <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Home">
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('painel') }}">
+                    <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Painel">
+                    <span>Painel</span>
+                </a>
+                <a href="{{ url_for('configurar') }}">
+                    <img src="{{ url_for('static', filename='icons/settings.svg') }}" alt="Configurar">
+                    <span>Configurar</span>
+                </a>
+                <a href="{{ url_for('logout') }}">
+                    <img src="{{ url_for('static', filename='icons/logout.svg') }}" alt="Sair">
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
 
-    {% block content %}{% endblock %}
-  </div>
+        <main class="conteudo-principal">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
-  <footer>
-    <small>&copy; {{ now().year }} ClaraVerse</small>
-  </footer>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
