@@ -1,833 +1,333 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClaraVerse • Painel de Operações</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>ClaraVerse - Trading Real</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #00f7ff;
-            --secondary: #bd00ff;
-            --accent: #ff00c8;
-            --dark: #0a0e17;
-            --darker: #050811;
-            --panel: rgba(10, 20, 30, 0.7);
-            --text: #e0f8ff;
-            --success: #00ff9d;
-            --warning: #ffcc00;
-            --danger: #ff0066;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Exo 2', sans-serif;
-        }
-        
-        body {
-            background: var(--darker);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(11, 25, 55, 0.8) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(189, 0, 255, 0.15) 0%, transparent 30%),
-                radial-gradient(circle at 50% 50%, rgba(0, 247, 255, 0.1) 0%, transparent 40%);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .cyber-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 247, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 247, 255, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            z-index: -1;
-            pointer-events: none;
-        }
-        
-        .cyber-pulse {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(0, 247, 255, 0.1) 0%, transparent 70%);
-            animation: pulse 8s infinite alternate;
-            z-index: -1;
-            pointer-events: none;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 0.3; transform: scale(0.95); }
-            100% { opacity: 0.8; transform: scale(1.05); }
-        }
-        
-        .dashboard {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            grid-template-rows: auto 1fr auto;
-            gap: 20px;
-            grid-template-areas:
-                "header header"
-                "chart sidebar"
-                "controls sidebar";
-            height: 100vh;
-        }
-        
-        /* HEADER STYLES */
-        .header {
-            grid-area: header;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo-icon {
-            font-size: 28px;
-            color: var(--primary);
-            animation: glow 2s infinite alternate;
-        }
-        
-        .logo-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .balance-card {
-            background: rgba(0, 20, 40, 0.7);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 12px;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .balance-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.2);
-        }
-        
-        .balance-icon {
-            font-size: 20px;
-            color: var(--success);
-        }
-        
-        .balance-amount {
-            font-size: 18px;
-            font-weight: 600;
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(90deg, var(--success), #00e6ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .logout-btn {
-            background: rgba(255, 0, 102, 0.2);
-            border: 1px solid var(--danger);
-            color: #ff99cc;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255, 0, 102, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(255, 0, 102, 0.3);
-        }
-        
-        /* CHART STYLES */
-        .chart-container {
-            grid-area: chart;
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-        }
-        
-        .chart-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(0, 247, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .chart-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            color: var(--primary);
-            letter-spacing: 1px;
-        }
-        
-        .chart-timeframes {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .timeframe-btn {
-            background: rgba(0, 20, 40, 0.7);
-            border: 1px solid rgba(0, 247, 255, 0.2);
-            color: var(--text);
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .timeframe-btn.active {
-            background: rgba(0, 247, 255, 0.2);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        
-        .chart-content {
-            height: calc(100% - 60px);
-            padding: 10px;
-        }
-        
-        .chart-placeholder {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            text-align: center;
-            padding: 20px;
-            background: rgba(5, 15, 30, 0.5);
-            border-radius: 12px;
-            border: 1px dashed rgba(0, 247, 255, 0.3);
-        }
-        
-        .chart-placeholder i {
-            font-size: 48px;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .chart-placeholder h3 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-        
-        /* SIDEBAR STYLES */
-        .sidebar {
-            grid-area: sidebar;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .context-selector {
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-        }
-        
-        .selector-title {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary);
-            margin-bottom: 15px;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .context-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        
-        .context-btn {
-            background: rgba(0, 20, 40, 0.7);
-            border: 1px solid rgba(0, 247, 255, 0.2);
-            border-radius: 10px;
-            padding: 15px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .context-btn.active {
-            background: rgba(0, 247, 255, 0.15);
-            border-color: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.2);
-        }
-        
-        .context-btn i {
-            font-size: 24px;
-        }
-        
-        .context-btn.oracle i { color: #ff6b6b; }
-        .context-btn.cosmo i { color: #4ecdc4; }
-        .context-btn.intel i { color: #a8e6cf; }
-        
-        .context-btn span {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .market-data {
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-        }
-        
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        
-        .data-card {
-            background: rgba(0, 20, 40, 0.5);
-            border: 1px solid rgba(0, 247, 255, 0.2);
-            border-radius: 12px;
-            padding: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .data-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.1);
-        }
-        
-        .data-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .data-icon {
-            font-size: 20px;
-        }
-        
-        .data-title {
-            font-size: 14px;
-            color: #a0d2ff;
-        }
-        
-        .data-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .price-up { color: var(--success); }
-        .price-down { color: var(--danger); }
-        
-        .strategy-box {
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .strategy-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .strategy-title {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary);
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .strategy-title i {
-            color: #ff6b6b;
-        }
-        
-        .ia-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .ia-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 247, 255, 0.4);
-        }
-        
-        .strategy-content {
-            background: rgba(0, 15, 30, 0.5);
-            border: 1px solid rgba(0, 247, 255, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            flex-grow: 1;
-            overflow-y: auto;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        
-        .strategy-content p {
-            margin-bottom: 15px;
-        }
-        
-        .strategy-content strong {
-            color: var(--primary);
-        }
-        
-        /* CONTROLS STYLES */
-        .controls {
-            grid-area: controls;
-            background: var(--panel);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-        
-        .control-btn {
-            background: rgba(0, 20, 40, 0.7);
-            border: 1px solid rgba(0, 247, 255, 0.3);
-            border-radius: 12px;
-            padding: 20px 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .control-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .control-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 247, 255, 0.2);
-            border-color: var(--primary);
-        }
-        
-        .control-btn:hover::before {
-            opacity: 1;
-        }
-        
-        .control-btn i {
-            font-size: 28px;
-        }
-        
-        .control-btn.entry i { color: var(--success); }
-        .control-btn.stop i { color: var(--danger); }
-        .control-btn.target i { color: var(--warning); }
-        .control-btn.execute i { color: var(--primary); }
-        .control-btn.auto i { color: var(--accent); }
-        .control-btn.config i { color: #a0d2ff; }
-        
-        .control-btn span {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .control-btn.entry:hover { background: rgba(0, 255, 157, 0.1); }
-        .control-btn.stop:hover { background: rgba(255, 0, 102, 0.1); }
-        .control-btn.target:hover { background: rgba(255, 204, 0, 0.1); }
-        .control-btn.execute:hover { background: rgba(0, 247, 255, 0.1); }
-        .control-btn.auto:hover { background: rgba(255, 0, 200, 0.1); }
-        .control-btn.config:hover { background: rgba(160, 210, 255, 0.1); }
-        
-        /* ANIMATIONS */
-        @keyframes glow {
-            0% { text-shadow: 0 0 5px var(--primary); }
-            100% { text-shadow: 0 0 20px var(--primary), 0 0 30px var(--secondary); }
-        }
-        
-        .pulse {
+        .price-up { color: #00d4aa; }
+        .price-down { color: #ff6b6b; }
+        .card-crypto { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-br { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .live-indicator { 
+            width: 10px; 
+            height: 10px; 
+            background: #00d4aa; 
+            border-radius: 50%; 
             animation: pulse 2s infinite;
         }
-        
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(5, 15, 30, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 247, 255, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
-<body>
-    <div class="cyber-grid"></div>
-    <div class="cyber-pulse"></div>
-    
-    <div class="dashboard">
+<body class="bg-dark text-light">
+    <div class="container-fluid">
         <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon pulse">
-                    <i class="fas fa-chart-network"></i>
-                </div>
-                <div class="logo-text">CLARAVERSE • PAINEL DE OPERAÇÕES</div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav class="navbar navbar-dark bg-primary rounded">
+                    <span class="navbar-brand">
+                        <div class="live-indicator d-inline-block me-2"></div>
+                        ClaraVerse - Trading Ao Vivo
+                    </span>
+                    <span class="text-light">
+                        Bem-vindo, {{ user.username }} | Saldo: R$ {{ "{:,.2f}".format(user.saldo_simulado) }}
+                        <a href="/logout" class="btn btn-outline-light btn-sm ms-2">Sair</a>
+                    </span>
+                </nav>
             </div>
-            
-            <div class="user-info">
-                <div class="balance-card">
-                    <div class="balance-icon">
-                        <i class="fas fa-coins"></i>
+        </div>
+
+        <!-- Mercado Crypto -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card card-crypto text-white">
+                    <div class="card-header">
+                        <h5><i class="bi bi-currency-bitcoin"></i> Criptomoedas</h5>
                     </div>
-                    <div class="balance-amount">10,245.75 USDT</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h6>Bitcoin (BTC)</h6>
+                                <h3 id="btc-price">${{ "{:,.2f}".format(crypto_data.BTC.price) }}</h3>
+                                <span id="btc-change" class="{% if crypto_data.BTC.change_24h > 0 %}price-up{% else %}price-down{% endif %}">
+                                    {{ "{:+.2f}".format(crypto_data.BTC.change_24h) }}%
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <h6>Ethereum (ETH)</h6>
+                                <h3 id="eth-price">${{ "{:,.2f}".format(crypto_data.ETH.price) }}</h3>
+                                <span id="eth-change" class="{% if crypto_data.ETH.change_24h > 0 %}price-up{% else %}price-down{% endif %}">
+                                    {{ "{:+.2f}".format(crypto_data.ETH.change_24h) }}%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <button class="btn btn-success btn-sm" onclick="executeTrade('BTCUSDT', 'BUY')">
+                                    Comprar BTC
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="executeTrade('BTCUSDT', 'SELL')">
+                                    Vender BTC
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-success btn-sm" onclick="executeTrade('ETHUSDT', 'BUY')">
+                                    Comprar ETH
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="executeTrade('ETHUSDT', 'SELL')">
+                                    Vender ETH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <button class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    SAIR
-                </button>
             </div>
-        </header>
-        
-        <!-- Chart Container -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <div class="chart-title">
-                    <i class="fas fa-chart-line"></i>
-                    BTC/USDT • BINANCE
-                </div>
-                <div class="chart-timeframes">
-                    <button class="timeframe-btn">1H</button>
-                    <button class="timeframe-btn active">4H</button>
-                    <button class="timeframe-btn">1D</button>
-                    <button class="timeframe-btn">1W</button>
-                </div>
-            </div>
-            <div class="chart-content">
-                <div class="chart-placeholder">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>GRÁFICO INTERATIVO</h3>
-                    <p>Visualização em tempo real do mercado com indicadores técnicos avançados</p>
+
+            <!-- Mercado Brasileiro -->
+            <div class="col-md-6">
+                <div class="card card-br text-white">
+                    <div class="card-header">
+                        <h5><i class="bi bi-graph-up"></i> Mercado Brasileiro</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                <h6>Ibovespa</h6>
+                                <h4 id="ibov-price">{{ "{:,.0f}".format(br_data.IBOV.price) }}</h4>
+                                <span id="ibov-change" class="{% if br_data.IBOV.change_percent > 0 %}price-up{% else %}price-down{% endif %}">
+                                    {{ "{:+.2f}".format(br_data.IBOV.change_percent) }}%
+                                </span>
+                            </div>
+                            <div class="col-4">
+                                <h6>Dólar</h6>
+                                <h4 id="usd-price">R$ {{ "{:.2f}".format(br_data.USD_BRL.price) }}</h4>
+                                <span id="usd-change" class="{% if br_data.USD_BRL.change_percent > 0 %}price-down{% else %}price-up{% endif %}">
+                                    {{ "{:+.2f}".format(br_data.USD_BRL.change_percent) }}%
+                                </span>
+                            </div>
+                            <div class="col-4">
+                                <h6>Petrobras</h6>
+                                <h4 id="petr-price">R$ {{ "{:.2f}".format(br_data.PETR4.price) }}</h4>
+                                <span id="petr-change" class="{% if br_data.PETR4.change_percent > 0 %}price-up{% else %}price-down{% endif %}">
+                                    {{ "{:+.2f}".format(br_data.PETR4.change_percent) }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Context Selector -->
-            <div class="context-selector">
-                <div class="selector-title">
-                    <i class="fas fa-cogs"></i>
-                    PERSONALIDADES DA CLARINHA
-                </div>
-                <div class="context-buttons">
-                    <div class="context-btn oracle active" data-context="oracle">
-                        <i class="fas fa-crystal-ball"></i>
-                        <span>ORÁCULO</span>
+
+        <!-- Painel de Trading -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h5>Executar Operação</h5>
                     </div>
-                    <div class="context-btn cosmo" data-context="cosmo">
-                        <i class="fas fa-stars"></i>
-                        <span>COSMO</span>
-                    </div>
-                    <div class="context-btn intel" data-context="intel">
-                        <i class="fas fa-brain"></i>
-                        <span>INTELIGÊNCIA</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Market Data -->
-            <div class="market-data">
-                <div class="data-grid">
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-dollar-sign"></i>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Ativo:</label>
+                                <select id="trade-symbol" class="form-select">
+                                    <option value="BTCUSDT">Bitcoin (BTC)</option>
+                                    <option value="ETHUSDT">Ethereum (ETH)</option>
+                                </select>
                             </div>
-                            <div class="data-title">PREÇO ATUAL</div>
-                        </div>
-                        <div class="data-value price-up">$45,238.75</div>
-                    </div>
-                    
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-percentage"></i>
+                            <div class="col-md-3">
+                                <label>Quantidade:</label>
+                                <input type="number" id="trade-quantity" class="form-control" value="0.001" step="0.001">
                             </div>
-                            <div class="data-title">VARIAÇÃO 24H</div>
-                        </div>
-                        <div class="data-value price-up">+2.35%</div>
-                    </div>
-                    
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-chart-bar"></i>
+                            <div class="col-md-3">
+                                <label>Operação:</label>
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-success" onclick="executeTradeForm('BUY')">COMPRAR</button>
+                                    <button class="btn btn-danger" onclick="executeTradeForm('SELL')">VENDER</button>
+                                </div>
                             </div>
-                            <div class="data-title">VOLUME 24H</div>
                         </div>
-                        <div class="data-value">$24.8B</div>
-                    </div>
-                    
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-wave-square"></i>
-                            </div>
-                            <div class="data-title">RSI (14)</div>
-                        </div>
-                        <div class="data-value">56.4</div>
-                    </div>
-                    
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-arrow-down"></i>
-                            </div>
-                            <div class="data-title">SUPORTE</div>
-                        </div>
-                        <div class="data-value">$44,120.50</div>
-                    </div>
-                    
-                    <div class="data-card">
-                        <div class="data-header">
-                            <div class="data-icon">
-                                <i class="fas fa-arrow-up"></i>
-                            </div>
-                            <div class="data-title">RESISTÊNCIA</div>
-                        </div>
-                        <div class="data-value">$46,580.30</div>
                     </div>
                 </div>
             </div>
             
-            <!-- Strategy Box -->
-            <div class="strategy-box">
-                <div class="strategy-header">
-                    <div class="strategy-title">
-                        <i class="fas fa-crystal-ball"></i>
-                        ESTRATÉGIA DA CLARINHA ORÁCULO
+            <!-- Status Connection -->
+            <div class="col-md-4">
+                <div class="card bg-info">
+                    <div class="card-header">
+                        <h6>Status da Conexão</h6>
                     </div>
-                    <button class="ia-btn">
-                        <i class="fas fa-robot"></i>
-                        CONSULTAR IA
-                    </button>
-                </div>
-                <div class="strategy-content">
-                    <p><strong>🔮 VISÃO ORÁCULO:</strong> O mercado apresenta sinais de acumulação com volume crescente. O RSI está em zona neutra com tendência de alta.</p>
-                    
-                    <p><strong>📊 ANÁLISE TÉCNICA:</strong> O preço está testando a resistência de curto prazo em $45,500. Um rompimento com volume pode levar a uma aceleração até $46,800.</p>
-                    
-                    <p><strong>🎯 ESTRATÉGIA RECOMENDADA:</strong></p>
-                    <p>- <strong>ENTRADA:</strong> $45,100 - $45,300<br>
-                    - <strong>STOP LOSS:</strong> $44,500<br>
-                    - <strong>TAKE PROFIT:</strong> $46,500 (Alvo primário), $47,200 (Alvo secundário)</p>
-                    
-                    <p><strong>⚠️ GERENCIAMENTO DE RISCO:</strong> Alocar no máximo 3% do capital nesta operação. Manter risco/reward de 1:3.</p>
+                    <div class="card-body">
+                        <div id="connection-status" class="text-center">
+                            <div class="live-indicator mx-auto mb-2"></div>
+                            <small>Conectado ao mercado ao vivo</small>
+                        </div>
+                        <div class="mt-2">
+                            <small>Última atualização: <span id="last-update">--:--:--</span></small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Controls -->
-        <div class="controls">
-            <div class="control-btn entry">
-                <i class="fas fa-check-circle"></i>
-                <span>ENTRADA</span>
-            </div>
-            
-            <div class="control-btn stop">
-                <i class="fas fa-stop-circle"></i>
-                <span>STOP</span>
-            </div>
-            
-            <div class="control-btn target">
-                <i class="fas fa-bullseye"></i>
-                <span>ALVO</span>
-            </div>
-            
-            <div class="control-btn execute">
-                <i class="fas fa-rocket"></i>
-                <span>EXECUTAR</span>
-            </div>
-            
-            <div class="control-btn auto">
-                <i class="fas fa-robot"></i>
-                <span>AUTOMÁTICO</span>
-            </div>
-            
-            <div class="control-btn config">
-                <i class="fas fa-cog"></i>
-                <span>CONFIGURAR</span>
+
+        <!-- Histórico de Operações -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h5>Últimas Operações</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Ativo</th>
+                                        <th>Operação</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trades-table">
+                                    {% for trade in trades %}
+                                    <tr>
+                                        <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
+                                        <td>{{ trade.symbol }}</td>
+                                        <td class="{% if trade.side == 'BUY' %}price-up{% else %}price-down{% endif %}">
+                                            {{ trade.side }}
+                                        </td>
+                                        <td>{{ trade.quantity }}</td>
+                                        <td>${{ "{:,.2f}".format(trade.price) }}</td>
+                                        <td>${{ "{:,.2f}".format(trade.quantity * trade.price) }}</td>
+                                        <td>
+                                            <span class="badge {% if trade.status == 'REAL' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ trade.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- JavaScript para Funcionalidade Real -->
     <script>
-        // Context switching
-        document.querySelectorAll('.context-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.context-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                const context = this.dataset.context;
-                const title = document.querySelector('.strategy-title');
-                
-                switch(context) {
-                    case 'oracle':
-                        title.innerHTML = `<i class="fas fa-crystal-ball"></i> ESTRATÉGIA DA CLARINHA ORÁCULO`;
-                        break;
-                    case 'cosmo':
-                        title.innerHTML = `<i class="fas fa-stars"></i> ESTRATÉGIA DA CLARINHA COSMO`;
-                        break;
-                    case 'intel':
-                        title.innerHTML = `<i class="fas fa-brain"></i> ESTRATÉGIA DA CLARINHA INTELIGÊNCIA`;
-                        break;
+        // Conectar ao WebSocket
+        const socket = io();
+        
+        socket.on('connect', function() {
+            console.log('Conectado ao servidor');
+            socket.emit('subscribe_market');
+        });
+
+        // Receber atualizações do mercado
+        socket.on('market_update', function(data) {
+            updateMarketData(data);
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        });
+
+        // Atualizar dados na interface
+        function updateMarketData(data) {
+            // Crypto
+            if (data.crypto.BTC) {
+                document.getElementById('btc-price').textContent = '$' + data.crypto.BTC.price.toLocaleString();
+                updateChangeClass('btc-change', data.crypto.BTC.change_24h);
+                document.getElementById('btc-change').textContent = data.crypto.BTC.change_24h.toFixed(2) + '%';
+            }
+            
+            if (data.crypto.ETH) {
+                document.getElementById('eth-price').textContent = '$' + data.crypto.ETH.price.toLocaleString();
+                updateChangeClass('eth-change', data.crypto.ETH.change_24h);
+                document.getElementById('eth-change').textContent = data.crypto.ETH.change_24h.toFixed(2) + '%';
+            }
+
+            // Mercado Brasileiro
+            if (data.brazilian.IBOV) {
+                document.getElementById('ibov-price').textContent = data.brazilian.IBOV.price.toLocaleString();
+                updateChangeClass('ibov-change', data.brazilian.IBOV.change_percent);
+                document.getElementById('ibov-change').textContent = data.brazilian.IBOV.change_percent.toFixed(2) + '%';
+            }
+            
+            if (data.brazilian.USD_BRL) {
+                document.getElementById('usd-price').textContent = 'R$ ' + data.brazilian.USD_BRL.price.toFixed(2);
+                updateChangeClass('usd-change', data.brazilian.USD_BRL.change_percent);
+                document.getElementById('usd-change').textContent = data.brazilian.USD_BRL.change_percent.toFixed(2) + '%';
+            }
+        }
+
+        function updateChangeClass(elementId, change) {
+            const element = document.getElementById(elementId);
+            element.className = change > 0 ? 'price-up' : 'price-down';
+        }
+
+        // Executar operação
+        function executeTradeForm(side) {
+            const symbol = document.getElementById('trade-symbol').value;
+            const quantity = document.getElementById('trade-quantity').value;
+            
+            if (!quantity || quantity <= 0) {
+                alert('Digite uma quantidade válida!');
+                return;
+            }
+            
+            executeTrade(symbol, side, quantity);
+        }
+
+        function executeTrade(symbol, side, quantity = 0.001) {
+            if (!confirm(`Confirma ${side} ${quantity} ${symbol}?`)) {
+                return;
+            }
+            
+            fetch('/api/execute_trade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    symbol: symbol,
+                    side: side,
+                    quantity: parseFloat(quantity)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Operação executada: ${side} ${symbol} por $${data.price}`, 'success');
+                    loadUserTrades();
+                } else {
+                    showNotification('Erro: ' + data.error, 'error');
                 }
+            })
+            .catch(error => {
+                showNotification('Erro de conexão: ' + error, 'error');
             });
-        });
-        
-        // Timeframe switching
-        document.querySelectorAll('.timeframe-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        // Control buttons hover effects
-        document.querySelectorAll('.control-btn').forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-            });
-            
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-        
-        // Simulate live data updates
-        function updateMarketData() {
-            const priceElement = document.querySelector('.data-card:nth-child(1) .data-value');
-            const changeElement = document.querySelector('.data-card:nth-child(2) .data-value');
-            
-            // Simulate small price changes
-            const currentPrice = parseFloat(priceElement.textContent.replace('$', '').replace(',', ''));
-            const change = (Math.random() - 0.5) * 100;
-            const newPrice = currentPrice + change;
-            
-            priceElement.textContent = `$${newPrice.toFixed(2)}`;
-            
-            // Calculate percentage change
-            const percentChange = ((newPrice - 45238.75) / 45238.75 * 100).toFixed(2);
-            changeElement.textContent = `${percentChange >= 0 ? '+' : ''}${percentChange}%`;
-            
-            // Update
+        }
+
+        // Carregar histórico de operações
+        function loadUserTrades() {
+            fetch('/api/user_trades')
+            .then(response => response.json())
+            .then(trades => {
+                const tbody = document.getElementById('trades-table');
+                tbody.innerHTML = '';
+                
+                trades.slice(0, 10).forEach(trade => {
+                    const row = tbody.insertRow();
+                    const date = new Date(trade.timestamp);
+                    
+                    row.innerHTML = `
+                        <td>${date.toLocaleDateString()} ${date.toLocaleTime
