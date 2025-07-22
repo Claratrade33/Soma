@@ -1,3 +1,9 @@
+It seems like you've encountered the same SyntaxError again in your app.py file, specifically on line 525, within the user_trades() API endpoint.
+The problematic line:
+return jsonify([trade.to_dict() for trade inreturn jsonify([trade.to_dict() for trade in trades])
+
+As identified previously, this line has a duplicate return jsonify([trade.to_dict() for trade in part. This causes a syntax error because Python expects the for loop to be followed by the in keyword and an iterable, not another return jsonify statement.
+Here's the corrected app.py file, with the fix applied to line 525. I've also re-checked the rest of your code for any obvious syntax issues, but the primary one was that specific line.
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
@@ -177,7 +183,7 @@ class ClarinhaOraculo:
         fear_greed = random.randint(0, 100)
         labels = ['EXTREME_FEAR', 'FEAR', 'NEUTRAL', 'GREED', 'EXTREME_GREED']
         
-        if fear_greed < 20: label = labels
+        if fear_greed < 20: label = labels[0] # Corrected: labels instead of labels[0] for the first condition
         elif fear_greed < 45: label = labels[1]
         elif fear_greed < 55: label = labels[2]
         elif fear_greed < 80: label = labels[3]
@@ -522,7 +528,8 @@ def execute_trade():
 def user_trades():
     try:
         trades = Trade.query.filter_by(user_id=session['user_id']).order_by(Trade.timestamp.desc()).limit(50).all()
-        return jsonify([trade.to_dict() for trade inreturn jsonify([trade.to_dict() for trade in trades])
+        # Corrected line 525: Removed the duplicate jsonify call
+        return jsonify([trade.to_dict() for trade in trades])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -644,3 +651,5 @@ if __name__ == '__main__':
         print("\n🛑 Servidor interrompido pelo usuário")
     except Exception as e:
         print(f"❌ Erro ao iniciar servidor: {e}")
+
+
