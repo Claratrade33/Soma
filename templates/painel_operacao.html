@@ -2,9 +2,78 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClaraVerse • Painel de Operações</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/dashboard.js" defer></script>
+    <style>
+        body {
+            background-color: #1b1b1b;
+            color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #2b2b2b;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .saldo {
+            font-size: 18px;
+        }
+        .painel-grafico {
+            padding: 20px;
+            background-color: #2e2e2e;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        .indicadores {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px;
+        }
+        .indicador {
+            background-color: #3c3c3c;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .estrategia {
+            padding: 20px;
+            background-color: #2e2e2e;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        .botoes-operacoes {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px;
+        }
+        button {
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-acao {
+            background-color: #4CAF50; /* Verde */
+            color: white;
+        }
+        .btn-erro {
+            background-color: #f44336; /* Vermelho */
+            color: white;
+        }
+        .btn-config {
+            background-color: #2196F3; /* Azul */
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="top-bar">
@@ -19,12 +88,12 @@
     </div>
 
     <div class="indicadores">
-        <p>📈 <strong>Preço:</strong> --</p>
-        <p>📊 <strong>Variação:</strong> --%</p>
-        <p>📦 <strong>Volume:</strong> --</p>
-        <p>🧠 <strong>RSI:</strong> --</p>
-        <p>📉 <strong>Suporte:</strong> --</p>
-        <p>📈 <strong>Resistência:</strong> --</p>
+        <div class="indicador">📈 <strong>Preço:</strong> --</div>
+        <div class="indicador">📊 <strong>Variação:</strong> --%</div>
+        <div class="indicador">📦 <strong>Volume:</strong> --</div>
+        <div class="indicador">🧠 <strong>RSI:</strong> --</div>
+        <div class="indicador">📉 <strong>Suporte:</strong> --</div>
+        <div class="indicador">📈 <strong>Resistência:</strong> --</div>
     </div>
 
     <div class="estrategia">
@@ -34,12 +103,12 @@
     </div>
 
     <div class="botoes-operacoes">
-        <button onclick="executarAcao('entrada')">✅ ENTRADA</button>
-        <button onclick="executarAcao('stop')">🔴 STOP</button>
-        <button onclick="executarAcao('alvo')">🎯 ALVO</button>
-        <button onclick="executarAcao('executar')">🚀 EXECUTAR</button>
-        <button onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
-        <a href="/configurar"><button>⚙️ CONFIGURAR</button></a> <!-- Corrigido para direcionar para a página de configuração -->
+        <button class="btn-acao" onclick="executarAcao('entrada')">✅ ENTRADA</button>
+        <button class="btn-erro" onclick="executarAcao('stop')">🔴 STOP</button>
+        <button class="btn-acao" onclick="executarAcao('alvo')">🎯 ALVO</button>
+        <button class="btn-acao" onclick="executarAcao('executar')">🚀 EXECUTAR</button>
+        <button class="btn-acao" onclick="executarAcao('automatico')">🤖 AUTOMÁTICO</button>
+        <a href="/configurar"><button class="btn-config">⚙️ CONFIGURAR</button></a>
     </div>
 
     <div class="configuracao" id="config">
@@ -51,6 +120,7 @@
             <input type="text" name="binance_secret" placeholder="📘 Binance Secret Key" required><br>
             <button type="submit">💾 Salvar Chaves</button>
         </form>
+        <p>⚠️ As chaves ainda não estão configuradas. Por favor, insira as chaves acima.</p>
         {% else %}
         <p>✅ Chaves configuradas.</p>
         <p><strong>OpenAI:</strong> <span id="openai-key">{{ chaves_armazenadas['openai'] }}</span></p>
