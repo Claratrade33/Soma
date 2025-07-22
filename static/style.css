@@ -1,54 +1,101 @@
 body {
-    background-color: #121018;
-    color: white;
+    background-color: #1b1b1b;
+    color: #f0f0f0;
     font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
 }
 
-.container {
-    max-width: 500px;
-    margin: auto;
-}
-
-.botoes button {
-    background-color: cyan;
-    color: black;
+.top-bar {
+    display: flex;
+    justify-content: space-between;
     padding: 15px;
-    width: 100%;
-    margin: 5px 0;
-    border: none;
-    font-size: 16px;
+    background-color: #2b2b2b;
+}
+
+.logo {
+    font-size: 24px;
     font-weight: bold;
+}
+
+.saldo {
+    font-size: 18px;
+}
+
+.painel-grafico {
+    padding: 20px;
+    background-color: #2e2e2e;
     border-radius: 8px;
+    margin: 20px;
+}
+
+.indicadores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px;
+}
+
+.indicador {
+    background-color: #3c3c3c;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.estrategia {
+    padding: 20px;
+    background-color: #2e2e2e;
+    border-radius: 8px;
+    margin: 20px;
+}
+
+.botoes-operacoes {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+}
+
+button {
+    padding: 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-.botoes a {
-    text-decoration: none;
+.btn-acao {
+    background-color: #4CAF50; /* Verde */
+    color: white;
 }
 
-.ia, .config {
-    margin-top: 30px;
+.btn-erro {
+    background-color: #f44336; /* Vermelho */
+    color: white;
 }
 
-input[type="text"] {
-    width: 90%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 5px;
-    border: none;
+.btn-config {
+    background-color: #2196F3; /* Azul */
+    color: white;
 }
 
-button:hover {
-    opacity: 0.8;
+/* Estilos para mensagens com animação */
+.mensagem {
+    display: none; /* Inicialmente escondido */
+    transition: opacity 0.5s ease; /* Transição suave para a opacidade */
+    position: fixed; /* Fixa a mensagem na tela */
+    top: 20px; /* Distância do topo */
+    left: 50%; /* Centraliza horizontalmente */
+    transform: translateX(-50%); /* Ajusta a posição para centralizar */
+    z-index: 1000; /* Garante que a mensagem fique acima de outros elementos */
+    padding: 15px; /* Espaçamento interno */
+    border-radius: 5px; /* Bordas arredondadas */
 }
 
-pre {
-    white-space: pre-wrap;
-    text-align: left;
-    background: #1f1f2f;
-    padding: 10px;
-    border-radius: 6px;
-    color: #aaffaa;
+.mensagem.success {
+    background-color: #4CAF50; /* Verde */
+    color: white;
+}
+
+.mensagem.error {
+    background-color: #f44336; /* Vermelho */
+    color: white;
 }
