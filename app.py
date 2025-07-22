@@ -15,10 +15,10 @@ from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from sklearn.ensemble import RandomForestRegressor
 
+# === Configurações iniciais ===
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 
-# === CONFIGURAÇÃO DO APP ===
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret_key_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
@@ -29,7 +29,7 @@ db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 
-# === MODELOS ===
+# === Modelos de dados ===
 class User(db.Model):
     id                  = db.Column(db.Integer, primary_key=True)
     username            = db.Column(db.String(150), nullable=False, unique=True)
@@ -83,7 +83,7 @@ class Trade(db.Model):
         }
 
 
-# === IA AVANÇADA: ClarinhaCosmo ===
+# === ClarinhaCosmo: análise “cosmic” ===
 class ClarinhaCosmo:
     def __init__(self):
         self.ml_model = RandomForestRegressor(n_estimators=50, random_state=42)
@@ -92,16 +92,16 @@ class ClarinhaCosmo:
     def analyze_cosmic_patterns(self, symbol):
         try:
             data = self._generate_market_data(symbol)
-            hidden_patterns = self._detect_hidden_patterns(data)
-            manipulation_score = self._detect_manipulation(data)
-            ml_prediction = self._ml_prediction(data)
-            cosmic_signal = self._calculate_cosmic_signal(data)
+            hidden = self._detect_hidden_patterns(data)
+            manipulation = self._detect_manipulation(data)
+            ml_pred = self._ml_prediction(data)
+            signal = self._calculate_cosmic_signal(data)
 
             return {
-                'cosmic_signal': cosmic_signal,
-                'hidden_patterns': hidden_patterns,
-                'manipulation_detected': manipulation_score > 0.7,
-                'ml_prediction': ml_prediction,
+                'cosmic_signal': signal,
+                'hidden_patterns': hidden,
+                'manipulation_detected': manipulation > 0.7,
+                'ml_prediction': ml_pred,
                 'entry_confidence': random.uniform(0.6, 0.95),
                 'risk_level': random.choice(['LOW', 'MEDIUM', 'HIGH']),
                 'timestamp': datetime.utcnow().isoformat() + 'Z'
@@ -126,15 +126,15 @@ class ClarinhaCosmo:
         return random.uniform(0.1, 0.9)
 
     def _ml_prediction(self, data):
-        directions = ['BUY', 'SELL', 'NEUTRAL']
+        dirs = ['BUY', 'SELL', 'NEUTRAL']
         return {
-            'direction': random.choice(directions),
+            'direction': random.choice(dirs),
             'confidence': random.uniform(0.5, 0.9)
         }
 
     def _calculate_cosmic_signal(self, data):
-        signals = ['STRONG_BUY', 'BUY', 'NEUTRAL', 'SELL', 'STRONG_SELL']
-        return random.choice(signals)
+        sigs = ['STRONG_BUY', 'BUY', 'NEUTRAL', 'SELL', 'STRONG_SELL']
+        return random.choice(sigs)
 
     def _fallback_analysis(self):
         return {
@@ -151,14 +151,14 @@ class ClarinhaCosmo:
         }
 
 
-# === PREVISÃO: ClarinhaOraculo ===
+# === ClarinhaOraculo: previsão combinada ===
 class ClarinhaOraculo:
     def get_oracle_prediction(self, symbol):
         try:
-            sentiment = self._analyze_sentiment()
-            onchain = self._analyze_onchain_data()
-            temporal = self._temporal_prediction()
-            final = self._combine_predictions(sentiment, onchain, temporal)
+            sent = self._analyze_sentiment()
+            onch = self._analyze_onchain_data()
+            temp = self._temporal_prediction()
+            final = self._combine_predictions(sent, onch, temp)
             return final
         except Exception as e:
             app.logger.error(f"Erro ClarinhaOraculo: {e}")
@@ -167,12 +167,12 @@ class ClarinhaOraculo:
     def _analyze_sentiment(self):
         fg = random.randint(0, 100)
         labels = ['EXTREME_FEAR', 'FEAR', 'NEUTRAL', 'GREED', 'EXTREME_GREED']
-        if fg < 20: label = labels[0]
-        elif fg < 45: label = labels[1]
-        elif fg < 55: label = labels[2]
-        elif fg < 80: label = labels[3]
-        else: label = labels[4]
-        return {'score': fg/100, 'label': label, 'fear_greed_index': fg}
+        if fg < 20:  lab = labels[0]
+        elif fg < 45:lab = labels[1]
+        elif fg < 55:lab = labels[2]
+        elif fg < 80:lab = labels[3]
+        else:        lab = labels[4]
+        return {'score': fg/100, 'label': lab, 'fear_greed_index': fg}
 
     def _analyze_onchain_data(self):
         return {
@@ -188,44 +188,43 @@ class ClarinhaOraculo:
             'weekly_trend': random.choice(['BULLISH','BEARISH','NEUTRAL'])
         }
 
-    def _combine_predictions(self, sent, onchain, temp):
+    def _combine_predictions(self, sent, onch, temp):
         score = random.randint(-5,5)
-        preds = ['STRONG_BUY','BUY','NEUTRAL','SELL','STRONG_SELL']
-        if score >= 3: p='STRONG_BUY'
-        elif score >= 1: p='BUY'
-        elif score <= -3: p='STRONG_SELL'
-        elif score <= -1: p='SELL'
-        else: p='NEUTRAL'
+        if score >= 3:      p = 'STRONG_BUY'
+        elif score >= 1:    p = 'BUY'
+        elif score <= -3:   p = 'STRONG_SELL'
+        elif score <= -1:   p = 'SELL'
+        else:               p = 'NEUTRAL'
         return {
             'prediction': p,
             'confidence': random.uniform(0.6,0.95),
             'score': score,
             'sentiment': sent,
-            'onchain': onchain,
+            'onchain': onch,
             'temporal': temp
         }
 
     def _fallback_prediction(self):
         return {
-            'prediction':'NEUTRAL','confidence':0.5,'score':0,
-            'sentiment':{'score':0.5,'label':'NEUTRAL','fear_greed_index':50},
-            'onchain':{'whale_activity':'MEDIUM'},
-            'temporal':{'weekly_trend':'NEUTRAL'}
+            'prediction': 'NEUTRAL', 'confidence': 0.5, 'score': 0,
+            'sentiment': {'score':0.5,'label':'NEUTRAL','fear_greed_index':50},
+            'onchain': {'whale_activity':'MEDIUM'},
+            'temporal': {'weekly_trend':'NEUTRAL'}
         }
 
 
-# === SISTEMA DE MERCADO SIMULADO ===
+# === Simulação de mercado ===
 class MarketSystem:
     def __init__(self):
-        self.cosmo    = ClarinhaCosmo()
-        self.oraculo  = ClarinhaOraculo()
+        self.cosmo   = ClarinhaCosmo()
+        self.oraculo = ClarinhaOraculo()
 
     def get_crypto_data(self):
         base = {'BTC':97500,'ETH':3400,'BNB':720,'ADA':1.25,'SOL':145,'XRP':0.85}
         out = {}
         for sym, price in base.items():
             var = random.uniform(-5,5)
-            cp  = price*(1+var/100)
+            cp  = price * (1 + var/100)
             out[sym] = {
                 'price': round(cp,2),
                 'change_24h': round(var,2),
@@ -238,14 +237,15 @@ class MarketSystem:
 
     def get_brazilian_data(self):
         return {
-            'IBOV':  {'price':134167+random.randint(-1000,1000),'change_percent':round(random.uniform(-2,2),2)},
-            'USD_BRL':{'price':5.55+random.uniform(-0.1,0.1),'change_percent':round(random.uniform(-1,1),2)}
+            'IBOV':    {'price':134167+random.randint(-1000,1000),'change_percent':round(random.uniform(-2,2),2)},
+            'USD_BRL': {'price':5.55+random.uniform(-0.1,0.1),'change_percent':round(random.uniform(-1,1),2)}
         }
+
 
 market_system = MarketSystem()
 
 
-# === DECORADOR DE LOGIN ===
+# === Decorador de login ===
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -255,7 +255,7 @@ def login_required(f):
     return decorated
 
 
-# === TRATAMENTO DE ERROS ===
+# === Tratamento de erros ===
 @app.errorhandler(404)
 def not_found(error):
     return render_template('error.html', error_code=404, error_message="Página não encontrada"), 404
@@ -266,7 +266,7 @@ def internal_error(error):
     return render_template('error.html', error_code=500, error_message="Erro interno do servidor"), 500
 
 
-# === ROTAS PRINCIPAIS ===
+# === Rotas ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -282,7 +282,7 @@ def login():
         user = User.query.filter_by(username=u).first()
         if user and check_password_hash(user.password, p):
             session['user_id'] = user.id
-            session.permanent = True
+            session.permanent   = True
             flash(f'Bem-vindo, {user.username}!', 'success')
             return redirect(url_for('painel_operacao'))
         flash('Credenciais inválidas!', 'error')
@@ -292,9 +292,7 @@ def login():
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
-        u = request.form.get('username','').strip()
-        e = request.form.get('email','').strip()
-        p = request.form.get('password','').strip()
+        u,e,p = request.form.get('username','').strip(), request.form.get('email','').strip(), request.form.get('password','').strip()
         if not u or not e or not p:
             flash('Todos os campos são obrigatórios!', 'error')
             return render_template('register.html')
@@ -304,11 +302,7 @@ def register():
         if User.query.filter_by(username=u).first():
             flash('Usuário já existe!', 'error')
             return render_template('register.html')
-        user = User(
-            username=u,
-            email=e,
-            password=generate_password_hash(p)
-        )
+        user = User(username=u, email=e, password=generate_password_hash(p))
         db.session.add(user)
         db.session.commit()
         flash('Conta criada com sucesso!', 'success')
@@ -326,17 +320,11 @@ def logout():
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
-    user = User.query.get(session['user_id'])
+    user   = User.query.get(session['user_id'])
     crypto = market_system.get_crypto_data()
     brazil = market_system.get_brazilian_data()
     trades = Trade.query.filter_by(user_id=user.id).order_by(Trade.timestamp.desc()).limit(10).all()
-    return render_template(
-        'painel_operacao.html',
-        user=user,
-        crypto_data=crypto,
-        br_data=brazil,
-        trades=trades
-    )
+    return render_template('painel_operacao.html', user=user, crypto_data=crypto, br_data=brazil, trades=trades)
 
 
 @app.route('/configurar', methods=['GET','POST'])
@@ -372,8 +360,8 @@ def api_market_data():
 @app.route('/api/intelligent_analysis', methods=['POST'])
 @login_required
 def api_intelligent_analysis():
-    data = request.get_json() or {}
-    sym  = data.get('symbol','BTC')
+    data   = request.get_json() or {}
+    sym    = data.get('symbol','BTC')
     cosmic = market_system.cosmo.analyze_cosmic_patterns(sym)
     oracle = market_system.oraculo.get_oracle_prediction(sym)
     return jsonify({
@@ -389,18 +377,14 @@ def api_intelligent_analysis():
 def api_execute_trade():
     data = request.get_json() or {}
     user = User.query.get(session['user_id'])
-    sym = data.get('symbol')
-    side = data.get('side')
-    qty  = float(data.get('quantity', 0))
+    sym, side, qty = data.get('symbol'), data.get('side'), float(data.get('quantity', 0))
 
     if not sym or not side or qty <= 0:
         return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
 
-    cd = market_system.get_crypto_data()
-    key = sym.replace('USDT','')
-    price = cd.get(key, {}).get('price', 100)
-
+    price = market_system.get_crypto_data().get(sym.replace('USDT',''), {}).get('price', 100)
     trade_value = qty * price
+
     if side == 'BUY':
         if user.saldo_simulado < trade_value:
             return jsonify({'success': False, 'error': 'Saldo insuficiente'}), 400
@@ -414,31 +398,18 @@ def api_execute_trade():
     win_count = Trade.query.filter(Trade.user_id==user.id, Trade.profit_loss>0).count()
     user.win_rate = (win_count / user.total_trades)*100 if user.total_trades else 0
 
-    trade = Trade(
-        user_id=user.id,
-        symbol=sym,
-        side=side,
-        quantity=qty,
-        entry_price=price,
-        profit_loss=pnl,
-        strategy_used='Intelligent_System'
-    )
+    trade = Trade(user_id=user.id, symbol=sym, side=side, quantity=qty, entry_price=price,
+                  profit_loss=pnl, strategy_used='Intelligent_System')
     db.session.add(trade)
     db.session.commit()
 
-    return jsonify({
-        'success': True,
-        'trade_id': trade.id,
-        'price': price,
-        'pnl': pnl
-    })
+    return jsonify({'success': True, 'trade_id': trade.id, 'price': price, 'pnl': pnl})
 
 
 @app.route('/api/user_trades')
 @login_required
 def api_user_trades():
-    trades = Trade.query.filter_by(user_id=session['user_id'])\
-                        .order_by(Trade.timestamp.desc()).limit(50).all()
+    trades = Trade.query.filter_by(user_id=session['user_id']).order_by(Trade.timestamp.desc()).limit(50).all()
     return jsonify([t.to_dict() for t in trades])
 
 
@@ -455,7 +426,7 @@ def api_account_info():
     })
 
 
-# === WEBSOCKET ===
+# === WebSocket ===
 @socketio.on('connect')
 def ws_connect():
     app.logger.info(f'Cliente conectado: {request.sid}')
@@ -479,7 +450,7 @@ def ws_subscribe_market():
         emit('error', {'message': str(e)})
 
 
-# === INICIALIZAÇÃO DO BANCO E USUÁRIOS PADRÃO ===
+# === Inicialização DB e usuários padrão ===
 def create_default_users():
     defaults = [
         {'username':'admin','email':'admin@claraverse.com','password':'admin123'},
@@ -489,11 +460,8 @@ def create_default_users():
     ]
     for u in defaults:
         if not User.query.filter_by(username=u['username']).first():
-            user = User(
-                username=u['username'],
-                email=u['email'],
-                password=generate_password_hash(u['password'])
-            )
+            user = User(username=u['username'], email=u['email'],
+                        password=generate_password_hash(u['password']))
             db.session.add(user)
     db.session.commit()
     app.logger.info("✅ Usuários padrão criados.")
@@ -505,11 +473,11 @@ def initialize_database():
         create_default_users()
 
 
-# === EXECUÇÃO ===
+# === Execução principal ===
 if __name__ == '__main__':
     initialize_database()
 
-    host       = os.environ.get('FLASK_HOST', '127.0.0.1')
+    host       = os.environ.get('FLASK_HOST', '0.0.0.0')
     port       = int(os.environ.get('FLASK_PORT', 5000))
     debug_mode = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
 
