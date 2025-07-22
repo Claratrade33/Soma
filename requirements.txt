@@ -8,4 +8,4 @@ requests
 werkzeug
 flask-migrate==4.0.5
 python-dotenv
-pandas==2.1.0
+pandas>=2.2.0
