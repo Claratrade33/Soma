@@ -23,7 +23,6 @@
             position: relative;
         }
         
-        /* Efeito de partículas */
         body::before {
             content: '';
             position: absolute;
@@ -195,6 +194,23 @@
             color: #99ffcc;
         }
         
+        .alert-info {
+            background: rgba(0, 247, 255, 0.2);
+            border: 2px solid #00f7ff;
+            color: #99f7ff;
+        }
+        
+        .credentials-hint {
+            background: rgba(189, 0, 255, 0.1);
+            border: 1px solid rgba(189, 0, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: rgba(189, 0, 255, 0.8);
+            font-size: 11px;
+            text-align: center;
+        }
+        
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -224,7 +240,7 @@
         <form method="POST" action="{{ url_for('login') }}">
             <div class="form-group">
                 <label for="username">◆ IDENTIFICAÇÃO</label>
-                <input type="text" id="username" name="username" required autocomplete="username">
+                <input type="text" id="username" name="username" required autocomplete="username" placeholder="admin / Clara / Soma">
             </div>
             
             <div class="form-group">
@@ -236,6 +252,11 @@
                 ⚡ INICIAR SEQUÊNCIA
             </button>
         </form>
+        
+        <div class="credentials-hint">
+            <strong>🔐 CREDENCIAIS ATIVAS:</strong><br>
+            admin → Bubi2025 | Clara → Verse | Soma → infinite
+        </div>
     </div>
 </body>
 </html>
