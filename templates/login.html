@@ -1,11 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Login – Claraverse{% endblock %}
+{% block title %}Login • ClaraVerse{% endblock %}
+
 {% block content %}
-  <h2>Login</h2>
-  <form method="post" action="{{ url_for('login') }}">
-    <input type="text" name="username" placeholder="Usuário" required>
-    <input type="password" name="password" placeholder="Senha" required>
-    <button type="submit">Entrar</button>
-  </form>
-  <p>Não tem conta? <a href="{{ url_for('register') }}">Registre-se aqui</a>.</p>
+  <div style="max-width: 400px; margin: 80px auto; padding: 30px; background-color: #1c1c1e; border-radius: 12px; box-shadow: 0 0 12px #00ffff22; text-align: center;">
+    <h2 style="color: #00ffff; margin-bottom: 20px;">🔐 Login no ClaraVerse</h2>
+    
+    <form method="post" action="{{ url_for('login') }}">
+      <input type="text" name="username" placeholder="Usuário" required style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none;">
+      <input type="password" name="password" placeholder="Senha" required style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none;">
+      <button type="submit" style="padding: 12px 24px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">Entrar</button>
+    </form>
+
+    <p style="margin-top: 15px; color: #ccc;">Não tem conta? 
+      <a href="{{ url_for('register') }}" style="color: #00ffff;">Registre-se aqui</a>.
+    </p>
+  </div>
 {% endblock %}
