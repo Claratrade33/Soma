@@ -4,51 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClaraVerse • Registro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Estilos similares ao login.html */
-        /* Manter consistência visual */
+        body {
+            background-color: #0a0a0f;
+            color: #e0f8ff;
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            padding: 50px;
+        }
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00f7ff;
+            background-color: #1a1a1f;
+            color: #e0f8ff;
+            width: 300px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #00f7ff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00b7ff;
+        }
+        a {
+            color: #00f7ff;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <h1>🌌 ClaraVerse</h1>
-            <p>Crie sua conta quântica</p>
-        </div>
+    <h1>Crie sua conta quântica</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST">
+        <label for="username">Nome de Usuário:</label>
+        <input type="text" id="username" name="username" required>
         
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <label for="email">Email Quântico:</label>
+        <input type="email" id="email" name="email" required>
         
-        <form method="POST">
-            <div class="form-group">
-                <label for="username">◆ NOME DE USUÁRIO</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">◆ EMAIL QUÂNTICO</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">◆ CÓDIGO DE ACESSO</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            
-            <button type="submit" class="btn-login">
-                ⚡ CRIAR CONTA
-            </button>
-        </form>
+        <label for="password">Código de Acesso:</label>
+        <input type="password" id="password" name="password" required>
         
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="{{ url_for('login') }}" style="color: #00f7ff;">Já tem conta? Faça login</a>
-        </div>
-    </div>
+        <button type="submit">Criar Conta</button>
+    </form>
+    
+    <p>Já tem conta? <a href="{{ url_for('login') }}">Faça login</a></p>
 </body>
 </html>
