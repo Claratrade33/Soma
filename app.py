@@ -1,9 +1,3 @@
-It seems like you've encountered the same SyntaxError again in your app.py file, specifically on line 525, within the user_trades() API endpoint.
-The problematic line:
-return jsonify([trade.to_dict() for trade inreturn jsonify([trade.to_dict() for trade in trades])
-
-As identified previously, this line has a duplicate return jsonify([trade.to_dict() for trade in part. This causes a syntax error because Python expects the for loop to be followed by the in keyword and an iterable, not another return jsonify statement.
-Here's the corrected app.py file, with the fix applied to line 525. I've also re-checked the rest of your code for any obvious syntax issues, but the primary one was that specific line.
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
@@ -651,5 +645,4 @@ if __name__ == '__main__':
         print("\n🛑 Servidor interrompido pelo usuário")
     except Exception as e:
         print(f"❌ Erro ao iniciar servidor: {e}")
-
 
