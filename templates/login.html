@@ -2,91 +2,240 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Login | ClaraVerse</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClaraVerse • Quantum Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #0e0e1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        .login-box {
-            background-color: #1a1a2f;
-            padding: 40px;
-            border-radius: 12px;
+        
+        body {
+            background: radial-gradient(circle at 20% 80%, #120a2a 0%, #000510 50%, #0a0a0f 100%);
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Efeito de partículas */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 0 20px rgba(0, 255, 229, 0.2);
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00f7ff, transparent),
+                radial-gradient(2px 2px at 40px 70px, #bd00ff, transparent),
+                radial-gradient(1px 1px at 90px 40px, #00ff88, transparent);
+            background-repeat: repeat;
+            background-size: 100px 100px;
+            animation: float 20s infinite linear;
+            opacity: 0.3;
         }
-
-        .login-box h2 {
-            color: #00ffe5;
-            margin-bottom: 25px;
-            text-align: center;
-            font-size: 24px;
+        
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100px, -100px); }
         }
-
-        .login-box input {
+        
+        .login-container {
+            background: rgba(5, 10, 25, 0.95);
+            border: 2px solid transparent;
+            background-image: linear-gradient(rgba(5, 10, 25, 0.95), rgba(5, 10, 25, 0.95)),
+                             linear-gradient(135deg, #00f7ff, #bd00ff, #00ff88);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            border-radius: 20px;
+            padding: 50px 40px;
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 0 50px rgba(0, 247, 255, 0.3),
+                inset 0 0 50px rgba(189, 0, 255, 0.1);
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background-color: #202035;
-            border: none;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 15px;
+            max-width: 420px;
+            position: relative;
+            z-index: 10;
         }
-
-        .login-box button {
-            width: 100%;
-            padding: 12px;
-            background-color: #00ffe5;
-            border: none;
-            border-radius: 8px;
-            color: #0e0e1a;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s ease-in-out;
-            margin-top: 15px;
-        }
-
-        .login-box button:hover {
-            background-color: #02e0d0;
-        }
-
-        .erro {
-            color: #ff4d4d;
+        
+        .logo {
             text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
+            margin-bottom: 40px;
+            position: relative;
         }
-
-        .assinatura {
-            margin-top: 25px;
-            text-align: center;
+        
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00f7ff, #bd00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: rgba(0, 247, 255, 0.7);
             font-size: 12px;
-            color: #777;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0d2ff;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid rgba(0, 247, 255, 0.3);
+            border-radius: 12px;
+            color: #e0f8ff;
+            font-size: 16px;
+            font-family: 'Orbitron', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #00f7ff;
+            box-shadow: 
+                0 0 20px rgba(0, 247, 255, 0.4),
+                inset 0 0 20px rgba(0, 247, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #00f7ff, #bd00ff, #00ff88);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-login:hover::before {
+            left: 100%;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 10px 30px rgba(0, 247, 255, 0.5),
+                0 0 50px rgba(189, 0, 255, 0.3);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert-error {
+            background: rgba(255, 0, 102, 0.2);
+            border: 2px solid #ff0066;
+            color: #ff99cc;
+        }
+        
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+            color: #99ffcc;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 247, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 247, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 247, 255, 0); }
         }
     </style>
 </head>
 <body>
-    <form method="POST" class="login-box">
-        <h2>🔐 Acesso ClaraVerse</h2>
-        <input type="text" name="usuario" placeholder="Usuário" required>
-        <input type="password" name="senha" placeholder="Senha" required>
-        <button type="submit">Entrar</button>
-
-        {% if erro %}
-            <div class="erro">{{ erro }}</div>
-        {% endif %}
-
-        <div class="assinatura">© 2025 ClaraVerse - Inteligência Financeira</div>
-    </form>
+    <div class="login-container pulse">
+        <div class="logo">
+            <h1>🌌 ClaraVerse</h1>
+            <p>Quantum Trading Protocol</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="username">◆ IDENTIFICAÇÃO</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">◆ CÓDIGO DE ACESSO</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn-login">
+                ⚡ INICIAR SEQUÊNCIA
+            </button>
+        </form>
+    </div>
 </body>
 </html>
