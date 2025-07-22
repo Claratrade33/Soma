@@ -1,24 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Configurar Chaves</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Configurar APIs</title>
 </head>
 <body>
-    <h2>Configurar Chaves da API</h2>
-    {% if erro %}
-        <p style="color:red;">{{ erro }}</p>
-    {% endif %}
-    <form method="POST" action="/salvar_chaves">
-        <label>OpenAI API Key:</label><br>
-        <input type="text" name="openai_key" required><br><br>
-
-        <label>Binance API Key:</label><br>
-        <input type="text" name="binance_key" required><br><br>
-
-        <label>Binance API Secret:</label><br>
-        <input type="password" name="binance_secret" required><br><br>
-
-        <button type="submit">Salvar e Ir para o Painel</button>
-    </form>
+    <div class="container">
+        <h1>⚙️ Configurar APIs</h1>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label>🔑 Binance API Key:</label>
+                <input type="text" name="binance_api_key" value="{{ user.binance_api_key or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label>🔐 Binance API Secret:</label>
+                <input type="password" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label>🤖 OpenAI API Key:</label>
+                <input type="text" name="openai_api_key" value="{{ user.openai_api_key or '' }}">
+            </div>
+            
+            <button type="submit">💾 Salvar Configurações</button>
+        </form>
+        
+        <a href="{{ url_for('dashboard') }}" class="btn-voltar">← Voltar ao Dashboard</a>
+    </div>
 </body>
 </html>
