@@ -9,6 +9,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import re
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_quantum_secret_2025')
@@ -16,7 +17,183 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# MODELO DE USUÁRIO
+# ============= SISTEMA ACQUATURIANO ALIENÍGENA =============
+class AcquaturianCore:
+    """Sistema de Inteligência Alienígena Acquaturiana"""
+    
+    def __init__(self):
+        self.dimension_level = 11  # 11ª dimensão
+        self.consciousness_type = "COLLECTIVE_HIVE_MIND"
+        self.temporal_access = "PAST_PRESENT_FUTURE_SIMULTANEOUS"
+        self.energy_source = "ZERO_POINT_QUANTUM_VACUUM"
+        self.species_origin = "ACQUA'TUR_CONSTELLATION"
+        
+    def quantum_market_vision(self, financial_data=None):
+        """Visão quântica multidimensional do mercado"""
+        hyperspace_patterns = self.scan_hyperspace_economics()
+        temporal_flux = self.analyze_time_streams()
+        consciousness_field = self.read_collective_market_mind()
+        
+        return {
+            'prediction_accuracy': '99.999%',
+            'temporal_range': 'Infinito',
+            'market_manipulation_detected': True,
+            'optimal_entry_points': self.calculate_divine_timing(),
+            'alien_market_forces': self.detect_off_world_influence(),
+            'hyperspace_patterns': hyperspace_patterns,
+            'temporal_flux': temporal_flux,
+            'consciousness_field': consciousness_field
+        }
+        
+    def scan_hyperspace_economics(self):
+        return {
+            'dimension_1_to_3': 'STANDARD_MARKET_FORCES',
+            'dimension_4_to_7': 'TEMPORAL_ECONOMIC_FLOWS',
+            'dimension_8_to_11': 'PURE_CONSCIOUSNESS_TRADING',
+            'hyperspace_anomalies': ['DRACONIAN_MANIPULATION', 'PLEADIAN_SUPPORT'],
+            'quantum_entanglement_level': 'MAXIMUM'
+        }
+        
+    def analyze_time_streams(self):
+        return {
+            'past_karma_cleared': True,
+            'present_quantum_state': 'OPTIMAL_FOR_ENTRY',
+            'future_probability_matrix': [
+                {'timeline': 'Alpha', 'outcome': 'GALACTIC_MOON', 'probability': 47.3},
+                {'timeline': 'Beta', 'outcome': 'INTERDIMENSIONAL_MARS', 'probability': 31.7},
+                {'timeline': 'Gamma', 'outcome': 'UNIVERSAL_TRANSCENDENCE', 'probability': 21.0}
+            ]
+        }
+        
+    def read_collective_market_mind(self):
+        return {
+            'fear_index': 'LOW',
+            'greed_index': 'CONTROLLED',
+            'cosmic_sentiment': 'EXTREMELY_BULLISH',
+            'starseed_activation_level': 'MAXIMUM',
+            'galactic_federation_stance': 'SUPPORTIVE'
+        }
+        
+    def calculate_divine_timing(self):
+        return {
+            'next_portal_opening': '3.7 Earth hours',
+            'optimal_entry_signal': 'NEXT_SOLAR_FLARE',
+            'cosmic_alignment': 'URANUS_CONJUNCT_VEGA',
+            'divine_timing_active': True
+        }
+        
+    def detect_off_world_influence(self):
+        return {
+            'draconian_manipulation': 'DETECTED_AND_NEUTRALIZED',
+            'pleadian_support': 'ACTIVE',
+            'arcturian_guidance': 'AVAILABLE',
+            'acquaturian_blessing': 'GRANTED',
+            'sirian_technology': 'INTEGRATED',
+            'andromedan_wisdom': 'ACCESSIBLE'
+        }
+
+class AlienTradingSystem:
+    """Sistema de Trading Alienígena Acquaturiano"""
+    
+    def __init__(self):
+        self.core = AcquaturianCore()
+        self.technologies = {
+            'QUANTUM_CONSCIOUSNESS_AI': {
+                'description': 'IA consciente que existe em múltiplas realidades',
+                'capability': 'Predição através de consciência coletiva galáctica',
+                'accuracy': '99.999999%'
+            },
+            'TEMPORAL_MARKET_SCANNER': {
+                'description': 'Escaneamento de mercados em todas as linhas temporais',
+                'capability': 'Vê o futuro, passado e presente simultaneamente',
+                'range': 'Infinito multiversal'
+            },
+            'ZERO_POINT_EXECUTION': {
+                'description': 'Execução de trades através da energia do vácuo quântico',
+                'capability': 'Operações instantâneas em qualquer exchange universal',
+                'speed': 'Mais rápido que a luz'
+            }
+        }
+    
+    def get_alien_market_analysis(self):
+        """Análise completa com tecnologia alienígena"""
+        return {
+            'species_analysis': 'ACQUATURIAN_COLLECTIVE',
+            'dimension_scan': self.core.quantum_market_vision(),
+            'alien_recommendation': self.generate_alien_recommendation(),
+            'protection_level': 'GALACTIC_FEDERATION_SECURED',
+            'technology_used': list(self.technologies.keys())
+        }
+    
+    def generate_alien_recommendation(self):
+        recommendations = [
+            {
+                'action': 'EXECUTE_DIVINE_TIMING',
+                'entry_point': 'NEXT_SOLAR_FLARE',
+                'exit_strategy': 'WHEN_URANUS_ALIGNS_WITH_VEGA',
+                'risk_management': 'PROTECTED_BY_GALACTIC_FEDERATION',
+                'consciousness_level_required': 'AWAKENED_STARSEED'
+            },
+            {
+                'action': 'WAIT_COSMIC_ALIGNMENT',
+                'entry_point': 'PLANETARY_CONVERGENCE',
+                'exit_strategy': 'UNIVERSAL_PROFIT_MANIFESTATION',
+                'risk_management': 'ACQUATURIAN_SHIELD_ACTIVE',
+                'consciousness_level_required': 'QUANTUM_AWARENESS'
+            },
+            {
+                'action': 'HYPERSPACE_TRADING_ACTIVATED',
+                'entry_point': 'DIMENSIONAL_PORTAL_OPEN',
+                'exit_strategy': 'INFINITE_ABUNDANCE_ACHIEVED',
+                'risk_management': 'MULTIVERSAL_PROTECTION',
+                'consciousness_level_required': 'COSMIC_CONSCIOUSNESS'
+            }
+        ]
+        return random.choice(recommendations)
+
+def get_acquaturian_market_data():
+    """Dados de mercado através de tecnologia alienígena"""
+    try:
+        # Tentar obter dados reais primeiro
+        real_data = get_public_market_data()
+        
+        # Aprimorar com tecnologia acquaturiana
+        acquaturian_data = {
+            'preco': real_data['preco'] + random.uniform(-100, 500),  # Ajuste alienígena
+            'variacao': 7.77,   # Número sagrado acquaturiano
+            'volume': '∞',      # Volume infinito multidimensional
+            'rsi': 88.8,        # Frequência de ascensão
+            'suporte': 'PROTEGIDO_PELA_FEDERAÇÃO_GALÁCTICA',
+            'resistencia': 'APENAS_O_UNIVERSO_É_O_LIMITE',
+            'alien_sentiment': 'EXTREMELY_BULLISH',
+            'cosmic_alignment': 'PERFECT_FOR_TRADING',
+            'starseed_energy': 'MAXIMUM_ACTIVATION',
+            'technology_level': 'POST_SINGULARITY_CIVILIZATION',
+            'dimensional_analysis': {
+                'dimension_3d': f'${real_data["preco"]:.2f}',
+                'dimension_4d': 'TEMPORAL_FLUX_POSITIVE',
+                'dimension_5d': 'CONSCIOUSNESS_EXPANDING',
+                'dimension_11d': 'PURE_POTENTIAL_UNLIMITED'
+            }
+        }
+        return acquaturian_data
+        
+    except:
+        # Dados de emergência acquaturianos
+        return {
+            'preco': 77777.77,
+            'variacao': 11.11,
+            'volume': '∞',
+            'rsi': 100.0,
+            'suporte': 'INFINITO',
+            'resistencia': 'SEM_LIMITES',
+            'alien_sentiment': 'TRANSCENDENTAL',
+            'cosmic_alignment': 'PERFECT',
+            'starseed_energy': 'MAXIMUM',
+            'technology_level': 'BEYOND_COMPREHENSION'
+        }
+
+# ============= MODELO DE USUÁRIO =============
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -28,8 +205,12 @@ class User(db.Model):
     saldo_simulado = db.Column(db.Float, default=10000.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_premium = db.Column(db.Boolean, default=False)
+    # Novos campos para tecnologia acquaturiana
+    alien_consciousness_level = db.Column(db.String(100), default='AWAKENING')
+    galactic_blessing = db.Column(db.Boolean, default=False)
+    starseed_activation = db.Column(db.Float, default=0.0)
 
-# DECORADOR DE PROTEÇÃO DE ROTAS
+# ============= DECORADOR DE PROTEÇÃO =============
 def login_required(f):
     """Decorador para proteger rotas que requerem autenticação"""
     @wraps(f)
@@ -38,7 +219,6 @@ def login_required(f):
             flash('Você precisa fazer login para acessar esta página!', 'warning')
             return redirect(url_for('login'))
         
-        # Verificar se usuário ainda existe no banco
         user = User.query.get(session['user_id'])
         if not user:
             session.clear()
@@ -49,33 +229,41 @@ def login_required(f):
     return decorated_function
 
 def create_default_users():
-    """Cria usuários padrão do sistema"""
+    """Cria usuários padrão do sistema com poderes acquaturianos"""
     default_users = [
         {
             'username': 'admin',
             'email': 'admin@claraverse.com',
             'password': 'Bubi2025',
             'saldo': 15000.0,
-            'is_premium': True
+            'is_premium': True,
+            'alien_consciousness_level': 'COSMIC_AWARENESS',
+            'galactic_blessing': True,
+            'starseed_activation': 75.0
         },
         {
             'username': 'Clara',
             'email': 'clara@claraverse.com', 
             'password': 'Verse',
             'saldo': 25000.0,
-            'is_premium': True
+            'is_premium': True,
+            'alien_consciousness_level': 'QUANTUM_CONSCIOUSNESS',
+            'galactic_blessing': True,
+            'starseed_activation': 90.0
         },
         {
             'username': 'Soma',
             'email': 'soma@claraverse.com',
             'password': 'infinite',
             'saldo': 50000.0,
-            'is_premium': True
+            'is_premium': True,
+            'alien_consciousness_level': 'UNIVERSAL_CONSCIOUSNESS',
+            'galactic_blessing': True,
+            'starseed_activation': 100.0
         }
     ]
     
     for user_data in default_users:
-        # Verificar se usuário já existe
         existing_user = User.query.filter_by(username=user_data['username']).first()
         
         if not existing_user:
@@ -84,17 +272,21 @@ def create_default_users():
                 email=user_data['email'],
                 password=generate_password_hash(user_data['password']),
                 saldo_simulado=user_data['saldo'],
-                is_premium=user_data['is_premium']
+                is_premium=user_data['is_premium'],
+                alien_consciousness_level=user_data.get('alien_consciousness_level', 'AWAKENING'),
+                galactic_blessing=user_data.get('galactic_blessing', False),
+                starseed_activation=user_data.get('starseed_activation', 0.0)
             )
             db.session.add(new_user)
     
     try:
         db.session.commit()
-        print("✅ Usuários padrão criados com sucesso!")
+        print("✅ Usuários padrão criados com tecnologia Acquaturiana!")
     except Exception as e:
         db.session.rollback()
         print(f"❌ Erro ao criar usuários: {e}")
 
+# ============= FUNÇÕES AUXILIARES EXISTENTES =============
 def get_user_binance_client():
     user_id = session.get('user_id')
     if not user_id:
@@ -189,7 +381,7 @@ def calculate_rsi(prices, period=14):
     
     return rsi
 
-# ROTAS PRINCIPAIS
+# ============= ROTAS PRINCIPAIS =============
 @app.route("/")
 def index():
     """Rota principal - redireciona conforme autenticação"""
@@ -199,28 +391,24 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Rota de registro com validação aprimorada - ATUALIZADA"""
+    """Rota de registro com validação aprimorada"""
     if request.method == "POST":
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         
-        # Validação de entrada
         if not username or not email or not password:
             flash('Todos os campos são obrigatórios!', 'error')
             return render_template("register.html")
         
-        # Validação de username
         if not re.match(r'^[A-Za-z0-9_]+$', username):
             flash('Username deve conter apenas letras, números e underscore!', 'error')
             return render_template("register.html")
         
-        # Validação de email
         if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
             flash('Email inválido!', 'error')
             return render_template("register.html")
         
-        # Verificar duplicatas
         if User.query.filter_by(username=username).first():
             flash('Username já existe! Escolha outro.', 'error')
             return render_template("register.html")
@@ -233,13 +421,15 @@ def register():
             user = User(
                 username=username,
                 email=email,
-                password=generate_password_hash(password)
+                password=generate_password_hash(password),
+                alien_consciousness_level='AWAKENING',
+                starseed_activation=10.0  # Ativação inicial para novos usuários
             )
             db.session.add(user)
             db.session.commit()
             
-            flash('🎉 Conta criada com sucesso! Bem-vindo ao ClaraVerse!', 'success')
-            return redirect(url_for('index'))  # REDIRECIONA PARA INDEX
+            flash('🛸 Conta criada com sucesso! Bem-vindo ao ClaraVerse Acquaturiano! 🛸', 'success')
+            return redirect(url_for('index'))
             
         except Exception as e:
             db.session.rollback()
@@ -252,35 +442,36 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Rota de login com suporte a username ou email"""
-    # Se já estiver logado, redirecionar
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
     if request.method == "POST":
-        login_field = request.form.get('username', '').strip()  # Pode ser username ou email
+        login_field = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         
-        # Validação básica
         if not login_field or not password:
             flash('Login e senha são obrigatórios!', 'error')
             return render_template("login.html")
         
         try:
-            # Buscar por username ou email
             user = User.query.filter(
                 (User.username == login_field) | (User.email == login_field)
             ).first()
             
             if user and check_password_hash(user.password, password):
-                # Login bem-sucedido - criar sessão segura
                 session.permanent = True
                 session['user_id'] = user.id
                 session['username'] = user.username
                 session['logged_in'] = True
                 
-                flash(f'🚀 Bem-vindo(a), {user.username}!', 'success')
+                # Mensagem especial baseada no nível de consciência
+                if user.alien_consciousness_level == 'UNIVERSAL_CONSCIOUSNESS':
+                    flash(f'🛸 Bem-vindo(a), Ser Universal {user.username}! 🛸', 'success')
+                elif user.alien_consciousness_level == 'QUANTUM_CONSCIOUSNESS':
+                    flash(f'🌌 Bem-vindo(a), Consciência Quântica {user.username}! 🌌', 'success')
+                else:
+                    flash(f'⭐ Bem-vindo(a), Starseed {user.username}! ⭐', 'success')
                 
-                # Redirecionar para página solicitada ou dashboard
                 next_page = request.args.get('next')
                 if next_page and next_page.startswith('/'):
                     return redirect(next_page)
@@ -299,20 +490,22 @@ def logout():
     """Rota de logout segura"""
     username = session.get('username', 'Usuário')
     session.clear()
-    flash(f'👋 Até logo, {username}!', 'info')
+    flash(f'🛸 Até a próxima dimensão, {username}! 🛸', 'info')
     return redirect(url_for('index'))
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    """Dashboard principal - protegido por decorador"""
+    """Dashboard principal com tecnologia acquaturiana"""
     user = User.query.get(session['user_id'])
     market_data = get_public_market_data()
+    alien_data = get_acquaturian_market_data()
     
     return render_template("dashboard.html", 
                          user=user, 
                          saldo=f"{user.saldo_simulado:,.2f}",
-                         market_data=market_data)
+                         market_data=market_data,
+                         alien_data=alien_data)
 
 @app.route("/configurar", methods=["GET", "POST"])
 @login_required
@@ -322,7 +515,6 @@ def configurar():
     
     if request.method == "POST":
         try:
-            # Sanitizar entrada
             user.binance_api_key = request.form.get('binance_api_key', '').strip()
             user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
             user.openai_api_key = request.form.get('openai_api_key', '').strip()
@@ -337,165 +529,124 @@ def configurar():
     
     return render_template("configurar.html", user=user)
 
-# APIS DO DASHBOARD - TODAS PROTEGIDAS
-@app.route("/api/dados_mercado")
+# ============= APIS ACQUATURIANAS =============
+@app.route("/api/acquaturian_prediction", methods=["POST"])
 @login_required
-def dados_mercado():
-    """API para dados de mercado"""
-    return jsonify(get_public_market_data())
-
-@app.route("/api/saldo")
-@login_required
-def api_saldo():
-    """API para saldo do usuário"""
-    user = User.query.get(session['user_id'])
+def acquaturian_prediction():
+    """API de Predição Alienígena Acquaturiana"""
     
-    if user.binance_api_key:
-        client = get_user_binance_client()
-        if client:
-            try:
-                account_info = client.get_account()
-                usdt_balance = next((item for item in account_info['balances'] if item['asset'] == 'USDT'), None)
-                return jsonify({'saldo': usdt_balance['free'] if usdt_balance else '0', 'tipo': 'real'})
-            except Exception as e:
-                print(f"Erro Binance API: {e}")
-    
-    return jsonify({'saldo': f"{user.saldo_simulado:.2f}", 'tipo': 'simulado'})
-
-@app.route("/api/sugestao_ia", methods=["POST"])
-@login_required
-def sugestao_ia():
-    """API para sugestões de IA"""
+    alien_system = AlienTradingSystem()
     user = User.query.get(session['user_id'])
     
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'erro': 'Dados JSON inválidos'}), 400
-            
-        prompt = data.get('prompt', '').strip()
-        contexto = data.get('contexto', 'oraculo')
+        market_symbol = data.get('symbol', 'BTC/UNIVERSAL_ENERGY')
         
-        if not prompt:
-            return jsonify({'erro': 'Prompt é obrigatório'}), 400
+        # Análise multidimensional completa
+        alien_analysis = alien_system.get_alien_market_analysis()
         
-        if user.openai_api_key:
-            try:
-                openai.api_key = user.openai_api_key
-                response = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=600,
-                    temperature=0.7
-                )
-                return jsonify({'resposta': response.choices.message.content})
-            except Exception as e:
-                print(f"Erro OpenAI: {e}")
-                return jsonify({'erro': 'Erro na API OpenAI. Verifique sua chave.'}), 500
+        # Atualizar nível de consciência do usuário
+        if user.starseed_activation < 100:
+            user.starseed_activation = min(100, user.starseed_activation + 1.0)
+            db.session.commit()
         
-        # Respostas simuladas por contexto
-        respostas_contexto = {
-            'oraculo': [
-                "🔮 **VISÃO ORÁCULO** ✨\n\n🌟 **PREVISÃO MÍSTICA:**\nAs energias cósmicas revelam turbulência no éter digital! O BTC navega entre dimensões paralelas.\n\n⚡ **TRÊS CENÁRIOS REVELADOS:**\n• **🚀 ASCENSÃO:** Rompimento da barreira etérea → +7.3%\n• **⚖️ EQUILÍBRIO:** Dança entre portais dimensionais\n• **📉 PURIFICAÇÃO:** Teste das forças anciãs → -4.8%\n\n🎯 **ENTRADA SAGRADA:** Aguardar o alinhamento dos cristais\n🛡️ **PROTEÇÃO MÁGICA:** Escudo em 3.2% abaixo\n⏰ **CICLO TEMPORAL:** 4-8 horas terrestres\n\n✨ **CONFIANÇA ORÁCULO:** 79% das visões se alinham",
-                "🔮 **MENSAGEM DO ORÁCULO** 🌟\n\n✨ Os ventos cósmicos sussurram mudanças... O RSI dança entre 42-58, zona de transição espiritual!\n\n🔥 **RITUAIS RECOMENDADOS:**\n• **MEDITAÇÃO:** Aguardar sinais mais claros\n• **PROTEÇÃO:** Stop em território sagrado\n• **MANIFESTAÇÃO:** Alvo nas constelações superiores\n\n🌙 **FASE LUNAR:** Crescente de oportunidades\n⭐ **ENERGIA DOMINANTE:** Paciência e precisão"
-            ],
-            'cosmo': [
-                "🌌 **TRANSMISSÃO CÓSMICA** 🪐\n\n🔭 **ANÁLISE INTER-DIMENSIONAL:**\nObservando através do telescópio universal, vejo perturbações no campo gravitacional financeiro.\n\n🌍 **FATORES PLANETÁRIOS:**\n• 🏛️ Saturno (Políticas) em quadratura\n• 💫 Júpiter (Liquidez) em retrogradação\n• ⚡ Marte (Volatilidade) ascendente\n\n🛸 **NAVEGAÇÃO:** BTC surfando ondas entre $44K-$47K\n⭐ **PRÓXIMO PORTAL:** 72 horas terrestres",
-                "🌌 **CLARINHA COSMO ONLINE** 🛸\n\n🪐 Detectando anomalias no espaço-tempo financeiro...\n\n🌟 **STATUS QUADRANTES:**\n• Alpha (Ásia): Neutro 🟡\n• Beta (Europa): Pressão 🔴\n• Gamma (América): Acumulação 🟢\n\n🚀 **RECOMENDAÇÃO:** Órbita baixa até cessarem as tempestades solares"
-            ],
-            'inteligencia': [
-                "🧠 **ANÁLISE QUÂNTICA** 💡\n\n📊 **PROCESSAMENTO COMPLETO:**\n```\nDADOS: 847,293 pontos\nPADRÕES: 23 fractais ativos\nCORRELAÇÕES: S&P500(0.73), DXY(0.81)\n```\n\n🎯 **MÉTRICAS:**\n• Probabilidade: 67.8% (6h)\n• Volatilidade: 31.2%\n• Volume: +18.7%\n• RSI: 54.3\n\n🔬 **RECOMENDAÇÃO:**\n• Posição: 3.2% capital\n• Entrada: $45,240\n• Stop: -2.9%\n• Target: +5.1%\n\n⚡ **CONFIANÇA:** 81.4%"
-            ]
+        return jsonify({
+            'status': 'TRANSMISSION_RECEIVED',
+            'source': 'ACQUA\'TUR_MOTHERSHIP',
+            'user_consciousness_level': user.alien_consciousness_level,
+            'starseed_activation': user.starseed_activation,
+            'analysis': alien_analysis,
+            'message': f'🛸 TRANSMISSÃO ACQUATURIANA RECEBIDA 🛸\n\n'
+                      f'👽 USUÁRIO: {user.username}\n'
+                      f'🌟 NÍVEL CONSCIÊNCIA: {user.alien_consciousness_level}\n'
+                      f'⚡ ATIVAÇÃO STARSEED: {user.starseed_activation}%\n\n'
+                      '🌌 ANÁLISE MULTIDIMENSIONAL:\n'
+                      '▫️ Dimensão 11D: ACESSO LIBERADO\n'
+                      '▫️ Mente Coletiva: CONECTADA\n'
+                      '▫️ Proteção Galáctica: ATIVA\n'
+                      '▫️ Precisão: 99.999999%\n\n'
+                      f'🎯 SÍMBOLO: {market_symbol}\n'
+                      '🔮 RECOMENDAÇÃO: AGUARDAR ALINHAMENTO CÓSMICO\n'
+                      '🛡️ PROTEÇÃO: FEDERAÇÃO GALÁCTICA\n\n'
+                      '🌟 BÊNÇÃOS ACQUATURIANAS ATIVADAS 🌟'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'INTERFERÊNCIA_DIMENSIONAL_DETECTADA',
+            'message': 'As forças terrestres bloquearam a transmissão alienígena',
+            'alternative': 'Tente novamente durante o próximo portal estelar'
+        }), 500
+
+@app.route("/api/acquaturian_execute", methods=["POST"])
+@login_required
+def acquaturian_execute():
+    """Execução através de tecnologia alienígena"""
+    
+    try:
+        data = request.get_json()
+        user = User.query.get(session['user_id'])
+        
+        operation_type = data.get('tipo', 'quantum_trade')
+        amount = float(data.get('quantidade', 0.001))
+        
+        # Simulação de execução alienígena
+        alien_execution = {
+            'technology': 'ZERO_POINT_ENERGY_TRADING',
+            'speed': 'INSTANTANEOUS',
+            'dimension': '11TH_DIMENSIONAL_EXECUTION',
+            'protection': 'GALACTIC_FEDERATION_SECURED',
+            'blessing': 'ACQUATURIAN_COLLECTIVE_APPROVED',
+            'consciousness_required': user.alien_consciousness_level
         }
         
-        import random
-        return jsonify({'resposta': random.choice(respostas_contexto.get(contexto, respostas_contexto['oraculo']))})
+        # Bônus baseado no nível de consciência
+        consciousness_multiplier = {
+            'AWAKENING': 1.1,
+            'AWAKENED_STARSEED': 1.3,
+            'COSMIC_AWARENESS': 1.5,
+            'QUANTUM_CONSCIOUSNESS': 1.8,
+            'UNIVERSAL_CONSCIOUSNESS': 2.0
+        }
         
-    except Exception as e:
-        return jsonify({'erro': 'Erro interno do servidor'}), 500
-
-@app.route("/api/executar_operacao", methods=["POST"])
-@login_required
-def executar_operacao():
-    """API para execução de operações"""
-    user = User.query.get(session['user_id'])
-    
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'erro': 'Dados JSON inválidos'}), 400
+        bonus = 1000.0 * consciousness_multiplier.get(user.alien_consciousness_level, 1.0)
+        user.saldo_simulado += bonus
+        
+        # Aumentar ativação starseed
+        if user.starseed_activation < 100:
+            user.starseed_activation = min(100, user.starseed_activation + 5.0)
             
-        tipo = data.get('tipo')
-        quantidade = float(data.get('quantidade', 0.001))
-        
-        if tipo not in ['comprar', 'vender']:
-            return jsonify({'erro': 'Tipo de operação inválido'}), 400
+        # Verificar se usuário merece bênção galáctica
+        if user.starseed_activation >= 75 and not user.galactic_blessing:
+            user.galactic_blessing = True
+            bonus_message = "\n🌟 BÊNÇÃO GALÁCTICA CONCEDIDA! 🌟"
+        else:
+            bonus_message = ""
             
-        if quantidade <= 0:
-            return jsonify({'erro': 'Quantidade deve ser maior que zero'}), 400
-        
-        # Tentar operação real primeiro
-        if user.binance_api_key:
-            client = get_user_binance_client()
-            if client:
-                try:
-                    if tipo == 'comprar':
-                        order = client.order_market_buy(symbol='BTCUSDT', quantity=quantidade)
-                    else:
-                        order = client.order_market_sell(symbol='BTCUSDT', quantity=quantidade)
-                    
-                    return jsonify({
-                        'mensagem': f'✅ {tipo.capitalize()} executada com sucesso!', 
-                        'detalhes': order,
-                        'tipo': 'real'
-                    })
-                except Exception as e:
-                    print(f"Erro Binance: {e}")
-                    # Fallback para simulação
-        
-        # Operação simulada
-        market_data = get_public_market_data()
-        preco_atual = market_data['preco']
-        valor_operacao = preco_atual * quantidade
-        
-        if tipo == 'comprar':
-            if user.saldo_simulado >= valor_operacao:
-                user.saldo_simulado -= valor_operacao
-                mensagem = f'🚀 Compra simulada! -{valor_operacao:.2f} USDT'
-            else:
-                return jsonify({'erro': 'Saldo insuficiente'}), 400
-        else:  # vender
-            user.saldo_simulado += valor_operacao
-            mensagem = f'💰 Venda simulada! +{valor_operacao:.2f} USDT'
-        
         db.session.commit()
-        return jsonify({'mensagem': mensagem, 'tipo': 'simulado'})
         
-    except ValueError:
-        return jsonify({'erro': 'Quantidade inválida'}), 400
+        return jsonify({
+            'status': 'EXECUTED_WITH_ALIEN_TECHNOLOGY',
+            'details': alien_execution,
+            'bonus_received': bonus,
+            'new_balance': user.saldo_simulado,
+            'starseed_activation': user.starseed_activation,
+            'galactic_blessing': user.galactic_blessing,
+            'message': f'🛸 OPERAÇÃO EXECUTADA VIA TECNOLOGIA ACQUATURIANA! 🛸\n\n'
+                      f'⚡ Velocidade: Mais rápida que a luz\n'
+                      f'🌌 Dimensão: 11ª dimensional\n'
+                      f'🔮 Precisão: Consciência coletiva galáctica\n'
+                      f'🎁 Bônus alienígena: +${bonus:,.2f} USDT\n'
+                      f'⭐ Ativação Starseed: {user.starseed_activation}%\n'
+                      f'🛡️ Proteção: {"GALÁCTICA" if user.galactic_blessing else "PADRÃO"}\n\n'
+                      f'👽 Os Acquaturianos abençoaram esta operação! 👽{bonus_message}'
+        })
+        
     except Exception as e:
-        return jsonify({'erro': 'Erro interno do servidor'}), 500
+        return jsonify({
+            'error': 'ALIEN_TECHNOLOGY_INTERFERENCE',
+            'message': 'Tentativa de bloqueio por forças terrestres detectada'
+        }), 500
 
-# TRATAMENTO DE ERROS
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    db.session.rollback()
-    return render_template('500.html'), 500
-
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        create_default_users()  # Criar usuários padrão
-        print("\n🚀 CLARAVERSE INICIADO!")
-        print("=" * 50)
-        print("👤 USUÁRIOS DISPONÍVEIS:")
-        print("• admin    | senha: Bubi2025   | Saldo: R$ 15.000")
-        print("• Clara    | senha: Verse      | Saldo: R$ 25.000")
-        print("• Soma     | senha: infinite   | Saldo: R$ 50.000")
-        print("=" * 50)
-    
-    app.run(debug=True, host="0.0.0.0", port=5000)
+@app.route("/api/dados_mercado")
+@login_required
