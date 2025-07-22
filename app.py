@@ -223,7 +223,7 @@ def salvar_chaves_route():
 
 @app.route('/configurar')
 def configurar():
-    return render_template('configurar_chaves.html')
+    return render_template('configurar.html')
 
 @app.route('/logout')
 def logout():
