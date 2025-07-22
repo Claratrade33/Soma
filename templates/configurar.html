@@ -4,19 +4,78 @@
     <meta charset="UTF-8">
     <title>Configurar Chaves - ClaraVerse</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-color: #1b1b1b;
+            color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .configurar-container {
+            background-color: #2e2e2e;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-config {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3c3c3c;
+            color: #f0f0f0;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50; /* Verde */
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .voltar-painel {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #2196F3; /* Azul */
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     <div class="configurar-container">
         <h1>🔐 Configuração de Chaves API</h1>
         <form method="POST" action="/salvar_chaves" class="form-config">
             <label for="binance_api_key">Binance API Key</label>
-            <input type="text" id="binance_api_key" name="binance_key" required> <!-- Corrigido para 'binance_key' -->
+            <input type="text" id="binance_api_key" name="binance_key" required>
 
             <label for="binance_api_secret">Binance API Secret</label>
-            <input type="text" id="binance_api_secret" name="binance_secret" required> <!-- Corrigido para 'binance_secret' -->
+            <input type="text" id="binance_api_secret" name="binance_secret" required>
 
             <label for="openai_api_key">OpenAI API Key</label>
-            <input type="text" id="openai_api_key" name="openai_key" required> <!-- Corrigido para 'openai_key' -->
+            <input type="text" id="openai_api_key" name="openai_key" required>
 
             <button type="submit" class="botao-salvar">Salvar Chaves</button>
         </form>
