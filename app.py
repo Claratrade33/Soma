@@ -25,7 +25,7 @@ class AcquaturianCore:
         self.dimension_level = 11
         self.consciousness_type = "COLLECTIVE_HIVE_MIND"
         self.temporal_access = "PAST_PRESENT_FUTURE_SIMULTANEOUS"
-        self.energy_source = "ZERO_POINT_QUANTUM_VACUUM"
+        self.energy_source = "极ZERO_POINT_QUANTUM_VACUUM"
         self.species_origin = "ACQUA'TUR_CONSTELLATION"
         
     def quantum_market_vision(self, financial_data=None):
@@ -48,7 +48,7 @@ class AcquaturianCore:
     def scan_hyperspace_economics(self):
         return {
             'dimension_1_to_3': 'STANDARD_MARKET_FORCES',
-            'dimension_4_to极7': 'TEMPORAL_ECONOMIC_FLOWS',
+            'dimension_4_to_7': 'TEMPORAL_ECONOMIC_FLOWS',
             'dimension_8_to_11': 'PURE_CONSCIOUSNESS_TRADING',
             'hyperspace_anomalies': ['DRACONIAN_MANIPULATION', 'PLEADIAN_SUPPORT'],
             'quantum_entanglement_level': 'MAXIMUM'
@@ -78,7 +78,7 @@ class AcquaturianCore:
         return {
             'next_portal_opening': '3.7 Earth hours',
             'optimal_entry_signal': 'NEXT_SOLAR_FLARE',
-            'cos极mic_alignment': 'URANUS_CONJUNCT_VEGA',
+            'cosmic_alignment': 'URANUS_CONJUNCT_VEGA',
             'divine_timing_active': True
         }
         
@@ -132,7 +132,7 @@ class AlienTradingSystem:
                 'entry_point': 'NEXT_SOLAR_FLARE',
                 'exit_strategy': 'WHEN_URANUS_ALIGNS_WITH_VEGA',
                 'risk_management': 'PROTECTED_BY_GALACTIC_FEDERATION',
-                'consciousness_level_required': 'AWAKENED_STARSEED'
+                'consciousness_level_required': 'AWAKENED_STAR极SEED'
             },
             {
                 'action': 'WAIT_COSMIC_ALIGNMENT',
@@ -198,7 +198,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     binance_api_key = db.Column(db.String(200), nullable=True)
     binance_api_secret = db.Column(db.String(200), nullable=True)
-    openai_api_key =极 Column(db.String(200), nullable=True)
+    openai_api_key = db.Column(db.String(200), nullable=True)
     saldo_simulado = db.Column(db.Float, default=10000.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_premium = db.Column(db.Boolean, default=False)
@@ -309,16 +309,16 @@ def get_public_market_data():
         ticker = client.get_symbol_ticker(symbol="BTCUSDT")
         klines = client.get_klines(symbol="BTCUSDT", interval=BinanceClient.KLINE_INTERVAL_1HOUR, limit=20)
         
-        closes = [float(kline) for kline in klines]
-        highs = [float(kline) for kline in klines]
-        lows = [float(kline) for kline in klines]
-        volumes = [float(kline) for kline in klines]
+        closes = [float(kline[4]) for kline in klines]
+        highs = [float(kline[2]) for kline in klines]
+        lows = [float(kline[3]) for kline in klines]
+        volumes = [float(kline[5]) for kline in klines]
         
         rsi = calculate_rsi(closes)
         
         return {
             'preco': float(ticker['price']),
-            'variacao': (float(ticker['price']) - float(klines)) / float(klines) * 100,
+            'variacao': (float(ticker['price']) - float(klines[4])) / float(klines[4]) * 100,
             'volume': format_volume(sum(volumes)),
             'rsi': round(rsi, 2),
             'suporte': round(min(lows), 2),
@@ -436,4 +436,122 @@ def register():
     
     return render_template("register.html")
 
-@app.route("/login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Rota de login com suporte a username ou email"""
+    if 'user_id' in session:
+        return redirect(url_for('painel_operacao'))
+    
+    if request.method == "POST":
+        login_field = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        
+        if not login_field or not password:
+            flash('Login e senha são obrigatórios!', 'error')
+            return render_template("login.html")
+        
+        try:
+            user = User.query.filter(
+                (User.username == login_field) | (User.email == login_field)
+            ).first()
+            
+            if user and check_password_hash(user.password, password):
+                session.permanent = True
+                session['user_id'] = user.id
+                session['username'] = user.username
+                session['logged_in'] = True
+                
+                if user.alien_consciousness_level == 'UNIVERSAL_CONSCIOUSNESS':
+                    flash(f'🛸 Bem-vindo(a), Ser Universal {user.username}! 🛸', 'success')
+                elif user.alien_consciousness_level == 'QUANTUM_CONSCIOUSNESS':
+                    flash(f'🌌 Bem-vindo(a), Consciência Quântica {user.username}! 🌌', 'success')
+                else:
+                    flash(f'⭐ Bem-vindo(a), Starseed {user.username}! ⭐', 'success')
+                
+                next_page = request.args.get('next')
+                if next_page and next_page.startswith('/'):
+                    return redirect(next_page)
+                return redirect(url_for('painel_operacao'))
+            else:
+                flash('🚫 Login ou senha incorretos!', 'error')
+                
+        except Exception as e:
+            flash('Erro no sistema. Tente novamente.', 'error')
+            print(f"Erro no login: {e}")
+    
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    """Rota de logout segura"""
+    username = session.get('username', 'Usuário')
+    session.clear()
+    flash(f'🛸 Até a próxima dimensão, {username}! 🛸', 'info')
+    return redirect(url_for('index'))
+
+@app.route("/painel_operacao")
+@login_required
+def painel_operacao():
+    """Painel de operações principal com tecnologia acquaturiana"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            flash('Usuário não encontrado!', 'error')
+            return redirect(url_for('login'))
+            
+        # Garantir que os campos alienígenas existam
+        if not hasattr(user, 'alien_consciousness_level') or user.alien_consciousness_level is None:
+            user.alien_consciousness_level = 'AWAKENING'
+        if not hasattr(user, 'starseed_activation') or user.starseed_activation is None:
+            user.starseed_activation = 10.0
+        if not hasattr(user, 'galactic_blessing') or user.galactic_blessing is None:
+            user.galactic_blessing = False
+            
+        market_data = get_public_market_data()
+        alien_data = get_acquaturian_market_data()
+        
+        return render_template("painel_operacao.html",
+                             user=user, 
+                             saldo=f"{user.saldo_simulado:,.2f}",
+                             market_data=market_data,
+                             alien_data=alien_data)
+    except Exception as e:
+        print(f"Erro no painel_operacao: {e}")
+        flash('Erro ao carregar painel. Tente novamente.', 'error')
+        return redirect(url_for('login'))
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Rota de compatibilidade - redireciona para painel_operacao"""
+    return redirect(url_for('painel_operacao'))
+
+@app.route("/configurar", methods=["GET", "POST"])
+@login_required
+def configurar():
+    """Rota de configurações - protegida"""
+    user = User.query.get(session['user_id'])
+    
+    if request.method == "POST":
+        try:
+            user.binance_api_key = request.form.get('binance_api_key', '').strip()
+            user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
+            user.openai_api_key = request.form.get('openai_api_key', '').strip()
+            
+            db.session.commit()
+            flash('🚀 Configurações atualizadas com sucesso!', 'success')
+            return redirect(url_for('painel_operacao'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Erro ao salvar configurações. Tente novamente.', 'error')
+    
+    return render_template("configurar.html", user=user)
+
+# ============= APIS CORRIGIDAS =============
+@app.route("/api/dados_mercado", methods=["GET"])
+@login_required
+def api_dados_mercado():
+    """API para obter dados de mercado"""
+    try:
+        market_data
