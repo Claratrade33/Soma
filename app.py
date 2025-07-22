@@ -396,7 +396,6 @@ def api_execute_trade():
     if not sym or not side or qty <= 0:
         return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
 
-    # Simula preço atual
     cd = market_system.get_crypto_data()
     key = sym.replace('USDT','')
     price = cd.get(key, {}).get('price', 100)
