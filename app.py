@@ -170,6 +170,13 @@ def analisar_mercado_e_sugerir(binance_api_key, binance_api_secret, openai_api_k
     except Exception as e:
         return {"erro": str(e)}
 
+# Configuração de usuários e senhas
+usuarios = {
+    'admin': 'Bubi2025',
+    'Clara': 'Verse',
+    'Soma': 'infinite'
+}
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -179,7 +186,7 @@ def login():
     if request.method == 'POST':
         usuario = request.form['usuario']
         senha = request.form['senha']
-        if usuario == 'admin' and senha == 'senha':  # Altere para sua lógica de autenticação
+        if usuario in usuarios and usuarios[usuario] == senha:
             session['usuario'] = usuario
             return redirect('/painel')
         else:
