@@ -1,447 +1,98 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClaraVerse • Registro Quântico</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>ClaraVerse - Registro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
-            color: #e0f8ff;
-            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
-
-        .register-container {
-            background: rgba(10, 10, 15, 0.9);
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #00f7ff;
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.3);
-            max-width: 450px;
-            width: 100%;
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            color: #00f7ff;
-            font-size: 2.5em;
-            font-weight: 900;
-            text-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
-            margin-bottom: 10px;
-        }
-
-        .logo p {
-            color: #a0a0a0;
-            font-size: 0.9em;
-            letter-spacing: 2px;
-        }
-
-        /* Sistema de alertas melhorado */
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            text-align: center;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .alert-success {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid #00ff00;
-            color: #00ff88;
-        }
-
-        .alert-error {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid #ff0000;
-            color: #ff6b6b;
-        }
-
-        .alert-warning {
-            background: rgba(255, 165, 0, 0.1);
-            border: 1px solid #ffa500;
-            color: #ffb347;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #00f7ff;
-            font-weight: 700;
-            font-size: 0.9em;
-            letter-spacing: 1px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background: rgba(26, 26, 31, 0.8);
-            color: #e0f8ff;
-            font-family: 'Orbitron', monospace;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #00f7ff;
-            box-shadow: 0 0 15px rgba(0, 247, 255, 0.3);
-            background: rgba(26, 26, 31, 1);
-        }
-
-        .form-group input::placeholder {
-            color: #666;
-        }
-
-        /* Validação visual */
-        .form-group input.valid {
-            border-color: #00ff00;
-        }
-
-        .form-group input.invalid {
-            border-color: #ff0000;
-        }
-
-        .validation-message {
-            font-size: 0.8em;
-            margin-top: 5px;
-            color: #ff6b6b;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .validation-message.show {
-            opacity: 1;
-        }
-
-        .btn-register {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #00f7ff, #0080ff);
-            color: #000;
+        .btn-gradient {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
             border: none;
-            border-radius: 8px;
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 25px;
-        }
-
-        .btn-register:hover {
-            background: linear-gradient(135deg, #0080ff, #00f7ff);
-            box-shadow: 0 0 25px rgba(0, 247, 255, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .btn-register:active {
-            transform: translateY(0);
-        }
-
-        .btn-register:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .links {
-            text-align: center;
-        }
-
-        .links a {
-            color: #00f7ff;
-            text-decoration: none;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-        }
-
-        .links a:hover {
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(0, 247, 255, 0.8);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            color: #666;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #333;
-        }
-
-        .divider span {
-            background: rgba(10, 10, 15, 0.9);
-            padding: 0 15px;
-        }
-
-        .strength-meter {
-            margin-top: 5px;
-            height: 4px;
-            background: #333;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        @media (max-width: 480px) {
-            .register-container {
-                padding: 30px 20px;
-            }
-            
-            .logo h1 {
-                font-size: 2em;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="register-container">
-        <div class="logo">
-            <h1>ClaraVerse</h1>
-            <p>REGISTRO QUÂNTICO</p>
-        </div>
-
-        <!-- Sistema de mensagens flash melhorado -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}" id="alert-{{ loop.index }}">
-                        {{ message }}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card register-card">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <h1 class="h3">🚀 Criar Conta</h1>
+                            <p class="text-muted">Junte-se ao ClaraVerse</p>
+                        </div>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form method="POST" id="registerForm">
+                            <div class="mb-3">
+                                <label class="form-label">Nome de Usuário</label>
+                                <input type="text" class="form-control" name="username" required autofocus>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Senha</label>
+                                <input type="password" class="form-control" name="password" id="password" required>
+                                <div class="form-text">Mínimo 6 caracteres</div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Confirmar Senha</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-gradient text-white">Criar Conta</button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <small>Já tem conta? <a href="/login">Fazer login</a></small>
+                        </div>
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST" action="{{ url_for('register') }}" id="registerForm">
-            <div class="form-group">
-                <label for="username">🚀 Nome de Usuário</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="Digite seu username"
-                    required
-                    minlength="3"
-                    maxlength="20"
-                    pattern="[A-Za-z0-9_]+"
-                    autocomplete="username"
-                >
-                <div class="validation-message" id="username-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="email">📧 Email Quântico</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Digite seu email"
-                    required
-                    autocomplete="email"
-                >
-                <div class="validation-message" id="email-error"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="password">🔐 Código de Acesso</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Digite sua senha"
-                    required
-                    minlength="6"
-                    autocomplete="new-password"
-                >
-                <div class="strength-meter">
-                    <div class="strength-fill" id="strengthFill"></div>
                 </div>
-                <div class="validation-message" id="password-error"></div>
             </div>
-
-            <button type="submit" class="btn-register" id="submitBtn">
-                🌟 Criar Conta Quântica
-            </button>
-        </form>
-
-        <div class="divider">
-            <span>ou</span>
-        </div>
-
-        <div class="links">
-            <p>Já tem conta? 
-                <a href="{{ url_for('login') }}">Fazer login quântico</a>
-            </p>
         </div>
     </div>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sistema de validação em tempo real
-        const form = document.getElementById('registerForm');
-        const usernameInput = document.getElementById('username');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const submitBtn = document.getElementById('submitBtn');
-
-        // Validação de username
-        usernameInput.addEventListener('input', function() {
-            const username = this.value;
-            const error = document.getElementById('username-error');
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
             
-            if (username.length < 3) {
-                this.className = 'invalid';
-                error.textContent = 'Username deve ter pelo menos 3 caracteres';
-                error.classList.add('show');
-            } else if (!/^[A-Za-z0-9_]+$/.test(username)) {
-                this.className = 'invalid';
-                error.textContent = 'Apenas letras, números e underscore';
-                error.classList.add('show');
-            } else {
-                this.className = 'valid';
-                error.classList.remove('show');
-            }
-        });
-
-        // Validação de email
-        emailInput.addEventListener('input', function() {
-            const email = this.value;
-            const error = document.getElementById('email-error');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
-            if (email && !emailRegex.test(email)) {
-                this.className = 'invalid';
-                error.textContent = 'Email inválido';
-                error.classList.add('show');
-            } else if (email) {
-                this.className = 'valid';
-                error.classList.remove('show');
-            }
-        });
-
-        // Medidor de força da senha
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            const strengthFill = document.getElementById('strengthFill');
-            const error = document.getElementById('password-error');
-            
-            let strength = 0;
-            if (password.length >= 6) strength += 25;
-            if (/[A-Z]/.test(password)) strength += 25;
-            if (/[0-9]/.test(password)) strength += 25;
-            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-            
-            strengthFill.style.width = strength + '%';
-            
-            if (password.length > 0 && password.length < 6) {
-                this.className = 'invalid';
-                error.textContent = 'Senha deve ter pelo menos 6 caracteres';
-                error.classList.add('show');
-            } else {
-                this.className = strength > 50 ? 'valid' : '';
-                error.classList.remove('show');
-            }
-        });
-
-        // Validação do formulário
-        form.addEventListener('submit', function(e) {
-            const username = usernameInput.value.trim();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            if (!username || !email || !password) {
+            if (password !== confirmPassword) {
                 e.preventDefault();
-                alert('🚨 Por favor, preencha todos os campos!');
-                return;
+                alert('As senhas não coincidem!');
             }
-
-            if (username.length < 3 || !/^[A-Za-z0-9_]+$/.test(username)) {
-                e.preventDefault();
-                alert('🚨 Username inválido!');
-                usernameInput.focus();
-                return;
-            }
-
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                e.preventDefault();
-                alert('🚨 Email inválido!');
-                emailInput.focus();
-                return;
-            }
-
+            
             if (password.length < 6) {
                 e.preventDefault();
-                alert('🚨 Senha deve ter pelo menos 6 caracteres!');
-                passwordInput.focus();
-                return;
+                alert('A senha deve ter pelo menos 6 caracteres!');
             }
-
-            // Desabilitar botão para evitar duplo clique
-            submitBtn.disabled = true;
-            submitBtn.textContent = '🛸 Criando conta...';
-        });
-
-        // Focar no primeiro campo ao carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            usernameInput.focus();
-        });
-
-        // Auto-hide alerts após 5 segundos
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.opacity = '0';
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 300);
-                }, 5000);
-            });
         });
     </script>
 </body>
