@@ -1,55 +1,68 @@
 {% extends "base.html" %}
-{% block title %}Painel – Claraverse{% endblock %}
+{% block title %}Painel • ClaraVerse{% endblock %}
 {% block content %}
-  <h2>Painel de Operação</h2>
-  <p>
-    <strong>Saldo simulado:</strong> R$ {{'%.2f'|format(user.saldo_simulado)}}<br>
-    <strong>Total trades:</strong> {{user.total_trades}} &mdash;
-    <strong>Win Rate:</strong> {{'%.2f'|format(user.win_rate)}}%
-  </p>
+  <div style="padding: 20px;">
+    <h2 style="color: #00ffff;">📊 Painel de Operações</h2>
 
-  <h3>Mercado Cripto</h3>
-  <table id="crypto-table">
-    <thead><tr>
-      <th>Ativo</th><th>Preço</th><th>24h (%)</th><th>Volume</th><th>RSI</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
+    <div style="background-color: #1c1c1e; padding: 15px; border-radius: 10px; margin-top: 20px; color: #eee;">
+      <p><strong>💰 Saldo Simulado:</strong> R$ {{ '%.2f'|format(user.saldo_simulado) }}</p>
+      <p><strong>📈 Total de Trades:</strong> {{ user.total_trades }}</p>
+      <p><strong>🏆 Win Rate:</strong> {{ '%.2f'|format(user.win_rate) }}%</p>
+    </div>
 
-  <h3>Mercado Brasileiro</h3>
-  <table id="br-table">
-    <thead><tr>
-      <th>Índice</th><th>Preço</th><th>Variação (%)</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
+    <h3 style="margin-top: 30px; color: #00ffff;">🪙 Mercado Cripto</h3>
+    <table id="crypto-table" style="width: 100%; color: #fff; margin-bottom: 20px;">
+      <thead>
+        <tr style="background-color: #333;">
+          <th>Ativo</th><th>Preço</th><th>24h (%)</th><th>Volume</th><th>RSI</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <h3>Últimas Operações</h3>
-  <table id="trades-table">
-    <thead><tr>
-      <th>Hora</th><th>Ativo</th><th>Tipo</th><th>Qty</th><th>Entry</th><th>P&L</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
+    <h3 style="color: #00ffff;">📊 Mercado Brasileiro</h3>
+    <table id="br-table" style="width: 100%; color: #fff; margin-bottom: 20px;">
+      <thead>
+        <tr style="background-color: #333;">
+          <th>Índice</th><th>Preço</th><th>Variação (%)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <h3>Análise Inteligente</h3>
-  <form id="analyze-form">
-    <label>Simbolo (ex: BTC)</label>
-    <input type="text" name="symbol" value="BTC">
-    <button type="submit">Analisar</button>
-  </form>
-  <pre id="analysis-output"></pre>
+    <h3 style="color: #00ffff;">📂 Últimas Operações</h3>
+    <table id="trades-table" style="width: 100%; color: #fff; margin-bottom: 20px;">
+      <thead>
+        <tr style="background-color: #333;">
+          <th>Hora</th><th>Ativo</th><th>Tipo</th><th>Qty</th><th>Entry</th><th>P&L</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <h3>Executar Trade</h3>
-  <form id="trade-form">
-    <label>Simbolo</label>
-    <input type="text" name="symbol" value="BTCUSDT">
-    <label>Lado</label>
-    <select name="side">
-      <option>BUY</option><option>SELL</option>
-    </select>
-    <label>Quantidade</label>
-    <input type="number" step="any" name="quantity" value="1">
-    <button type="submit">Executar</button>
-  </form>
+    <h3 style="color: #00ffff;">🤖 Análise Inteligente</h3>
+    <form id="analyze-form" style="margin-bottom: 20px;">
+      <label for="symbol" style="color: #fff;">Símbolo (ex: BTC)</label>
+      <input type="text" name="symbol" value="BTC" style="width: 100%; padding: 8px; margin: 10px 0;">
+      <button type="submit" style="background-color: #00ffff; color: #000; font-weight: bold; padding: 10px 20px; border: none; border-radius: 5px;">Analisar</button>
+    </form>
+    <pre id="analysis-output" style="background-color: #111; color: #0f0; padding: 10px; border-radius: 5px;"></pre>
+
+    <h3 style="color: #00ffff;">🚀 Executar Trade</h3>
+    <form id="trade-form" style="margin-bottom: 40px;">
+      <label for="symbol" style="color: #fff;">Símbolo</label>
+      <input type="text" name="symbol" value="BTCUSDT" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+      <label for="side" style="color: #fff;">Lado</label>
+      <select name="side" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <option>BUY</option>
+        <option>SELL</option>
+      </select>
+
+      <label for="quantity" style="color: #fff;">Quantidade</label>
+      <input type="number" step="any" name="quantity" value="1" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+      <button type="submit" style="background-color: #00ff88; color: #000; font-weight: bold; padding: 10px 20px; border: none; border-radius: 5px;">Executar</button>
+    </form>
+  </div>
 {% endblock %}
