@@ -4,11 +4,20 @@ function mostrarMensagem(tipo, texto) {
         divMensagem.className = `mensagem ${tipo}`; // Adiciona a classe de estilo
         divMensagem.innerText = texto; // Define o texto da mensagem
         divMensagem.style.display = 'block'; // Exibe a mensagem
+        divMensagem.style.opacity = 0; // Começa invisível
+
+        // Animação de desvanecimento
+        setTimeout(() => {
+            divMensagem.style.opacity = 1; // Torna visível
+        }, 10); // Pequeno atraso para garantir que o display esteja 'block'
 
         // Oculta a mensagem após 5 segundos
         setTimeout(() => {
-            divMensagem.style.display = 'none';
-        }, 5000);
+            divMensagem.style.opacity = 0; // Começa a desvanecer
+            setTimeout(() => {
+                divMensagem.style.display = 'none'; // Esconde completamente após a animação
+            }, 500); // Tempo de espera para o desvanecimento
+        }, 5000); // Tempo total de exibição
     } else {
         console.error('Elemento de mensagem não encontrado.');
     }
