@@ -2,18 +2,26 @@
 {% block title %}Configurar • ClaraVerse{% endblock %}
 
 {% block content %}
-  <h2 class="titulo">⚙️ Configurações da Plataforma</h2>
+  <div style="max-width: 500px; margin: 50px auto; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 0 15px #00ffff44;">
+    <h2 style="color: #00ffff; text-align: center; margin-bottom: 25px;">⚙️ Configurações da Plataforma</h2>
 
-  <form method="post" action="{{ url_for('configurar') }}" class="form-config">
-    <label for="binance_api_key">🔑 Binance API Key</label>
-    <input type="text" id="binance_api_key" name="binance_api_key" value="{{ user.binance_api_key or '' }}">
+    <form method="post" action="{{ url_for('configurar') }}">
+      <label for="binance_api_key" style="color: #ccc;">🔑 Binance API Key</label>
+      <input type="text" id="binance_api_key" name="binance_api_key" value="{{ user.binance_api_key or '' }}"
+             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: none;">
 
-    <label for="binance_api_secret">🕶️ Binance API Secret</label>
-    <input type="text" id="binance_api_secret" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}">
+      <label for="binance_api_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
+      <input type="text" id="binance_api_secret" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}"
+             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: none;">
 
-    <label for="saldo_simulado">💰 Saldo Simulado (USDT)</label>
-    <input type="number" step="0.01" id="saldo_simulado" name="saldo_simulado" value="{{ user.saldo_simulado }}">
+      <label for="saldo_simulado" style="color: #ccc;">💰 Saldo Simulado (USDT)</label>
+      <input type="number" step="0.01" id="saldo_simulado" name="saldo_simulado" value="{{ user.saldo_simulado }}"
+             style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 6px; border: none;">
 
-    <button type="submit">💾 Salvar Configurações</button>
-  </form>
+      <button type="submit"
+              style="width: 100%; padding: 12px; background-color: #00ffcc; color: #000; font-weight: bold; border: none; border-radius: 6px;">
+        💾 Salvar Configurações
+      </button>
+    </form>
+  </div>
 {% endblock %}
