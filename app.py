@@ -89,7 +89,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ======== PAINEL COM SALDO REAL ========
+# ======== PAINEL COM SALDO REAL E MERCADO USDT ========
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
@@ -119,7 +119,7 @@ def painel_operacao():
 
     return render_template('painel_operacao.html', user=user, saldo_usdt=saldo_usdt, crypto_data=crypto_data, trades=trades)
 
-# ======== CONFIGURAR API KEYS ========
+# ======== CONFIGURAÇÃO DE CHAVES ========
 @app.route('/configurar', methods=['GET', 'POST'])
 @login_required
 def configurar():
@@ -140,19 +140,19 @@ def configurar():
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
-# ======== SUGESTÃO DA IA ========
+# ======== IA CLARINHA ========
 @app.route('/api/sugestao')
 @login_required
 def sugestao():
     return jsonify(ia.gerar_sugestao())
 
-# ======== RODAR TRADE ========
+# ======== EXECUTAR TRADE ========
 @app.route('/trade', methods=['POST'])
 @login_required
 def trade():
     user = User.query.get(session['user_id'])
     symbol = request.form.get('symbol')
-    side = request.form.get('side')  # 'BUY' ou 'SELL'
+    side = request.form.get('side')
     quantity = request.form.get('quantity')
 
     try:
@@ -179,7 +179,7 @@ def trade():
 
     return redirect(url_for('painel_operacao'))
 
-# ======== INICIALIZAÇÃO ========
+# ======== INICIAR BANCO E SERVIDOR ========
 with app.app_context():
     db.create_all()
 
