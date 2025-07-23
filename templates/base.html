@@ -3,18 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}ClaraVerse{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body style="margin: 0; background-color: #000; font-family: sans-serif; color: #fff;">
+<body style="margin: 0; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #fff;">
 
   {% if session.get('user_id') %}
-    <nav style="background-color: #111; padding: 10px 20px; display: flex; justify-content: space-between;">
-      <div><strong style="color: #00ffff;">🔷 ClaraVerse</strong></div>
+    <nav style="background-color: #111; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <a href="{{ url_for('index') }}" style="margin-right: 10px; color: #00ffff;">Home</a>
-        <a href="{{ url_for('painel_operacao') }}" style="margin-right: 10px; color: #00ffff;">Painel</a>
-        <a href="{{ url_for('configurar') }}" style="margin-right: 10px; color: #00ffff;">Configurar</a>
-        <a href="{{ url_for('logout') }}" style="color: #ff4d4d;">Sair</a>
+        <strong style="color: #00ffff; font-size: 18px;">🔷 ClaraVerse</strong>
+      </div>
+      <div>
+        <a href="{{ url_for('index') }}" style="margin-right: 15px; color: #00ffff; text-decoration: none;">🏠 Home</a>
+        <a href="{{ url_for('painel_operacao') }}" style="margin-right: 15px; color: #00ffff; text-decoration: none;">📊 Painel</a>
+        <a href="{{ url_for('configurar') }}" style="margin-right: 15px; color: #00ffff; text-decoration: none;">⚙️ Configurar</a>
+        <a href="{{ url_for('logout') }}" style="color: #ff4d4d; text-decoration: none;">🚪 Sair</a>
       </div>
     </nav>
   {% endif %}
