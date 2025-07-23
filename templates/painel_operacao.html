@@ -16,7 +16,7 @@
 <div class="container">
     <h2>📊 Visão de Mercado</h2>
 
-    <table class="tabela">
+    <table class="tabela" id="crypto-table">
         <thead>
             <tr>
                 <th>Moeda</th>
@@ -90,4 +90,8 @@
         </button>
     </form>
 </div>
+
+<!-- Inclua o JavaScript aqui -->
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
