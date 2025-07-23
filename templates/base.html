@@ -1,54 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}ClaraVerse{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Favicon -->
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-
-    <!-- Estilos -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-    <!-- Socket.IO -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
-    
-    <!-- Script JS -->
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+  <meta charset="UTF-8">
+  <title>{% block title %}ClaraVerse{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body style="margin: 0; background-color: #000; font-family: sans-serif; color: #fff;">
 
-    <div class="layout">
-        <aside class="menu-lateral">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Logo" class="logo-icon">
-                <span>ClaraVerse</span>
-            </div>
-            <nav class="nav-menu">
-                <a href="{{ url_for('index') }}">
-                    <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Home">
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('painel_operacao') }}">
-                    <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Painel">
-                    <span>Painel</span>
-                </a>
-                <a href="{{ url_for('configurar') }}">
-                    <img src="{{ url_for('static', filename='icons/settings.svg') }}" alt="Configurar">
-                    <span>Configurar</span>
-                </a>
-                <a href="{{ url_for('logout') }}">
-                    <img src="{{ url_for('static', filename='icons/logout.svg') }}" alt="Sair">
-                    <span>Sair</span>
-                </a>
-            </nav>
-        </aside>
+  {% if session.get('user_id') %}
+    <nav style="background-color: #111; padding: 10px 20px; display: flex; justify-content: space-between;">
+      <div><strong style="color: #00ffff;">🔷 ClaraVerse</strong></div>
+      <div>
+        <a href="{{ url_for('index') }}" style="margin-right: 10px; color: #00ffff;">Home</a>
+        <a href="{{ url_for('painel_operacao') }}" style="margin-right: 10px; color: #00ffff;">Painel</a>
+        <a href="{{ url_for('configurar') }}" style="margin-right: 10px; color: #00ffff;">Configurar</a>
+        <a href="{{ url_for('logout') }}" style="color: #ff4d4d;">Sair</a>
+      </div>
+    </nav>
+  {% endif %}
 
-        <main class="conteudo-principal">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 
 </body>
 </html>
