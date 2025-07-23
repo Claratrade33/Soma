@@ -13,9 +13,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Configuração de avisos e logging
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 
+# Configuração da aplicação Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret_key_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
@@ -230,11 +232,11 @@ def api_execute_trade():
     else:
         user.saldo_simulado += trade_value
 
-    pnl = random.uniform(-trade_value*0.03, trade_value*0.05)
+    pnl = random.uniform(-trade_value * 0.03, trade_value * 0.05)
     user.profit_loss += pnl
     user.total_trades += 1
-    win_count = Trade.query.filter(Trade.user_id==user.id, Trade.profit_loss>0).count()
-    user.win_rate = (win_count / user.total_trades)*100 if user.total_trades else 0
+    win_count = Trade.query.filter(Trade.user_id == user.id, Trade.profit_loss > 0).count()
+    user.win_rate = (win_count / user.total_trades) * 100 if user.total_trades else 0
 
     trade = Trade(user_id=user.id, symbol=sym, side=side, quantity=qty, entry_price=price, profit_loss=pnl)
     db.session.add(trade)
