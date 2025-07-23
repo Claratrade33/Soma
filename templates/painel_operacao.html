@@ -1,107 +1,70 @@
 {% extends "base.html" %}
-{% block title %}Painel de Operações • ClaraVerse{% endblock %}
+{% block title %}ClaraVerse • Painel Real{% endblock %}
 
 {% block content %}
-<div style="padding: 20px;">
-  <h2 style="color: #00ffff;">📈 Painel de Operações</h2>
-
-  <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
-    
-    <!-- Gráfico BTC/USDT -->
-    <div style="flex: 2; min-width: 400px;">
-      <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_123&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-              style="width: 100%; height: 400px;" frameborder="0"></iframe>
-    </div>
-
-    <!-- Dados da Conta -->
-    <div style="flex: 1; min-width: 300px; background: #111; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px #00ffff;">
-      <h3 style="color: #00ffff;">👤 Conta</h3>
-      <p><strong>Usuário:</strong> {{ user.username }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>Saldo Simulado:</strong> {{ user.saldo_simulado }} USDT</p>
-      <p><strong>Total Operações:</strong> {{ user.total_trades }}</p>
-      <p><strong>Lucro/Prejuízo:</strong> {{ user.profit_loss }} USDT</p>
-      <p><strong>Taxa de Acerto:</strong> {{ user.win_rate }}%</p>
-    </div>
-  </div>
-
-  <!-- Ações -->
-  <div style="margin-top: 40px;">
-    <h3 style="color: #00ffff;">🤖 Sinal da IA Clarinha</h3>
-    <div id="sugestao_ia" style="background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-      <p>Aguardando sugestão da IA...</p>
-    </div>
-
-    <button onclick="executarOrdem('BUY')" style="padding: 10px 20px; background-color: #00ff88; border: none; color: #000; font-weight: bold; border-radius: 5px;">🟢 Comprar</button>
-    <button onclick="executarOrdem('SELL')" style="padding: 10px 20px; background-color: #ff4d4d; border: none; color: #fff; font-weight: bold; border-radius: 5px;">🔴 Vender</button>
-    <button onclick="buscarSugestaoIA()" style="padding: 10px 20px; background-color: #00ffff; border: none; color: #000; font-weight: bold; border-radius: 5px; margin-left: 10px;">✨ Sugerir pela IA</button>
-  </div>
-
-  <!-- Histórico -->
-  <div style="margin-top: 40px;">
-    <h3 style="color: #00ffff;">📜 Histórico de Operações</h3>
-    {% if trades %}
-    <table style="width: 100%; background-color: #111; color: #fff; border-collapse: collapse; margin-top: 10px;">
-      <thead>
-        <tr style="background-color: #222;">
-          <th style="padding: 10px;">Ativo</th>
-          <th>Tipo</th>
-          <th>Qtd</th>
-          <th>Entrada</th>
-          <th>Saída</th>
-          <th>P/L</th>
-          <th>Estratégia</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for trade in trades %}
-        <tr>
-          <td style="padding: 10px;">{{ trade.symbol }}</td>
-          <td>{{ trade.side }}</td>
-          <td>{{ trade.quantity }}</td>
-          <td>{{ trade.entry_price }}</td>
-          <td>{{ trade.exit_price or '---' }}</td>
-          <td>{{ trade.profit_loss or '---' }}</td>
-          <td>{{ trade.strategy_used or '---' }}</td>
-          <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p style="color: #888;">Nenhuma operação registrada.</p>
-    {% endif %}
-  </div>
+<div class="topo">
+    <span class="logo">📈 ClaraVerse • Operação em Tempo Real</span>
+    <span class="saldo">💰 Saldo Real: {{ saldo_usdt }} USDT</span>
+    <a href="/logout" class="btn-sair">Sair</a>
 </div>
 
-<script>
-  function buscarSugestaoIA() {
-    fetch('/sugerir')
-      .then(res => res.json())
-      .then(data => {
-        const div = document.getElementById('sugestao_ia');
-        div.innerHTML = `
-          <p><strong>Ação Sugerida:</strong> ${data.acao}</p>
-          <p><strong>Sinal Cósmico:</strong> ${data.sinal_cosmo.sinal} (${data.sinal_cosmo.confianca * 100}% confiança)</p>
-          <p><strong>Tendência do Oráculo:</strong> ${data.visao_oraculo.tendencia} (${data.visao_oraculo.sentimento})</p>
-        `;
-      });
-  }
+<div class="grafico-tradingview">
+    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br" 
+            frameborder="0" width="100%" height="400"></iframe>
+</div>
 
-  function executarOrdem(tipo) {
-    fetch('/executar_ordem', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ tipo: tipo })
-    }).then(res => {
-      if (res.ok) {
-        alert('✅ Ordem executada com sucesso!');
-        location.reload();
-      } else {
-        alert('❌ Falha ao executar ordem.');
-      }
-    });
-  }
-</script>
+<div class="container">
+    <h2>📊 Visão de Mercado</h2>
+
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Moeda</th>
+                <th>Preço</th>
+                <th>24h</th>
+                <th>Volume</th>
+                <th>RSI</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for symbol, data in crypto_data.items() %}
+            <tr>
+                <td>{{ symbol }}</td>
+                <td>{{ data.price }}</td>
+                <td>{{ data.change_24h }}%</td>
+                <td>{{ data.volume_24h }}</td>
+                <td>{{ data.rsi }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 style="margin-top: 30px;">📚 Últimas Operações</h3>
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Par</th>
+                <th>Tipo</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+                <th>Lucro</th>
+                <th>Estratégia</th>
+                <th>Horário</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trade in trades %}
+            <tr>
+                <td>{{ trade.symbol }}</td>
+                <td>{{ trade.side }}</td>
+                <td>{{ trade.entry_price }}</td>
+                <td>{{ trade.exit_price or '---' }}</td>
+                <td>{{ trade.profit_loss or '---' }}</td>
+                <td>{{ trade.strategy_used }}</td>
+                <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
