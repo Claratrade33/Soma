@@ -186,7 +186,7 @@ def configurar():
             user.saldo_simulado = float(s)
         db.session.commit()
         flash('Configurações salvas!', 'success')
-        return redirect(url_for('painel_operacao'))  # Redireciona após salvar
+        return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
 @app.route('/api/market_data')
@@ -260,8 +260,12 @@ def initialize_database():
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(username='admin').first():
-            u = User(username='admin', email='admin@clara.com', password=generate_password_hash('admin123'))
-            db.session.add(u)
+            user = User(
+                username='admin',
+                email='admin@clara.com',
+                password=generate_password_hash('admin123')
+            )
+            db.session.add(user)
             db.session.commit()
 
 # === EXECUÇÃO ===
