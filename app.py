@@ -4,16 +4,15 @@ import logging
 import warnings
 from datetime import datetime, timedelta
 from functools import wraps
-
 from flask import (
     Flask, render_template, redirect, url_for, request,
     jsonify, flash, session
 )
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
+import openai
 
-# Configuração de avisos e logging
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 
@@ -34,6 +33,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     binance_api_key = db.Column(db.String(200), nullable=True)
     binance_api_secret = db.Column(db.String(200), nullable=True)
+    openai_api_key = db.Column(db.String(200), nullable=True)
     saldo_simulado = db.Column(db.Float, default=10000.0)
     profit_loss = db.Column(db.Float, default=0.0)
     total_trades = db.Column(db.Integer, default=0)
@@ -53,7 +53,7 @@ class Trade(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     strategy_used = db.Column(db.String(50), nullable=True)
 
-# === IA FICTÍCIA ===
+# === IA CLARINHA ===
 class ClarinhaCosmo:
     def analyze(self, symbol):
         return {
@@ -98,7 +98,7 @@ class MarketSystem:
 
 market_system = MarketSystem()
 
-# === AUTENTICAÇÃO ===
+# === AUTH ===
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -107,6 +107,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# === ROTAS ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -162,15 +163,43 @@ def configurar():
     if request.method == 'POST':
         user.binance_api_key = request.form.get('binance_api_key', '').strip()
         user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
+        user.openai_api_key = request.form.get('openai_api_key', '').strip()
         s = request.form.get('saldo_simulado')
         if s:
-            user.saldo_simulado = float(s)
+            try:
+                user.saldo_simulado = float(s)
+            except:
+                flash('Saldo inválido', 'error')
         db.session.commit()
-        flash('Configurações salvas!', 'success')
+        flash('Configurações salvas com sucesso!', 'success')
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
-# === API DE DADOS ===
+@app.route('/executar_acao', methods=['POST'])
+@login_required
+def executar_acao():
+    user = User.query.get(session['user_id'])
+    dados = request.get_json()
+    acao = dados.get('acao', '')
+    chave = user.openai_api_key
+
+    if not chave:
+        return jsonify({'mensagem': '⚠️ Chave da OpenAI não configurada.'})
+
+    openai.api_key = chave
+    prompt = f"Ação: {acao.upper()} no mercado BTC/USDT. Gere uma análise e sugestão."
+
+    try:
+        resposta = openai.ChatCompletion.create(
+            model='gpt-3.5-turbo',
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150
+        )
+        conteudo = resposta['choices'][0]['message']['content']
+        return jsonify({'mensagem': f'🤖 {conteudo}'})
+    except Exception as e:
+        return jsonify({'mensagem': 'Erro ao consultar IA: ' + str(e)})
+
 @app.route('/api/market_data')
 @login_required
 def api_market_data():
