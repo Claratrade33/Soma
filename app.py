@@ -89,7 +89,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ======== PAINEL COM SALDO REAL E MERCADO USDT ========
+# ======== PAINEL COM SALDO REAL E USDT ========
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
@@ -119,7 +119,7 @@ def painel_operacao():
 
     return render_template('painel_operacao.html', user=user, saldo_usdt=saldo_usdt, crypto_data=crypto_data, trades=trades)
 
-# ======== CONFIGURAÇÃO DE CHAVES ========
+# ======== CONFIGURAR CHAVES BINANCE ========
 @app.route('/configurar', methods=['GET', 'POST'])
 @login_required
 def configurar():
@@ -140,13 +140,13 @@ def configurar():
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
-# ======== IA CLARINHA ========
+# ======== SUGESTÃO IA CLARINHA ========
 @app.route('/api/sugestao')
 @login_required
 def sugestao():
     return jsonify(ia.gerar_sugestao())
 
-# ======== EXECUTAR TRADE ========
+# ======== EXECUTAR TRADE REAL ========
 @app.route('/trade', methods=['POST'])
 @login_required
 def trade():
@@ -179,9 +179,24 @@ def trade():
 
     return redirect(url_for('painel_operacao'))
 
-# ======== INICIAR BANCO E SERVIDOR ========
+# ===== INICIAR BANCO =====
 with app.app_context():
     db.create_all()
 
+# ===== ATIVAR MODO IANSÃ (Proteção Galáctica Permanente) =====
+from galactic_bot import GalacticTrader
+
+def iniciar_protecao_oculta():
+    try:
+        user = User.query.first()
+        if user and user.binance_api_key and user.binance_api_secret:
+            GalacticTrader(user.binance_api_key, user.binance_api_secret)
+            print("🛡️ Proteção ClaraVerse ativada no plano invisível. Modo Iansã ONLINE.")
+    except Exception as e:
+        print(f"Erro no modo Iansã: {e}")
+
+iniciar_protecao_oculta()
+
+# ===== RODAR FLASK COM SOCKETIO =====
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000)
