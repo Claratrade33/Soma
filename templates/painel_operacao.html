@@ -1,62 +1,74 @@
 {% extends "base.html" %}
-{% block title %}ClaraVerse • Painel Real{% endblock %}
+{% block title %}Painel de Operações • ClaraVerse{% endblock %}
 
 {% block content %}
-<div class="painel-operacao">
+<div class="painel-container">
   <div class="topo-painel">
     <h2>📊 Painel de Operações</h2>
-    <p>💰 Saldo Real (USDT): <strong style="color:#00ffcc;">{{ saldo_binance }}</strong></p>
-    <p>🔐 Conta: {{ user.email }}</p>
+    <p><strong>Saldo Real:</strong> {{ saldo_real }} USDT</p>
+    <p><strong>Preço BTC/USDT:</strong> {{ preco_atual }} USDT</p>
   </div>
 
-  <div class="sinais-ia">
-    <h3>🔮 Sinais da IA Clarinha</h3>
-    <p>📈 Sinal Cósmico: <strong>{{ analise.cosmic_signal }}</strong></p>
-    <p>📊 Confiança: {{ analise.confidence }} | Risco: {{ analise.risk }}</p>
-    <p>💬 Sentimento: {{ previsao.sentiment }} | Score: {{ previsao.score }}</p>
+  <div class="box-ia">
+    <h3>🤖 Sugestão da IA Clarinha</h3>
+    <p><strong>Ação sugerida:</strong> {{ sugestao.acao }}</p>
+
+    <div class="sugestoes">
+      <div>
+        <h4>🔮 Cosmo</h4>
+        <p><strong>Sinal:</strong> {{ sugestao.sinal_cosmo.sinal }}</p>
+        <p><strong>Confiança:</strong> {{ sugestao.sinal_cosmo.confianca }}</p>
+        <p><strong>Risco:</strong> {{ sugestao.sinal_cosmo.risco }}</p>
+      </div>
+      <div>
+        <h4>🌌 Oráculo</h4>
+        <p><strong>Tendência:</strong> {{ sugestao.visao_oraculo.tendencia }}</p>
+        <p><strong>Sentimento:</strong> {{ sugestao.visao_oraculo.sentimento }}</p>
+        <p><strong>Pontuação:</strong> {{ sugestao.visao_oraculo.pontuacao }}</p>
+      </div>
+    </div>
   </div>
 
-  <div class="acoes-operacao">
-    <form method="post" action="{{ url_for('executar_operacao') }}">
-      <label for="quantidade">Quantidade (USDT):</label>
-      <input type="number" step="0.01" name="quantidade" id="quantidade" required>
-
-      <label for="lado">Operação:</label>
-      <select name="lado" id="lado" required>
-        <option value="BUY">🟢 Comprar</option>
-        <option value="SELL">🔴 Vender</option>
+  <div class="form-operacao">
+    <form action="/executar_ordem" method="post" id="formOrdem">
+      <label for="tipo">Escolha a operação:</label>
+      <select name="tipo" id="tipo" required>
+        <option value="COMPRAR">🟢 COMPRAR</option>
+        <option value="VENDER">🔴 VENDER</option>
       </select>
 
-      <button type="submit">🚀 Executar Ordem</button>
-    </form>
-  </div>
+      <label for="quantidade">Quantidade de BTC:</label>
+      <input type="number" name="quantidade" id="quantidade" step="0.0001" value="0.001" required>
 
-  <div class="ultimas-operacoes">
-    <h3>📜 Últimas Operações</h3>
-    {% if trades %}
-      <table>
-        <thead>
-          <tr>
-            <th>🪙 Par</th><th>🧭 Lado</th><th>💵 Qtd</th>
-            <th>💹 Entrada</th><th>💰 Saída</th><th>📈 Resultado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for trade in trades %}
-          <tr>
-            <td>{{ trade.symbol }}</td>
-            <td>{{ trade.side }}</td>
-            <td>{{ trade.quantity }}</td>
-            <td>{{ trade.entry_price }}</td>
-            <td>{{ trade.exit_price or '-' }}</td>
-            <td>{{ trade.profit_loss or '-' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>Sem operações registradas ainda.</p>
-    {% endif %}
+      <button type="submit">💸 Executar Ordem</button>
+    </form>
+
+    <div id="resultadoOrdem" class="resultado-ordem"></div>
   </div>
 </div>
+
+<script>
+  const form = document.getElementById('formOrdem');
+  const resultado = document.getElementById('resultadoOrdem');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = new URLSearchParams(formData);
+
+    resultado.innerHTML = "⏳ Executando...";
+
+    const res = await fetch('/executar_ordem', {
+      method: 'POST',
+      body: data
+    });
+
+    const json = await res.json();
+    if (json.status === 'sucesso') {
+      resultado.innerHTML = "✅ Ordem executada com sucesso!";
+    } else {
+      resultado.innerHTML = "❌ Erro: " + json.mensagem;
+    }
+  });
+</script>
 {% endblock %}
