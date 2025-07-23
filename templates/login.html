@@ -14,8 +14,8 @@ def login():
             session.permanent = True
             flash(f'Bem-vindo, {user.username}!', 'success')
             return redirect(url_for('painel_operacao'))
-
-        flash('Credenciais inválidas. Tente novamente.', 'error')
-        return redirect(url_for('login'))
+        else:
+            flash('Credenciais inválidas. Tente novamente.', 'error')
+            return redirect(url_for('login'))
 
     return render_template('login.html')
