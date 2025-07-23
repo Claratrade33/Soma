@@ -1,90 +1,100 @@
-{% extends "base.html" %}
-{% block title %}Painel de Operação • ClaraVerse{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 ClaraVerse • Painel de Operações</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="margin: 0; background-color: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif;">
 
-{% block content %}
-<div style="padding: 30px; max-width: 1100px; margin: auto;">
+  <nav style="background: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;">
+    <span style="font-size: 18px; color: #00ffff;">🔷 ClaraVerse</span>
+    <div>
+      <a href="{{ url_for('configurar') }}" style="margin-right: 15px; color: #00ffff;">⚙️ Configurar</a>
+      <a href="{{ url_for('logout') }}" style="color: #ff4d4d;">🚪 Sair</a>
+    </div>
+  </nav>
 
-  <h2 style="color: #00ffff; text-align: center; margin-bottom: 20px;">📊 Painel de Operações ClaraVerse</h2>
+  <main style="padding: 20px; max-width: 900px; margin: auto;">
 
-  <div id="resposta-ia" style="margin-bottom: 25px; background: #1e1e1e; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px #00ffff;">
-    <h3 style="color: #fff;">🤖 IA Clarinha aguardando comandos...</h3>
-  </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-  <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px;">
-    <button class="botao-acao" data-acao="ENTRADA">📥 Entrada</button>
-    <button class="botao-acao" data-acao="STOP">🛑 Stop</button>
-    <button class="botao-acao" data-acao="ALVO">🎯 Alvo</button>
-    <button class="botao-acao" data-acao="EXECUTAR">⚡ Executar</button>
-    <button class="botao-acao" data-acao="AUTOMATICO">🤖 Automático</button>
-  </div>
+    <h1 style="text-align: center; color: #00ffff;">💰 Saldo disponível: {{ saldo }} USDT</h1>
 
-  <div class="painel-dados">
-    <h4 style="color:#00ffff; margin-bottom: 10px;">Criptomoedas (BTC/USDT)</h4>
-    <table id="crypto-table">
-      <thead>
-        <tr>
-          <th>Moeda</th>
-          <th>Preço</th>
-          <th>24h</th>
-          <th>Volume</th>
-          <th>RSI</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <section style="margin-top: 30px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+        <h3 style="color: #00ffff;">🔮 Oráculo diz:</h3>
+        <p><strong>Previsão:</strong> {{ oraculo.prediction }}</p>
+        <p><strong>Sentimento:</strong> {{ oraculo.sentiment }}</p>
+        <p><strong>Score:</strong> {{ oraculo.score }}</p>
+      </div>
 
-    <h4 style="color:#00ffff; margin-top: 30px;">Mercado Brasileiro</h4>
-    <table id="br-table">
-      <thead>
-        <tr>
-          <th>Papel</th>
-          <th>Preço</th>
-          <th>24h</th>
-          <th>Volume</th>
-          <th>RSI</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <div style="background: #1e1e1e; padding: 20px; border-radius: 8px;">
+        <h3 style="color: #b847ff;">✨ Cosmo responde:</h3>
+        <p><strong>Sinal:</strong> {{ cosmo.cosmic_signal }}</p>
+        <p><strong>Confiança:</strong> {{ cosmo.confidence }}</p>
+        <p><strong>Risco:</strong> {{ cosmo.risk }}</p>
+        <p><strong>Volume:</strong> {{ cosmo.volume }}</p>
+      </div>
+    </section>
 
-  <div style="margin-top: 40px;">
-    <h3 style="color:#00ffff;">📈 Últimas Operações</h3>
-    {% if trades %}
-      <table>
-        <thead>
-          <tr>
-            <th>Par</th>
-            <th>Lado</th>
-            <th>Quantidade</th>
-            <th>Entrada</th>
-            <th>Saída</th>
-            <th>Resultado</th>
-            <th>Estratégia</th>
-            <th>Horário</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in trades %}
-          <tr>
-            <td>{{ t.symbol }}</td>
-            <td>{{ t.side }}</td>
-            <td>{{ t.quantity }}</td>
-            <td>{{ t.entry_price }}</td>
-            <td>{{ t.exit_price or '—' }}</td>
-            <td>{{ t.profit_loss or '—' }}</td>
-            <td>{{ t.strategy_used or '—' }}</td>
-            <td>{{ t.timestamp.strftime('%d/%m %H:%M') }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p style="color:#ccc;">Nenhuma operação registrada ainda.</p>
-    {% endif %}
-  </div>
+    <form method="post" action="{{ url_for('executar_ordem') }}" style="margin-top: 30px; background: #111; padding: 20px; border-radius: 10px;">
+      <h3 style="color: #00ffcc;">🛒 Executar Ordem Real</h3>
+      <label for="quantidade">Quantidade BTC:</label><br>
+      <input type="number" name="quantidade" step="0.00001" min="0.00001" required
+             style="width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px;">
 
-</div>
-<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
-{% endblock %}
+      <label for="lado">Tipo de Ordem:</label><br>
+      <select name="lado" style="width: 100%; padding: 10px; margin-bottom: 20px; border: none; border-radius: 5px;">
+        <option value="BUY">📈 Comprar</option>
+        <option value="SELL">📉 Vender</option>
+      </select>
+
+      <button type="submit"
+              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
+        💸 Executar Ordem
+      </button>
+    </form>
+
+    <div style="margin-top: 40px;">
+      <h3 style="color: #00ffcc;">📜 Histórico de Operações</h3>
+      {% if trades %}
+        <table style="width: 100%; background: #1a1a1a; border-collapse: collapse; margin-top: 10px;">
+          <thead style="background: #222;">
+            <tr>
+              <th style="padding: 10px;">Data</th>
+              <th>Par</th>
+              <th>Tipo</th>
+              <th>Qtd</th>
+              <th>Preço</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in trades %}
+              <tr>
+                <td style="padding: 10px;">{{ t.timestamp.strftime('%d/%m %H:%M') }}</td>
+                <td>{{ t.symbol }}</td>
+                <td>{{ t.side }}</td>
+                <td>{{ '%.5f' % t.quantity }}</td>
+                <td>{{ '%.2f' % t.entry_price }}</td>
+                <td style="color: {{ 'lime' if t.profit_loss >= 0 else 'red' }}">{{ '%.2f' % t.profit_loss if t.profit_loss else '--' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Nenhuma operação registrada ainda.</p>
+      {% endif %}
+    </div>
+
+  </main>
+</body>
+</html>
