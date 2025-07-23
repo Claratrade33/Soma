@@ -186,6 +186,7 @@ def configurar():
             user.saldo_simulado = float(s)
         db.session.commit()
         flash('Configurações salvas!', 'success')
+        return redirect(url_for('painel_operacao'))  # Redireciona após salvar
     return render_template('configurar.html', user=user)
 
 @app.route('/api/market_data')
@@ -254,7 +255,7 @@ def ws_subscribe_market():
         'timestamp': datetime.utcnow().isoformat()
     })
 
-# === INICIALIZAÇÃO ===
+# === INICIALIZAÇÃO DO BANCO ===
 def initialize_database():
     with app.app_context():
         db.create_all()
@@ -263,6 +264,7 @@ def initialize_database():
             db.session.add(u)
             db.session.commit()
 
+# === EXECUÇÃO ===
 if __name__ == '__main__':
     initialize_database()
     port = int(os.environ.get('PORT', 5000))
