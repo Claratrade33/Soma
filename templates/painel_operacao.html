@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Painel • ClaraVerse{% endblock %}
+
 {% block content %}
   <div style="padding: 20px;">
     <h2 style="color: #00ffff;">📊 Painel de Operações</h2>
@@ -37,7 +38,18 @@
           <th>Hora</th><th>Ativo</th><th>Tipo</th><th>Qty</th><th>Entry</th><th>P&L</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        {% for t in trades %}
+          <tr>
+            <td>{{ t.timestamp.strftime('%H:%M:%S') }}</td>
+            <td>{{ t.symbol }}</td>
+            <td>{{ t.side }}</td>
+            <td>{{ t.quantity }}</td>
+            <td>{{ t.entry_price }}</td>
+            <td style="color: {{ 'lime' if t.profit_loss > 0 else 'red' }}">{{ '%.2f'|format(t.profit_loss) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
 
     <h3 style="color: #00ffff;">🤖 Análise Inteligente</h3>
