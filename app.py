@@ -4,14 +4,14 @@ import logging
 import warnings
 from datetime import datetime, timedelta
 from functools import wraps
+
 from flask import (
     Flask, render_template, redirect, url_for, request,
     jsonify, flash, session
 )
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
-import openai
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
@@ -53,7 +53,7 @@ class Trade(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     strategy_used = db.Column(db.String(50), nullable=True)
 
-# === IA CLARINHA ===
+# === IA FICTÍCIA ===
 class ClarinhaCosmo:
     def analyze(self, symbol):
         return {
@@ -98,7 +98,7 @@ class MarketSystem:
 
 market_system = MarketSystem()
 
-# === AUTH ===
+# === AUTENTICAÇÃO ===
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -107,7 +107,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# === ROTAS ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -150,7 +149,10 @@ def logout():
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
-    user = User.query.get(session['user_id'])
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        flash('Sessão expirada. Faça login novamente.', 'error')
+        return redirect(url_for('login'))
     crypto = market_system.get_crypto_data()
     brazil = market_system.get_brazilian_data()
     trades = Trade.query.filter_by(user_id=user.id).order_by(Trade.timestamp.desc()).limit(10).all()
@@ -166,39 +168,11 @@ def configurar():
         user.openai_api_key = request.form.get('openai_api_key', '').strip()
         s = request.form.get('saldo_simulado')
         if s:
-            try:
-                user.saldo_simulado = float(s)
-            except:
-                flash('Saldo inválido', 'error')
+            user.saldo_simulado = float(s)
         db.session.commit()
-        flash('Configurações salvas com sucesso!', 'success')
+        flash('Configurações salvas!', 'success')
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
-
-@app.route('/executar_acao', methods=['POST'])
-@login_required
-def executar_acao():
-    user = User.query.get(session['user_id'])
-    dados = request.get_json()
-    acao = dados.get('acao', '')
-    chave = user.openai_api_key
-
-    if not chave:
-        return jsonify({'mensagem': '⚠️ Chave da OpenAI não configurada.'})
-
-    openai.api_key = chave
-    prompt = f"Ação: {acao.upper()} no mercado BTC/USDT. Gere uma análise e sugestão."
-
-    try:
-        resposta = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=150
-        )
-        conteudo = resposta['choices'][0]['message']['content']
-        return jsonify({'mensagem': f'🤖 {conteudo}'})
-    except Exception as e:
-        return jsonify({'mensagem': 'Erro ao consultar IA: ' + str(e)})
 
 @app.route('/api/market_data')
 @login_required
