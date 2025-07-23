@@ -2,31 +2,34 @@
 {% block title %}Login • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="max-width: 400px; margin: 80px auto; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 0 15px #00ffff55; text-align: center;">
-    <h2 style="color: #00ffff; margin-bottom: 25px;">🔐 Login no ClaraVerse</h2>
+  <div style="max-width: 400px; margin: 50px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
+    <h2 style="text-align: center; color: #00ffff; margin-bottom: 20px;">🔐 Login</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div style="margin-bottom: 12px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
+          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
     <form method="post" action="{{ url_for('login') }}">
-      <input type="text" name="username" placeholder="Usuário" required
-             style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #333; background: #000; color: #fff;">
-      <input type="password" name="password" placeholder="Senha" required
-             style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #333; background: #000; color: #fff;">
+      <label for="email" style="color: #ccc;">📧 E-mail</label>
+      <input type="email" id="email" name="email" required autocomplete="email"
+             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+
+      <label for="password" style="color: #ccc;">🔑 Senha</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password"
+             style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: none;">
+
       <button type="submit"
-              style="padding: 12px 24px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px;">
+              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
         Entrar
       </button>
     </form>
 
-    <p style="margin-top: 20px; color: #ccc;">
-      Não tem conta?
-      <a href="{{ url_for('register') }}" style="color: #00ffff;">🧾 Registre-se aqui</a>
+    <p style="text-align: center; margin-top: 15px; color: #ccc;">
+      Ainda não tem conta? <a href="{{ url_for('register') }}" style="color: #00ffff;">Cadastre-se</a>
     </p>
   </div>
 {% endblock %}
