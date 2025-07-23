@@ -13,7 +13,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# === Configurações iniciais ===
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 
@@ -26,7 +25,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# === Modelos de dados ===
+# === MODELOS DE DADOS ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -78,7 +77,7 @@ class Trade(db.Model):
             'strategy_used': self.strategy_used
         }
 
-# === IA Clarinha ===
+# === SISTEMA DE MERCADO FICTÍCIO COM IA ===
 class ClarinhaCosmo:
     def analyze(self, symbol):
         return {
@@ -115,7 +114,7 @@ class MarketSystem:
 
 market_system = MarketSystem()
 
-# === Decorador de login ===
+# === LOGIN PROTECTOR ===
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -124,7 +123,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-# === Rotas ===
+# === ROTAS ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -242,7 +241,7 @@ def api_execute_trade():
 
     return jsonify({'success': True, 'pnl': pnl, 'price': price})
 
-# === WebSocket ===
+# === WEBSOCKET ===
 @socketio.on('connect')
 def ws_connect():
     emit('connected', {'status': 'success'})
@@ -255,7 +254,7 @@ def ws_subscribe_market():
         'timestamp': datetime.utcnow().isoformat()
     })
 
-# === Inicializar DB e rodar ===
+# === INICIALIZAÇÃO ===
 def initialize_database():
     with app.app_context():
         db.create_all()
