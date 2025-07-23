@@ -14,7 +14,7 @@
     <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
     <!-- Script JS -->
-    <script src="{{ url_for('static', filename='js/Dashboard.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
 </head>
 <body>
 
@@ -29,7 +29,7 @@
                     <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Home">
                     <span>Home</span>
                 </a>
-                <a href="{{ url_for('painel') }}">
+                <a href="{{ url_for('painel_operacao') }}">
                     <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Painel">
                     <span>Painel</span>
                 </a>
