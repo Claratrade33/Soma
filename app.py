@@ -132,11 +132,11 @@ def index():
         return redirect(url_for('painel_operacao'))
     return render_template('index.html')
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        u = request.form.get('username','').strip()
-        p = request.form.get('password','').strip()
+        u = request.form.get('username', '').strip()
+        p = request.form.get('password', '').strip()
         user = User.query.filter_by(username=u).first()
         if user and check_password_hash(user.password, p):
             session['user_id'] = user.id
@@ -146,12 +146,12 @@ def login():
         flash('Credenciais inválidas!', 'error')
     return render_template('login.html')
 
-@app.route('/register', methods=['GET','POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        u = request.form.get('username','').strip()
-        e = request.form.get('email','').strip()
-        p = request.form.get('password','').strip()
+        u = request.form.get('username', '').strip()
+        e = request.form.get('email', '').strip()
+        p = request.form.get('password', '').strip()
         if User.query.filter_by(username=u).first():
             flash('Usuário já existe!', 'error')
         else:
@@ -176,13 +176,13 @@ def painel_operacao():
     trades = Trade.query.filter_by(user_id=user.id).order_by(Trade.timestamp.desc()).limit(10).all()
     return render_template('painel_operacao.html', user=user, crypto_data=crypto, br_data=brazil, trades=trades)
 
-@app.route('/configurar', methods=['GET','POST'])
+@app.route('/configurar', methods=['GET', 'POST'])
 @login_required
 def configurar():
     user = User.query.get(session['user_id'])
     if request.method == 'POST':
-        user.binance_api_key = request.form.get('binance_api_key','').strip()
-        user.binance_api_secret = request.form.get('binance_api_secret','').strip()
+        user.binance_api_key = request.form.get('binance_api_key', '').strip()
+        user.binance_api_secret = request.form.get('binance_api_secret', '').strip()
         s = request.form.get('saldo_simulado')
         if s:
             user.saldo_simulado = float(s)
@@ -204,7 +204,7 @@ def api_market_data():
 @login_required
 def api_intelligent_analysis():
     data = request.get_json() or {}
-    symbol = data.get('symbol','BTC')
+    symbol = data.get('symbol', 'BTC')
     cosmic = market_system.cosmo.analyze(symbol)
     oracle = market_system.oraculo.predict(symbol)
     return jsonify({
@@ -260,7 +260,8 @@ def ws_subscribe_market():
 # === INICIALIZAÇÃO DO BANCO ===
 def initialize_database():
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Cria todas as tabelas
+        logging.info("Tabelas criadas com sucesso.")
         if not User.query.filter_by(username='admin').first():
             user = User(
                 username='admin',
@@ -269,6 +270,9 @@ def initialize_database():
             )
             db.session.add(user)
             db.session.commit()
+            logging.info("Usuário administrador criado.")
+        else:
+            logging.info("Usuário administrador já existe.")
 
 # === EXECUÇÃO ===
 if __name__ == '__main__':
