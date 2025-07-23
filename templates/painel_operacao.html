@@ -2,17 +2,53 @@
 {% block title %}Painel de Operações • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="padding: 30px; color: #fff; background: #0a0a0f;">
+  <div style="padding: 20px; max-width: 900px; margin: auto;">
+
     <h2 style="color: #00ffff;">📊 Painel de Operações</h2>
     <p>Bem-vindo, {{ user.username }}!</p>
 
-    <div style="margin-top: 20px;">
-      <strong>Saldo Simulado:</strong> {{ user.saldo_simulado }} USDT
+    <div style="margin: 15px 0;">
+      <strong>💰 Saldo Simulado:</strong> {{ user.saldo_simulado }} USDT
     </div>
 
-    <div style="margin-top: 30px;">
+    <!-- Gráfico TradingView -->
+    <div style="margin-bottom: 30px;">
       <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
               frameborder="0" width="100%" height="400"></iframe>
     </div>
+
+    <!-- Botões de Operação -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px;">
+      <button onclick="enviarAcao('entrada')" style="padding: 10px 20px; background: #00ff88; color: #000; font-weight: bold; border: none; border-radius: 5px;">🟢 Entrada</button>
+      <button onclick="enviarAcao('stop')" style="padding: 10px 20px; background: #ff4d4d; color: #fff; font-weight: bold; border: none; border-radius: 5px;">🔴 Stop</button>
+      <button onclick="enviarAcao('alvo')" style="padding: 10px 20px; background: #ffd700; color: #000; font-weight: bold; border: none; border-radius: 5px;">🎯 Alvo</button>
+      <button onclick="enviarAcao('automatico')" style="padding: 10px 20px; background: #b847ff; color: #fff; font-weight: bold; border: none; border-radius: 5px;">🤖 Automático</button>
+    </div>
+
+    <!-- Resultado da IA -->
+    <div id="resposta-ia" style="margin-top: 30px; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
+      <h3 style="color: #00ffff;">🧠 Resposta da IA Clarinha</h3>
+      <div id="output-ia" style="margin-top: 10px; color: #ccc;">Aguardando análise...</div>
+    </div>
+
   </div>
+
+  <script>
+    function enviarAcao(acao) {
+      fetch('/executar_acao', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ acao: acao })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('output-ia').innerText = data.mensagem || 'Comando enviado.';
+      })
+      .catch(err => {
+        document.getElementById('output-ia').innerText = 'Erro ao enviar ação.';
+      });
+    }
+  </script>
 {% endblock %}
