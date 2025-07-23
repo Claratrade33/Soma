@@ -1,3 +1,5 @@
+# app.py
+
 import os
 import random
 import logging
@@ -26,7 +28,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-
 # === Modelos de dados ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,7 +52,6 @@ class User(db.Model):
             'total_trades': self.total_trades,
             'win_rate': self.win_rate
         }
-
 
 class Trade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -80,8 +80,7 @@ class Trade(db.Model):
             'strategy_used': self.strategy_used
         }
 
-
-# === IA Clarinha (sem sklearn) ===
+# === IA Clarinha ===
 class ClarinhaCosmo:
     def analyze(self, symbol):
         return {
@@ -91,7 +90,6 @@ class ClarinhaCosmo:
             'volume': random.randint(100000, 5000000)
         }
 
-
 class ClarinhaOraculo:
     def predict(self, symbol):
         return {
@@ -100,8 +98,6 @@ class ClarinhaOraculo:
             'score': round(random.uniform(-1, 1), 2)
         }
 
-
-# === Simulação de Mercado ===
 class MarketSystem:
     def __init__(self):
         self.cosmo = ClarinhaCosmo()
@@ -118,7 +114,6 @@ class MarketSystem:
             'IBOV': {'price': 134000 + random.randint(-1000, 1000)},
             'USD_BRL': {'price': round(5.5 + random.uniform(-0.2, 0.2), 2)}
         }
-
 
 market_system = MarketSystem()
 
@@ -138,7 +133,6 @@ def index():
         return redirect(url_for('painel_operacao'))
     return render_template('index.html')
 
-
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
@@ -152,7 +146,6 @@ def login():
             return redirect(url_for('painel_operacao'))
         flash('Credenciais inválidas!', 'error')
     return render_template('login.html')
-
 
 @app.route('/register', methods=['GET','POST'])
 def register():
@@ -170,12 +163,10 @@ def register():
             return redirect(url_for('login'))
     return render_template('register.html')
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
-
 
 @app.route('/painel_operacao')
 @login_required
@@ -185,7 +176,6 @@ def painel_operacao():
     brazil = market_system.get_brazilian_data()
     trades = Trade.query.filter_by(user_id=user.id).order_by(Trade.timestamp.desc()).limit(10).all()
     return render_template('painel_operacao.html', user=user, crypto_data=crypto, br_data=brazil, trades=trades)
-
 
 @app.route('/configurar', methods=['GET','POST'])
 @login_required
@@ -201,7 +191,6 @@ def configurar():
         flash('Configurações salvas!', 'success')
     return render_template('configurar.html', user=user)
 
-
 @app.route('/api/market_data')
 @login_required
 def api_market_data():
@@ -210,7 +199,6 @@ def api_market_data():
         'brazilian': market_system.get_brazilian_data(),
         'timestamp': datetime.utcnow().isoformat()
     })
-
 
 @app.route('/api/intelligent_analysis', methods=['POST'])
 @login_required
@@ -224,7 +212,6 @@ def api_intelligent_analysis():
         'oracle': oracle,
         'timestamp': datetime.utcnow().isoformat()
     })
-
 
 @app.route('/api/execute_trade', methods=['POST'])
 @login_required
@@ -257,12 +244,10 @@ def api_execute_trade():
 
     return jsonify({'success': True, 'pnl': pnl, 'price': price})
 
-
 # === WebSocket ===
 @socketio.on('connect')
 def ws_connect():
     emit('connected', {'status': 'success'})
-
 
 @socketio.on('subscribe_market')
 def ws_subscribe_market():
@@ -271,7 +256,6 @@ def ws_subscribe_market():
         'brazilian': market_system.get_brazilian_data(),
         'timestamp': datetime.utcnow().isoformat()
     })
-
 
 # === Inicializar DB e rodar ===
 def initialize_database():
