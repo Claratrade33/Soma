@@ -51,7 +51,10 @@ def login_required(f):
 
 @app.route('/')
 def index():
-    return redirect(url_for('painel_operacao') if 'user_id' in session else 'login')
+    if 'user_id' in session:
+        return redirect(url_for('painel_operacao'))
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -127,10 +130,9 @@ def configurar():
         db.session.commit()
         flash('Chaves salvas com sucesso.', 'success')
 
-        # Testar a conexão com a API da Binance
         try:
             cliente = Client(user.binance_api_key, user.binance_api_secret)
-            cliente.ping()  # Verifica se a conexão está funcionando
+            cliente.ping()
             flash('Conexão com a Binance estabelecida com sucesso.', 'success')
         except Exception as e:
             flash(f'Erro ao conectar com Binance: {e}', 'error')
@@ -149,37 +151,35 @@ def sugestao():
 @login_required
 def trade():
     user = User.query.get(session['user_id'])
-    if request.method == 'POST':
-        symbol = request.form.get('symbol')
-        side = request.form.get('side')  # 'BUY' ou 'SELL'
-        quantity = request.form.get('quantity')
+    symbol = request.form.get('symbol')
+    side = request.form.get('side')  # 'BUY' ou 'SELL'
+    quantity = request.form.get('quantity')
 
-        try:
-            cliente = Client(user.binance_api_key, user.binance_api_secret)
-            order = cliente.order_market(
-                symbol=symbol,
-                side=side,
-                quantity=quantity
-            )
+    try:
+        cliente = Client(user.binance_api_key, user.binance_api_secret)
+        order = cliente.order_market(
+            symbol=symbol,
+            side=side,
+            quantity=quantity
+        )
 
-            # Salvar trade no banco de dados
-            new_trade = Trade(
-                user_id=user.id,
-                symbol=symbol,
-                side=side,
-                entry_price=float(order['fills'][0]['price']),  # Preço de entrada
-                timestamp=datetime.utcnow()
-            )
-            db.session.add(new_trade)
-            db.session.commit()
+        new_trade = Trade(
+            user_id=user.id,
+            symbol=symbol,
+            side=side,
+            entry_price=float(order['fills'][0]['price']),
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_trade)
+        db.session.commit()
 
-            flash('Trade executada com sucesso!', 'success')
-        except Exception as e:
-            flash(f'Erro ao executar trade: {e}', 'error')
+        flash('Trade executada com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao executar trade: {e}', 'error')
 
     return redirect(url_for('painel_operacao'))
 
-# ======== RODAR APP ========
+# ======== INICIALIZAÇÃO ========
 with app.app_context():
     db.create_all()
 
