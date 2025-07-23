@@ -1,110 +1,181 @@
-:root {
-  --neon-cyan: #00f7ff;
-  --neon-purple: #b847ff;
-  --neon-pink: #ff0080;
-  --neon-green: #00ff88;
-  --dark-bg: #0a0a0f;
-  --text-light: #e0e0e0;
-  --text-muted: #888;
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: var(--dark-bg);
-  color: var(--text-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0a0a0f;
+  color: #ffffff;
 }
 
-h1, h2, h3 {
-  color: var(--neon-cyan);
-}
-
-a {
-  color: var(--neon-cyan);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-button,
-select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-button {
-  background-color: var(--neon-cyan);
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.05);
-  background-color: var(--neon-green);
-}
-
-form {
-  background-color: #1e1e1e;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px var(--neon-cyan);
-  max-width: 500px;
-  margin: 40px auto;
-}
-
-nav {
-  background-color: #111;
-  padding: 12px 20px;
+/* TOPO */
+.topo {
+  background: linear-gradient(90deg, #8a2be2, #00ffff);
+  color: #fff;
+  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-nav a {
-  margin-right: 15px;
-  color: var(--neon-cyan);
+.topo .logo {
+  font-size: 1.3rem;
+  font-weight: bold;
 }
 
-nav a:last-child {
-  color: #ff4d4d;
+.topo .saldo {
+  font-weight: bold;
+  color: #00ff88;
 }
 
-#resposta-ia {
-  background-color: #1e1e1e;
+.btn-sair {
+  color: #fff;
+  background-color: #ff0040;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.btn-sair:hover {
+  background-color: #cc0033;
+}
+
+/* GERAL */
+.container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* GRÁFICO */
+.grafico-tradingview {
+  margin-top: 20px;
+  border: 2px solid #333;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* TABELAS */
+.tabela {
+  margin-top: 30px;
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #111;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabela th, .tabela td {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid #222;
+}
+
+.tabela th {
+  background-color: #121212;
+  color: #00f7ff;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.tabela tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* BOTÕES */
+.botao {
+  background-color: #00ffff;
+  color: #000;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin: 5px;
+}
+
+.botao:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #00ffff;
+}
+
+/* MENSAGENS */
+.flash-message {
+  padding: 12px;
+  margin: 20px auto;
+  border-radius: 6px;
+  max-width: 600px;
+  text-align: center;
+}
+
+.flash-message.success {
+  background-color: #00aa88;
+  color: #fff;
+}
+
+.flash-message.error {
+  background-color: #aa0033;
+  color: #fff;
+}
+
+/* FORMULÁRIOS */
+form {
+  max-width: 600px;
+  margin: 20px auto;
+  background-color: #111;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 8px var(--neon-cyan);
-  margin-top: 20px;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
 }
 
-@media screen and (max-width: 600px) {
-  nav {
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+form input[type="submit"] {
+  background-color: #00ffcc;
+  color: #000;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+form input[type="submit"]:hover {
+  background-color: #00e6b8;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .topo {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  nav a {
-    margin-bottom: 8px;
+  .grafico-tradingview iframe {
+    height: 300px;
   }
 
-  form {
-    padding: 20px;
-  }
-
-  iframe {
-    height: 300px !important;
+  .tabela th, .tabela td {
+    padding: 8px;
+    font-size: 0.85rem;
   }
 }
