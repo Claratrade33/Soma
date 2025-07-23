@@ -1,16 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Registrar – Claraverse{% endblock %}
+{% block title %}Registrar • ClaraVerse{% endblock %}
+
 {% block content %}
   <div style="max-width: 400px; margin: 40px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
     <h2 style="text-align: center; color: #00ffff; margin-bottom: 20px;">🧾 Criar Conta</h2>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <form method="post" action="{{ url_for('register') }}">
-      <input type="text" name="username" placeholder="Usuário" required style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
-      <input type="email" name="email" placeholder="E-mail" required style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
-      <input type="password" name="password" placeholder="Senha (mín. 6 chars)" required style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
-      <button type="submit" style="width: 100%; padding: 10px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px; margin-top: 15px;">Criar Conta</button>
+      <input type="text" name="username" placeholder="Usuário" required
+             style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
+      <input type="email" name="email" placeholder="E-mail" required
+             style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
+      <input type="password" name="password" placeholder="Senha (mín. 6 chars)" required
+             style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
+      <button type="submit"
+              style="width: 100%; padding: 10px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px; margin-top: 15px;">
+        Criar Conta
+      </button>
     </form>
 
-    <p style="text-align: center; margin-top: 20px; color: #aaa;">Já tem conta? <a href="{{ url_for('login') }}" style="color: #00ffff;">Faça login</a>.</p>
+    <p style="text-align: center; margin-top: 20px; color: #aaa;">
+      Já tem conta?
+      <a href="{{ url_for('login') }}" style="color: #00ffff;">Faça login</a>.
+    </p>
   </div>
 {% endblock %}
