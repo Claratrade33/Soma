@@ -1,66 +1,18 @@
-{% extends 'base.html' %}
-
-{% block title %}Painel de Operação - ClaraVerse{% endblock %}
+{% extends "base.html" %}
+{% block title %}Painel de Operações • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="padding: 30px; max-width: 900px; margin: auto;">
-    <h2 style="color: #00ffff; margin-bottom: 20px;">📊 Painel de Operação</h2>
+  <div style="padding: 30px; color: #fff; background: #0a0a0f;">
+    <h2 style="color: #00ffff;">📊 Painel de Operações</h2>
+    <p>Bem-vindo, {{ user.username }}!</p>
 
-    <div style="background: #111; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-      <h3 style="color: #00cccc;">👤 Dados do Usuário</h3>
-      <p>Usuário: <strong>{{ user.username }}</strong></p>
-      <p>Email: {{ user.email }}</p>
-      <p>💰 Saldo Simulado: <strong>R$ {{ "%.2f"|format(user.saldo_simulado) }}</strong></p>
-      <p>📈 Lucro/Perda: <strong style="color: {{ 'lime' if user.profit_loss >= 0 else 'red' }};">R$ {{ "%.2f"|format(user.profit_loss) }}</strong></p>
+    <div style="margin-top: 20px;">
+      <strong>Saldo Simulado:</strong> {{ user.saldo_simulado }} USDT
     </div>
 
-    <h3 style="color: #00cccc;">📉 Tabela de Criptomoedas</h3>
-    <table id="crypto-table" style="width: 100%; background: #1e1e1e; color: #fff; border-collapse: collapse; margin-bottom: 30px;">
-      <thead>
-        <tr style="background: #00ffff22;">
-          <th>Símbolo</th>
-          <th>Preço</th>
-          <th>Quantidade</th>
-          <th>Lucro/Perda</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <h3 style="color: #00cccc;">🇧🇷 Tabela do Mercado Brasileiro</h3>
-    <table id="br-table" style="width: 100%; background: #1e1e1e; color: #fff; border-collapse: collapse; margin-bottom: 30px;">
-      <thead>
-        <tr style="background: #00ffff22;">
-          <th>Índice</th>
-          <th>Preço</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <h3 style="color: #00cccc;">🧠 Análise Inteligente</h3>
-    <form id="analyze-form" style="margin-bottom: 30px;">
-      <input type="text" id="symbol" name="symbol" placeholder="Símbolo (ex: BTC)" required
-             style="padding: 10px; width: 200px; margin-right: 10px; border: none; border-radius: 5px;">
-      <button type="submit" style="padding: 10px 20px; background: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px;">Analisar</button>
-    </form>
-
-    <div id="analysis-output" style="background: #111; padding: 20px; border-radius: 10px; white-space: pre-wrap; color: #ccc;"></div>
-
-    <h3 style="color: #00cccc;">💼 Executar Trade</h3>
-    <form id="trade-form" style="margin-top: 20px;">
-      <input type="text" id="trade-symbol" name="symbol" placeholder="Símbolo" required
-             style="padding: 10px; width: 160px; margin-right: 10px; border-radius: 5px; border: none;">
-      <select id="side" name="side" required
-              style="padding: 10px; margin-right: 10px; border-radius: 5px; border: none;">
-        <option value="BUY">Comprar</option>
-        <option value="SELL">Vender</option>
-      </select>
-      <input type="number" id="quantity" name="quantity" placeholder="Quantidade" required
-             style="padding: 10px; width: 100px; margin-right: 10px; border-radius: 5px; border: none;">
-      <button type="submit" style="padding: 10px 20px; background: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px;">Executar</button>
-    </form>
+    <div style="margin-top: 30px;">
+      <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+              frameborder="0" width="100%" height="400"></iframe>
+    </div>
   </div>
 {% endblock %}
