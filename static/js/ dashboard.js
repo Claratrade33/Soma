@@ -1,16 +1,19 @@
+// static/js/dashboard.js
+
 document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
 
+  // Conectar ao WebSocket para atualizações de mercado
   socket.on('connect', () => {
     socket.emit('subscribe_market');
   });
 
   socket.on('market_update', data => {
-    updateCryptoTable(data.crypto);
-    updateBrTable(data.brazilian);
+    atualizarTabelaCripto(data.crypto);
+    atualizarTabelaBrasil(data.brazilian);
   });
 
-  function updateCryptoTable(crypto) {
+  function atualizarTabelaCripto(crypto) {
     const tbody = document.querySelector('#crypto-table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -20,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.innerHTML = `
         <td>${sym}</td>
         <td>${d.price.toFixed(2)}</td>
-        <td>${d.change_24h.toFixed(2)}%</td>
+        <td>${d.change_24h.toFixed(2)}</td>
         <td>${d.volume_24h}</td>
         <td>${d.rsi.toFixed(1)}</td>
       `;
@@ -28,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function updateBrTable(br) {
+  function atualizarTabelaBrasil(br) {
     const tbody = document.querySelector('#br-table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -38,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.innerHTML = `
         <td>${sym}</td>
         <td>${d.price.toFixed(2)}</td>
-        <td>${d.change_24h.toFixed(2)}%</td>
+        <td>${d.change_24h.toFixed(2)}</td>
         <td>${d.volume_24h}</td>
         <td>${d.rsi.toFixed(1)}</td>
       `;
@@ -46,30 +49,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Ações dos botões (ENTRADA, STOP, ALVO, AUTOMÁTICO)
-  const botoes = document.querySelectorAll('.botao-acao');
-  botoes.forEach(botao => {
+  // === BOTÕES DO PAINEL ===
+  document.querySelectorAll('[data-acao]').forEach(botao => {
     botao.addEventListener('click', () => {
       const acao = botao.getAttribute('data-acao');
       fetch('/executar_acao', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ acao })
       })
-        .then(res => res.json())
-        .then(data => {
-          const divResposta = document.getElementById('resposta-ia');
-          if (divResposta) {
-            divResposta.innerHTML = `
-              <h3>🤖 IA Clarinha respondeu:</h3>
-              <p><strong>Ação:</strong> ${data.acao}</p>
-              <p><strong>Resposta:</strong> ${data.resposta}</p>
-            `;
-          }
-        })
-        .catch(err => console.error('Erro ao executar ação:', err));
+      .then(res => res.json())
+      .then(data => {
+        const resposta = document.getElementById('resposta-ia');
+        if (resposta) resposta.innerText = data.mensagem || 'Executado';
+      })
+      .catch(() => alert('Erro ao executar ação'));
     });
   });
+
+  // IA Clarinha - Atualização automática da sugestão
+  const sugestao = document.getElementById('sugestao-ia');
+  if (sugestao) {
+    setInterval(() => {
+      fetch('/ia/sugestao')
+        .then(res => res.json())
+        .then(data => {
+          sugestao.innerHTML = `
+            <b>🔮 Oráculo:</b> ${data.oraculo.prediction} (${data.oraculo.sentiment})<br>
+            <b>🧠 Cosmo:</b> ${data.cosmo.cosmic_signal} (Confiança ${data.cosmo.confidence})<br>
+            <b>Risco:</b> ${data.cosmo.risk} | Volume: ${data.cosmo.volume}
+          `;
+        });
+    }, 15000); // Atualiza a cada 15s
+  }
 });
