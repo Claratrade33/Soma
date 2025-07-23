@@ -1,39 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Registrar • ClaraVerse{% endblock %}
+{% block title %}Cadastro • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="max-width: 450px; margin: 50px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; box-shadow: 0 0 10px #b847ff;">
-    <h2 style="text-align: center; color: #b847ff; margin-bottom: 20px;">📝 Criar Conta</h2>
+  <div style="max-width: 400px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
+    <h2 style="text-align: center; color: #00ffff;">📝 Criar Conta na ClaraVerse</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
+          <p style="color: {{ 'red' if category == 'error' else 'lime' }};">{{ message }}</p>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('register') }}">
-      <label for="username" style="color: #ccc;">👤 Nome de usuário</label>
-      <input type="text" id="username" name="username" required autocomplete="username"
+    <form method="POST" action="{{ url_for('register') }}">
+      <label for="username" style="color: #ccc;">👤 Usuário</label>
+      <input type="text" id="username" name="username" required
              style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
 
       <label for="email" style="color: #ccc;">📧 E-mail</label>
-      <input type="email" id="email" name="email" required autocomplete="email"
+      <input type="email" id="email" name="email" required
              style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
 
-      <label for="password" style="color: #ccc;">🔑 Senha</label>
-      <input type="password" id="password" name="password" required autocomplete="new-password"
-             style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: none;">
+      <label for="password" style="color: #ccc;">🔒 Senha</label>
+      <input type="password" id="password" name="password" required
+             style="width: 100%; padding: 10px; margin-bottom: 25px; border-radius: 5px; border: none;">
 
       <button type="submit"
-              style="width: 100%; padding: 12px; background-color: #b847ff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        Criar Conta
+              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
+        ✅ Cadastrar
       </button>
     </form>
 
-    <p style="text-align: center; margin-top: 15px; color: #ccc;">
-      Já tem conta? <a href="{{ url_for('login') }}" style="color: #b847ff;">Entrar</a>
+    <p style="text-align: center; margin-top: 20px; color: #999;">
+      Já tem uma conta? <a href="{{ url_for('login') }}" style="color: #00ffff;">Entrar</a>
     </p>
   </div>
 {% endblock %}
