@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.innerHTML = `
         <td>${sym}</td>
         <td>${d.price.toFixed(2)}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
       `;
       tbody.appendChild(tr);
     }
@@ -35,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.innerHTML = `
         <td>${idx}</td>
         <td>${d.price.toFixed(2)}</td>
+        <td>-</td>
       `;
       tbody.appendChild(tr);
     }
@@ -69,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ symbol, side, quantity: qty })
       });
       const b = await res.json();
-      alert(b.success ? `P&L: ${b.pnl.toFixed(2)}` : `Erro: ${b.error}`);
+      alert(b.success ? `✅ P&L: ${b.pnl.toFixed(2)}` : `❌ Erro: ${b.error}`);
     });
   }
 });
