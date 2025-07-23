@@ -3,7 +3,7 @@
 
 {% block content %}
   <div style="max-width: 500px; margin: 40px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
-    <h2 style="text-align: center; color: #00ffff; margin-bottom: 20px;">⚙️ Configurações da Plataforma</h2>
+    <h2 style="text-align: center; color: #00ffff; margin-bottom: 20px;">⚙️ Configurações da Binance</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -14,7 +14,6 @@
     {% endwith %}
 
     <form method="post" action="{{ url_for('configurar') }}">
-      <!-- Binance -->
       <label for="binance_api_key" style="color: #ccc;">🔑 Binance API Key</label>
       <input type="text" id="binance_api_key" name="binance_api_key"
              value="{{ user.binance_api_key or '' }}"
@@ -23,23 +22,11 @@
       <label for="binance_api_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
       <input type="text" id="binance_api_secret" name="binance_api_secret"
              value="{{ user.binance_api_secret or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-
-      <!-- OpenAI -->
-      <label for="openai_api_key" style="color: #ccc;">🧠 OpenAI API Key</label>
-      <input type="text" id="openai_api_key" name="openai_api_key"
-             value="{{ user.openai_api_key or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-
-      <!-- Simulated Balance -->
-      <label for="saldo_simulado" style="color: #ccc;">💰 Saldo Simulado (USDT)</label>
-      <input type="number" step="0.01" id="saldo_simulado" name="saldo_simulado"
-             value="{{ user.saldo_simulado }}"
              style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: none;">
 
       <button type="submit"
               style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        💾 Salvar Configurações
+        💾 Salvar e Conectar à Binance
       </button>
     </form>
   </div>
