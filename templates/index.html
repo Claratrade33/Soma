@@ -2,16 +2,22 @@
 {% block title %}Home • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="text-align: center; padding: 50px 20px;">
-    <h1 style="font-size: 2.2em; color: #00ffff; margin-bottom: 20px;">🚀 Bem-vindo ao ClaraVerse</h1>
-    <p style="font-size: 1.2em; color: #ccc;">Plataforma de simulação e análise inteligente de trades com IA.</p>
-    
-    <div style="margin-top: 30px;">
+  <div style="text-align: center; padding: 60px 20px;">
+    <h1 style="font-size: 2.5em; color: #00ffff; margin-bottom: 20px;">🌌 Bem-vindo ao ClaraVerse</h1>
+    <p style="font-size: 1.2em; color: #ccc;">
+      Plataforma de simulação de trades com inteligência financeira e visão estratégica de mercado.
+    </p>
+
+    <div style="margin-top: 40px;">
       <a href="{{ url_for('login') }}">
-        <button style="margin: 10px; padding: 12px 24px; font-size: 1em;">🔐 Entrar</button>
+        <button style="margin: 10px; padding: 14px 28px; font-size: 1em; border: none; background: #0066cc; color: white; border-radius: 6px;">
+          🔐 Entrar
+        </button>
       </a>
       <a href="{{ url_for('register') }}">
-        <button style="margin: 10px; padding: 12px 24px; font-size: 1em; background-color: #28a745;">📝 Registrar</button>
+        <button style="margin: 10px; padding: 14px 28px; font-size: 1em; border: none; background: #28a745; color: white; border-radius: 6px;">
+          📝 Registrar
+        </button>
       </a>
     </div>
   </div>
