@@ -1,32 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Login • ClaraVerse{% endblock %}
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        u = request.form.get('username', '').strip()
+        p = request.form.get('password', '').strip()
 
-{% block content %}
-  <div style="max-width: 400px; margin: 80px auto; padding: 30px; background-color: #1c1c1e; border-radius: 12px; box-shadow: 0 0 12px #00ffff33; text-align: center;">
-    <h2 style="color: #00ffff; margin-bottom: 20px;">🔐 Login no ClaraVerse</h2>
+        if not u or not p:
+            flash('Preencha todos os campos.', 'error')
+            return redirect(url_for('login'))
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+        user = User.query.filter_by(username=u).first()
+        if user and check_password_hash(user.password, p):
+            session['user_id'] = user.id
+            session.permanent = True
+            flash(f'Bem-vindo, {user.username}!', 'success')
+            return redirect(url_for('painel_operacao'))
 
-    <form method="post" action="{{ url_for('login') }}">
-      <input type="text" name="username" placeholder="Usuário" required
-             style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none;">
-      <input type="password" name="password" placeholder="Senha" required
-             style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none;">
-      <button type="submit"
-              style="padding: 12px 24px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">
-        Entrar
-      </button>
-    </form>
+        flash('Credenciais inválidas. Tente novamente.', 'error')
+        return redirect(url_for('login'))
 
-    <p style="margin-top: 15px; color: #ccc;">
-      Não tem conta?
-      <a href="{{ url_for('register') }}" style="color: #00ffff;">Registre-se aqui</a>.
-    </p>
-  </div>
-{% endblock %}
+    return render_template('login.html')
