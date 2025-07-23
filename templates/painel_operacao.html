@@ -3,70 +3,64 @@
 {% block title %}Painel de Operação - ClaraVerse{% endblock %}
 
 {% block content %}
-<h2 class="mt-5">Painel de Operação</h2>
-<div>
-    <h3>Dados do Usuário</h3>
-    <p>Usuário: {{ user.username }}</p>
-    <p>Email: {{ user.email }}</p>
-    <p>Saldo Simulado: R$ {{ user.saldo_simulado }}</p>
-    <p>Lucro/Perda: R$ {{ user.profit_loss }}</p>
-</div>
+  <div style="padding: 30px; max-width: 900px; margin: auto;">
+    <h2 style="color: #00ffff; margin-bottom: 20px;">📊 Painel de Operação</h2>
 
-<h3 class="mt-4">Tabela de Criptomoedas</h3>
-<table id="crypto-table" class="table table-dark">
-    <thead>
-        <tr>
-            <th>Símbolo</th>
-            <th>Preço</th>
-            <th>Quantidade</th>
-            <th>Lucro/Perda</th>
-            <th>Status</th>
+    <div style="background: #111; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+      <h3 style="color: #00cccc;">👤 Dados do Usuário</h3>
+      <p>Usuário: <strong>{{ user.username }}</strong></p>
+      <p>Email: {{ user.email }}</p>
+      <p>💰 Saldo Simulado: <strong>R$ {{ "%.2f"|format(user.saldo_simulado) }}</strong></p>
+      <p>📈 Lucro/Perda: <strong style="color: {{ 'lime' if user.profit_loss >= 0 else 'red' }};">R$ {{ "%.2f"|format(user.profit_loss) }}</strong></p>
+    </div>
+
+    <h3 style="color: #00cccc;">📉 Tabela de Criptomoedas</h3>
+    <table id="crypto-table" style="width: 100%; background: #1e1e1e; color: #fff; border-collapse: collapse; margin-bottom: 30px;">
+      <thead>
+        <tr style="background: #00ffff22;">
+          <th>Símbolo</th>
+          <th>Preço</th>
+          <th>Quantidade</th>
+          <th>Lucro/Perda</th>
+          <th>Status</th>
         </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-<h3 class="mt-4">Tabela do Mercado Brasileiro</h3>
-<table id="br-table" class="table table-dark">
-    <thead>
-        <tr>
-            <th>Índice</th>
-            <th>Preço</th>
-            <th>Status</th>
+    <h3 style="color: #00cccc;">🇧🇷 Tabela do Mercado Brasileiro</h3>
+    <table id="br-table" style="width: 100%; background: #1e1e1e; color: #fff; border-collapse: collapse; margin-bottom: 30px;">
+      <thead>
+        <tr style="background: #00ffff22;">
+          <th>Índice</th>
+          <th>Preço</th>
+          <th>Status</th>
         </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-<h3 class="mt-4">Análise Inteligente</h3>
-<form id="analyze-form">
-    <div class="mb-3">
-        <label for="symbol" class="form-label">Símbolo</label>
-        <input type="text" class="form-control" id="symbol" name="symbol" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Analisar</button>
-</form>
+    <h3 style="color: #00cccc;">🧠 Análise Inteligente</h3>
+    <form id="analyze-form" style="margin-bottom: 30px;">
+      <input type="text" id="symbol" name="symbol" placeholder="Símbolo (ex: BTC)" required
+             style="padding: 10px; width: 200px; margin-right: 10px; border: none; border-radius: 5px;">
+      <button type="submit" style="padding: 10px 20px; background: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px;">Analisar</button>
+    </form>
 
-<h3 class="mt-4">Resultado da Análise</h3>
-<pre id="analysis-output"></pre>
+    <div id="analysis-output" style="background: #111; padding: 20px; border-radius: 10px; white-space: pre-wrap; color: #ccc;"></div>
 
-<h3 class="mt-4">Executar Trade</h3>
-<form id="trade-form">
-    <div class="mb-3">
-        <label for="trade-symbol" class="form-label">Símbolo</label>
-        <input type="text" class="form-control" id="trade-symbol" name="symbol" required>
-    </div>
-    <div class="mb-3">
-        <label for="side" class="form-label">Lado</label>
-        <select class="form-select" id="side" name="side" required>
-            <option value="BUY">Comprar</option>
-            <option value="SELL">Vender</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="quantity" class="form-label">Quantidade</label>
-        <input type="number" class="form-control" id="quantity" name="quantity" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Executar Trade</button>
-</form>
+    <h3 style="color: #00cccc;">💼 Executar Trade</h3>
+    <form id="trade-form" style="margin-top: 20px;">
+      <input type="text" id="trade-symbol" name="symbol" placeholder="Símbolo" required
+             style="padding: 10px; width: 160px; margin-right: 10px; border-radius: 5px; border: none;">
+      <select id="side" name="side" required
+              style="padding: 10px; margin-right: 10px; border-radius: 5px; border: none;">
+        <option value="BUY">Comprar</option>
+        <option value="SELL">Vender</option>
+      </select>
+      <input type="number" id="quantity" name="quantity" placeholder="Quantidade" required
+             style="padding: 10px; width: 100px; margin-right: 10px; border-radius: 5px; border: none;">
+      <button type="submit" style="padding: 10px 20px; background: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 5px;">Executar</button>
+    </form>
+  </div>
 {% endblock %}
