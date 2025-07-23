@@ -180,8 +180,7 @@ def api_market_data():
         'timestamp': datetime.utcnow().isoformat()
     })
 
-@app.before_first_request
-def criar_banco():
+with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
