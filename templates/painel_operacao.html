@@ -33,22 +33,6 @@
 
   </div>
 
-  <script>
-    function enviarAcao(acao) {
-      fetch('/executar_acao', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ acao: acao })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('output-ia').innerText = data.mensagem || 'Comando enviado.';
-      })
-      .catch(err => {
-        document.getElementById('output-ia').innerText = 'Erro ao enviar ação.';
-      });
-    }
-  </script>
+  <!-- JS para IA -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
