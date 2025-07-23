@@ -1,21 +1,26 @@
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        u = request.form.get('username', '').strip()
-        p = request.form.get('password', '').strip()
+{% extends 'base.html' %}
 
-        if not u or not p:
-            flash('Preencha todos os campos.', 'error')
-            return redirect(url_for('login'))
+{% block title %}Login - ClaraVerse{% endblock %}
 
-        user = User.query.filter_by(username=u).first()
-        if user and check_password_hash(user.password, p):
-            session['user_id'] = user.id
-            session.permanent = True
-            flash(f'Bem-vindo, {user.username}!', 'success')
-            return redirect(url_for('painel_operacao'))
-        else:
-            flash('Credenciais inválidas. Tente novamente.', 'error')
-            return redirect(url_for('login'))
-
-    return render_template('login.html')
+{% block content %}
+<h2 class="mt-5">Login</h2>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<form method="POST" class="mt-4">
+    <div class="mb-3">
+        <label for="username" class="form-label">Usuário</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Entrar</button>
+</form>
+<a href="{{ url_for('register') }}">Não tem uma conta? Registre-se aqui.</a>
+{% endblock %}
