@@ -17,7 +17,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 
-# Configuração da aplicação Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret_key_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
@@ -27,7 +26,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# === MODELOS DE DADOS ===
+# === MODELOS ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -40,17 +39,6 @@ class User(db.Model):
     total_trades = db.Column(db.Integer, default=0)
     win_rate = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'saldo_simulado': self.saldo_simulado,
-            'profit_loss': self.profit_loss,
-            'total_trades': self.total_trades,
-            'win_rate': self.win_rate
-        }
 
 class Trade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -65,21 +53,7 @@ class Trade(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     strategy_used = db.Column(db.String(50), nullable=True)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'symbol': self.symbol,
-            'side': self.side,
-            'quantity': self.quantity,
-            'entry_price': self.entry_price,
-            'exit_price': self.exit_price,
-            'profit_loss': self.profit_loss,
-            'status': self.status,
-            'timestamp': self.timestamp.isoformat(),
-            'strategy_used': self.strategy_used
-        }
-
-# === SISTEMA DE MERCADO FICTÍCIO COM IA ===
+# === IA FICTÍCIA ===
 class ClarinhaCosmo:
     def analyze(self, symbol):
         return {
@@ -104,68 +78,73 @@ class MarketSystem:
 
     def get_crypto_data(self):
         return {
-            'BTC': {'price': round(random.uniform(95000, 105000), 2)},
-            'ETH': {'price': round(random.uniform(3000, 3800), 2)}
+            'BTCUSDT': {
+                'price': round(random.uniform(25000, 35000), 2),
+                'change_24h': round(random.uniform(-5, 5), 2),
+                'volume_24h': round(random.uniform(1000000, 5000000), 2),
+                'rsi': round(random.uniform(30, 70), 2)
+            }
         }
 
     def get_brazilian_data(self):
         return {
-            'IBOV': {'price': 134000 + random.randint(-1000, 1000)},
-            'USD_BRL': {'price': round(5.5 + random.uniform(-0.2, 0.2), 2)}
+            'USD/BRL': {
+                'price': round(random.uniform(4.5, 5.5), 2),
+                'change_24h': round(random.uniform(-2, 2), 2),
+                'volume_24h': round(random.uniform(100000, 500000), 2),
+                'rsi': round(random.uniform(30, 70), 2)
+            }
         }
 
 market_system = MarketSystem()
 
-# === LOGIN PROTECTOR ===
+# === AUTENTICAÇÃO ===
 def login_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated
+    return decorated_function
 
-# === ROTAS ===
 @app.route('/')
 def index():
     if 'user_id' in session:
         return redirect(url_for('painel_operacao'))
-    return render_template('index.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        u = request.form.get('username', '').strip()
-        p = request.form.get('password', '').strip()
-        user = User.query.filter_by(username=u).first()
-        if user and check_password_hash(user.password, p):
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
-            session.permanent = True
-            flash(f'Bem-vindo, {user.username}!', 'success')
             return redirect(url_for('painel_operacao'))
-        flash('Credenciais inválidas!', 'error')
+        flash('Credenciais inválidas', 'error')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        u = request.form.get('username', '').strip()
-        e = request.form.get('email', '').strip()
-        p = request.form.get('password', '').strip()
-        if User.query.filter_by(username=u).first():
-            flash('Usuário já existe!', 'error')
+        username = request.form['username']
+        email = request.form['email']
+        password = generate_password_hash(request.form['password'])
+        if User.query.filter_by(email=email).first():
+            flash('Email já cadastrado', 'error')
         else:
-            user = User(username=u, email=e, password=generate_password_hash(p))
+            user = User(username=username, email=email, password=password)
             db.session.add(user)
             db.session.commit()
-            flash('Conta criada!', 'success')
+            flash('Cadastro realizado com sucesso. Faça login.', 'success')
             return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/painel_operacao')
 @login_required
@@ -191,6 +170,7 @@ def configurar():
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
+# === API DE DADOS ===
 @app.route('/api/market_data')
 @login_required
 def api_market_data():
@@ -200,82 +180,9 @@ def api_market_data():
         'timestamp': datetime.utcnow().isoformat()
     })
 
-@app.route('/api/intelligent_analysis', methods=['POST'])
-@login_required
-def api_intelligent_analysis():
-    data = request.get_json() or {}
-    symbol = data.get('symbol', 'BTC')
-    cosmic = market_system.cosmo.analyze(symbol)
-    oracle = market_system.oraculo.predict(symbol)
-    return jsonify({
-        'cosmic': cosmic,
-        'oracle': oracle,
-        'timestamp': datetime.utcnow().isoformat()
-    })
+@app.before_first_request
+def criar_banco():
+    db.create_all()
 
-@app.route('/api/execute_trade', methods=['POST'])
-@login_required
-def api_execute_trade():
-    data = request.get_json() or {}
-    user = User.query.get(session['user_id'])
-    sym = data.get('symbol')
-    side = data.get('side')
-    qty = float(data.get('quantity', 0))
-
-    price = market_system.get_crypto_data().get(sym, {}).get('price', 100)
-    trade_value = qty * price
-
-    if side == 'BUY':
-        if user.saldo_simulado < trade_value:
-            return jsonify({'success': False, 'error': 'Saldo insuficiente'}), 400
-        user.saldo_simulado -= trade_value
-    else:
-        user.saldo_simulado += trade_value
-
-    pnl = random.uniform(-trade_value * 0.03, trade_value * 0.05)
-    user.profit_loss += pnl
-    user.total_trades += 1
-    win_count = Trade.query.filter(Trade.user_id == user.id, Trade.profit_loss > 0).count()
-    user.win_rate = (win_count / user.total_trades) * 100 if user.total_trades else 0
-
-    trade = Trade(user_id=user.id, symbol=sym, side=side, quantity=qty, entry_price=price, profit_loss=pnl)
-    db.session.add(trade)
-    db.session.commit()
-
-    return jsonify({'success': True, 'pnl': pnl, 'price': price})
-
-# === WEBSOCKET ===
-@socketio.on('connect')
-def ws_connect():
-    emit('connected', {'status': 'success'})
-
-@socketio.on('subscribe_market')
-def ws_subscribe_market():
-    emit('market_update', {
-        'crypto': market_system.get_crypto_data(),
-        'brazilian': market_system.get_brazilian_data(),
-        'timestamp': datetime.utcnow().isoformat()
-    })
-
-# === INICIALIZAÇÃO DO BANCO ===
-def initialize_database():
-    with app.app_context():
-        db.create_all()  # Cria todas as tabelas
-        logging.info("Tabelas criadas com sucesso.")
-        if not User.query.filter_by(username='admin').first():
-            user = User(
-                username='admin',
-                email='admin@clara.com',
-                password=generate_password_hash('admin123')
-            )
-            db.session.add(user)
-            db.session.commit()
-            logging.info("Usuário administrador criado.")
-        else:
-            logging.info("Usuário administrador já existe.")
-
-# === EXECUÇÃO ===
 if __name__ == '__main__':
-    initialize_database()
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=5000)
