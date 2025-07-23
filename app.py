@@ -1,22 +1,27 @@
 import os
-import random
+import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
+
+from flask import (
+    Flask, render_template, redirect, url_for,
+    request, session, flash, jsonify
+)
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
 
-# === Inicialização ===
+from clarinha_ia import ClarinhaIA
+
+# === Configuração do app ===
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_real_secret')
+app.secret_key = os.environ.get('SECRET_KEY', 'chave_claraverse_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///claraverse.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+ia = ClarinhaIA()
 
 # === Modelos ===
 class User(db.Model):
@@ -28,58 +33,29 @@ class User(db.Model):
     binance_api_secret = db.Column(db.String(200))
     saldo_simulado = db.Column(db.Float, default=10000.0)
 
-class Trade(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    symbol = db.Column(db.String(10))
-    side = db.Column(db.String(10))
-    quantity = db.Column(db.Float)
-    entry_price = db.Column(db.Float)
-    exit_price = db.Column(db.Float, nullable=True)
-    profit_loss = db.Column(db.Float, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-# === IA ===
-class ClarinhaCosmo:
-    def analyze(self, symbol):
-        return {
-            'cosmic_signal': random.choice(['BUY', 'SELL']),
-            'confidence': round(random.uniform(0.6, 0.95), 2),
-            'risk': random.choice(['LOW', 'MEDIUM', 'HIGH']),
-            'volume': random.randint(500000, 3000000)
-        }
-
-class ClarinhaOraculo:
-    def predict(self, symbol):
-        return {
-            'prediction': random.choice(['BUY', 'SELL', 'HOLD']),
-            'sentiment': random.choice(['BULLISH', 'BEARISH', 'NEUTRAL']),
-            'score': round(random.uniform(-1, 1), 2)
-        }
-
-cosmo = ClarinhaCosmo()
-oraculo = ClarinhaOraculo()
-
-# === Autenticação ===
+# === Login obrigatório ===
 def login_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def wrap(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated
+    return wrap
 
 # === Rotas ===
 @app.route('/')
 def index():
-    return redirect(url_for('painel_operacao')) if 'user_id' in session else redirect(url_for('login'))
+    if 'user_id' in session:
+        return redirect(url_for('painel_operacao'))
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email, password = request.form['email'], request.form['password']
+        email = request.form['email']
+        senha = request.form['password']
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, senha):
             session['user_id'] = user.id
             return redirect(url_for('painel_operacao'))
         flash('Credenciais inválidas', 'error')
@@ -90,13 +66,14 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+        senha = generate_password_hash(request.form['password'])
         if User.query.filter_by(email=email).first():
             flash('Email já cadastrado', 'error')
         else:
-            db.session.add(User(username=username, email=email, password=password))
+            novo = User(username=username, email=email, password=senha)
+            db.session.add(novo)
             db.session.commit()
-            flash('Cadastro realizado com sucesso!', 'success')
+            flash('Cadastro realizado. Faça login.', 'success')
             return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -110,75 +87,67 @@ def logout():
 def configurar():
     user = User.query.get(session['user_id'])
     if request.method == 'POST':
-        user.binance_api_key = request.form['binance_api_key'].strip()
-        user.binance_api_secret = request.form['binance_api_secret'].strip()
+        user.binance_api_key = request.form['binance_api_key']
+        user.binance_api_secret = request.form['binance_api_secret']
+        user.saldo_simulado = float(request.form['saldo_simulado'])
         db.session.commit()
-        flash("🔐 Configurações salvas com sucesso!", "success")
+        flash("🔐 Chaves salvas com sucesso!", "success")
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
-@app.route('/painel_operacao', methods=['GET'])
+@app.route('/painel_operacao')
 @login_required
 def painel_operacao():
     user = User.query.get(session['user_id'])
+    if not user.binance_api_key or not user.binance_api_secret:
+        flash('Configure suas chaves da Binance para operar.', 'error')
+        return redirect(url_for('configurar'))
+
     client = Client(user.binance_api_key, user.binance_api_secret)
-    saldo_binance = client.get_asset_balance(asset='USDT')
-    saldo_real = saldo_binance['free'] if saldo_binance else '0.00'
+    saldo = client.get_asset_balance(asset='USDT')
+    saldo_real = float(saldo['free']) if saldo else 0.0
+    sugestao = ia.gerar_sugestao('BTCUSDT')
+    preco_atual = client.get_symbol_ticker(symbol='BTCUSDT')['price']
 
-    analise = cosmo.analyze('BTCUSDT')
-    previsao = oraculo.predict('BTCUSDT')
-    trades = Trade.query.filter_by(user_id=user.id).order_by(Trade.timestamp.desc()).limit(10).all()
+    return render_template(
+        'painel_operacao.html',
+        user=user,
+        saldo_real=round(saldo_real, 2),
+        sugestao=sugestao,
+        preco_atual=round(float(preco_atual), 2)
+    )
 
-    return render_template('painel_operacao.html',
-        user=user, saldo_binance=saldo_real,
-        analise=analise, previsao=previsao, trades=trades)
-
-@app.route('/executar_operacao', methods=['POST'])
+@app.route('/executar_ordem', methods=['POST'])
 @login_required
-def executar_operacao():
+def executar_ordem():
     user = User.query.get(session['user_id'])
-    lado = request.form['lado']
-    quantidade = float(request.form['quantidade'])
     client = Client(user.binance_api_key, user.binance_api_secret)
 
-    symbol = 'BTCUSDT'
-    price_info = client.get_symbol_ticker(symbol=symbol)
-    preco = float(price_info['price'])
+    tipo = request.form.get('tipo')  # COMPRAR ou VENDER
+    quantidade = float(request.form.get('quantidade', 0.001))
 
-    ordem = client.create_order(
-        symbol=symbol,
-        side=lado,
-        type='MARKET',
-        quoteOrderQty=quantidade
-    )
+    try:
+        if tipo == 'COMPRAR':
+            ordem = client.order_market_buy(
+                symbol='BTCUSDT',
+                quantity=quantidade
+            )
+        elif tipo == 'VENDER':
+            ordem = client.order_market_sell(
+                symbol='BTCUSDT',
+                quantity=quantidade
+            )
+        else:
+            return jsonify({'status': 'erro', 'mensagem': 'Tipo inválido'})
 
-    trade = Trade(
-        user_id=user.id,
-        symbol=symbol,
-        side=lado,
-        quantity=quantidade / preco,
-        entry_price=preco
-    )
-    db.session.add(trade)
-    db.session.commit()
+        return jsonify({'status': 'sucesso', 'dados': ordem})
 
-    flash("✅ Ordem executada com sucesso!", "success")
-    return redirect(url_for('painel_operacao'))
+    except Exception as e:
+        return jsonify({'status': 'erro', 'mensagem': str(e)})
 
-# === API WS (futuro uso) ===
-@app.route('/api/market_data')
-@login_required
-def api_market_data():
-    return jsonify({
-        'btc': random.uniform(25000, 35000),
-        'usdbrl': random.uniform(4.5, 5.5),
-        'rsi': random.randint(30, 70)
-    })
-
-# === DB Init ===
+# === Inicializar Banco ===
 with app.app_context():
     db.create_all()
 
-# === Run ===
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    app.run(debug=True)
