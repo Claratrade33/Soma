@@ -51,13 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ symbol })
                 });
 
-                if (!res.ok) {
-                    throw new Error('Erro na análise');
-                }
+                if (!res.ok) throw new Error('Erro na análise');
 
                 const body = await res.json();
-                document.getElementById('analysis-output').innerText =
-                    JSON.stringify(body, null, 2);
+                document.getElementById('analysis-output').innerText = JSON.stringify(body, null, 2);
             } catch (error) {
                 alert(`Erro: ${error.message}`);
             }
@@ -68,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tradeForm) {
         tradeForm.addEventListener('submit', async e => {
             e.preventDefault();
-            const symbol = tradeForm.symbol.value;
+            const symbol = tradeForm['trade-symbol'].value;
             const side = tradeForm.side.value;
             const qty = tradeForm.quantity.value;
 
@@ -81,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const b = await res.json();
                 if (b.success) {
-                    alert(`✅ P&L: ${b.pnl.toFixed(2)}`);
+                    alert(`✅ Trade executado com sucesso!\nPreço: ${b.price.toFixed(2)}\nP&L: ${b.pnl.toFixed(2)}`);
+                    location.reload();
                 } else {
                     alert(`❌ Erro: ${b.error}`);
                 }
