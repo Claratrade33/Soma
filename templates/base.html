@@ -19,6 +19,19 @@
     </nav>
   {% endif %}
 
+  <!-- FLASH MESSAGES GLOBAIS -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="padding: 12px 20px;">
+        {% for category, message in messages %}
+          <div style="margin-bottom: 10px; background-color: #111; padding: 10px; border-left: 5px solid {{ 'red' if category == 'error' else '#00ffcc' }};">
+            <span style="color: {{ 'red' if category == 'error' else '#00ffcc' }}">{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <main>
     {% block content %}{% endblock %}
   </main>
