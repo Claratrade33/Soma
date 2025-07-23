@@ -126,6 +126,15 @@ def configurar():
         user.binance_api_secret = request.form.get('binance_api_secret')
         db.session.commit()
         flash('Chaves salvas com sucesso.', 'success')
+
+        # Testar a conexão com a API da Binance
+        try:
+            cliente = Client(user.binance_api_key, user.binance_api_secret)
+            cliente.ping()  # Verifica se a conexão está funcionando
+            flash('Conexão com a Binance estabelecida com sucesso.', 'success')
+        except Exception as e:
+            flash(f'Erro ao conectar com Binance: {e}', 'error')
+
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
@@ -134,6 +143,41 @@ def configurar():
 @login_required
 def sugestao():
     return jsonify(ia.gerar_sugestao())
+
+# ======== RODAR TRADE ========
+@app.route('/trade', methods=['POST'])
+@login_required
+def trade():
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        symbol = request.form.get('symbol')
+        side = request.form.get('side')  # 'BUY' ou 'SELL'
+        quantity = request.form.get('quantity')
+
+        try:
+            cliente = Client(user.binance_api_key, user.binance_api_secret)
+            order = cliente.order_market(
+                symbol=symbol,
+                side=side,
+                quantity=quantity
+            )
+
+            # Salvar trade no banco de dados
+            new_trade = Trade(
+                user_id=user.id,
+                symbol=symbol,
+                side=side,
+                entry_price=float(order['fills'][0]['price']),  # Preço de entrada
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(new_trade)
+            db.session.commit()
+
+            flash('Trade executada com sucesso!', 'success')
+        except Exception as e:
+            flash(f'Erro ao executar trade: {e}', 'error')
+
+    return redirect(url_for('painel_operacao'))
 
 # ======== RODAR APP ========
 with app.app_context():
