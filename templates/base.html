@@ -1,45 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ClaraVerse{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
-    <style>
-        body { background-color: #121212; color: #eee; }
-        .navbar { background-color: #1c1c1e; }
-        .footer { background-color: #1c1c1e; text-align: center; padding: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>{% block title %}ClaraVerse{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">ClaraVerse</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Início</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('painel_operacao') }}">Painel</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('configurar') }}">Configurações</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </div>
-        </div>
+<body style="margin: 0; background-color: #000; font-family: sans-serif; color: #fff;">
+
+  {% if session.get('user_id') %}
+    <nav style="background-color: #111; padding: 10px 20px; display: flex; justify-content: space-between;">
+      <div><strong style="color: #00ffff;">🔷 ClaraVerse</strong></div>
+      <div>
+        <a href="{{ url_for('index') }}" style="margin-right: 10px; color: #00ffff;">Home</a>
+        <a href="{{ url_for('painel_operacao') }}" style="margin-right: 10px; color: #00ffff;">Painel</a>
+        <a href="{{ url_for('configurar') }}" style="margin-right: 10px; color: #00ffff;">Configurar</a>
+        <a href="{{ url_for('logout') }}" style="color: #ff4d4d;">Sair</a>
+      </div>
     </nav>
+  {% endif %}
 
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 
-    <footer class="footer">
-        <p>&copy; 2025 ClaraVerse. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
