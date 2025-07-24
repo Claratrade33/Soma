@@ -27,19 +27,15 @@
             </tr>
         </thead>
         <tbody>
-            {% if crypto_data %}
-                {% for symbol, data in crypto_data.items() %}
-                <tr>
-                    <td>{{ symbol }}</td>
-                    <td>{{ data.price }}</td>
-                    <td>{{ data.change_24h }}%</td>
-                    <td>{{ data.volume_24h }}</td>
-                    <td>{{ data.rsi }}</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="5" style="text-align:center;">Sem dados de mercado.</td></tr>
-            {% endif %}
+            {% for symbol, data in crypto_data.items() %}
+            <tr>
+                <td>{{ symbol }}</td>
+                <td>{{ data.price }}</td>
+                <td>{{ data.change_24h }}%</td>
+                <td>{{ data.volume_24h }}</td>
+                <td>{{ data.rsi }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 
@@ -57,26 +53,22 @@
             </tr>
         </thead>
         <tbody>
-            {% if trades %}
-                {% for trade in trades %}
-                <tr>
-                    <td>{{ trade.symbol }}</td>
-                    <td>{{ trade.side }}</td>
-                    <td>{{ trade.entry_price }}</td>
-                    <td>{{ trade.exit_price or '---' }}</td>
-                    <td>{{ trade.profit_loss or '---' }}</td>
-                    <td>{{ trade.strategy_used }}</td>
-                    <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="7" style="text-align:center;">Nenhuma operação realizada.</td></tr>
-            {% endif %}
+            {% for trade in trades %}
+            <tr>
+                <td>{{ trade.symbol }}</td>
+                <td>{{ trade.side }}</td>
+                <td>{{ trade.entry_price }}</td>
+                <td>{{ trade.exit_price or '---' }}</td>
+                <td>{{ trade.profit_loss or '---' }}</td>
+                <td>{{ trade.strategy_used }}</td>
+                <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 
     <h3 style="margin-top: 30px;">💱 Realizar Trade</h3>
-    <form method="POST" action="{{ url_for('trade') }}">
+    <form id="tradeForm">
         <label for="symbol" style="color: #ccc;">📈 Par de Moeda (ex: BTCUSDT)</label>
         <input type="text" id="symbol" name="symbol" required
                style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
@@ -84,8 +76,8 @@
         <label for="side" style="color: #ccc;">🔄 Tipo de Operação</label>
         <select id="side" name="side" required
                 style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-            <option value="BUY">Comprar</option>
-            <option value="SELL">Vender</option>
+            <option value="compra">Comprar</option>
+            <option value="venda">Vender</option>
         </select>
 
         <label for="quantity" style="color: #ccc;">💵 Quantidade</label>
@@ -100,5 +92,25 @@
 </div>
 
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+document.getElementById('tradeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const simbolo = document.getElementById('symbol').value;
+    const tipo = document.getElementById('side').value;
+    const quantidade = document.getElementById('quantity').value;
+
+    const resposta = await fetch("/executar_ordem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ simbolo, tipo, quantidade })
+    });
+
+    const resultado = await resposta.json();
+    if (resultado.status) {
+        alert("✅ " + resultado.status);
+    } else {
+        alert("❌ Erro: " + resultado.erro);
+    }
+});
+</script>
 {% endblock %}
