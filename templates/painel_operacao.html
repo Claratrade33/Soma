@@ -27,15 +27,19 @@
             </tr>
         </thead>
         <tbody>
-            {% for symbol, data in crypto_data.items() %}
-            <tr>
-                <td>{{ symbol }}</td>
-                <td>{{ data.price }}</td>
-                <td>{{ data.change_24h }}%</td>
-                <td>{{ data.volume_24h }}</td>
-                <td>{{ data.rsi }}</td>
-            </tr>
-            {% endfor %}
+            {% if crypto_data %}
+                {% for symbol, data in crypto_data.items() %}
+                <tr>
+                    <td>{{ symbol }}</td>
+                    <td>{{ data.price }}</td>
+                    <td>{{ data.change_24h }}%</td>
+                    <td>{{ data.volume_24h }}</td>
+                    <td>{{ data.rsi }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="5" style="text-align:center;">Sem dados de mercado.</td></tr>
+            {% endif %}
         </tbody>
     </table>
 
@@ -53,17 +57,21 @@
             </tr>
         </thead>
         <tbody>
-            {% for trade in trades %}
-            <tr>
-                <td>{{ trade.symbol }}</td>
-                <td>{{ trade.side }}</td>
-                <td>{{ trade.entry_price }}</td>
-                <td>{{ trade.exit_price or '---' }}</td>
-                <td>{{ trade.profit_loss or '---' }}</td>
-                <td>{{ trade.strategy_used }}</td>
-                <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
-            </tr>
-            {% endfor %}
+            {% if trades %}
+                {% for trade in trades %}
+                <tr>
+                    <td>{{ trade.symbol }}</td>
+                    <td>{{ trade.side }}</td>
+                    <td>{{ trade.entry_price }}</td>
+                    <td>{{ trade.exit_price or '---' }}</td>
+                    <td>{{ trade.profit_loss or '---' }}</td>
+                    <td>{{ trade.strategy_used }}</td>
+                    <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="7" style="text-align:center;">Nenhuma operação realizada.</td></tr>
+            {% endif %}
         </tbody>
     </table>
 
