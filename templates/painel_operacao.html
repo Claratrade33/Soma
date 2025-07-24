@@ -1,116 +1,69 @@
-{% extends "base.html" %}
-{% block title %}ClaraVerse • Painel Real{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Operações</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> <!-- Link para o CSS -->
+    <script src="{{ url_for('static', filename='scripts.js') }}" defer></script> <!-- Link para o JS -->
+</head>
+<body>
+    <div class="topo">
+        <div class="logo">Meu App</div>
+        <div class="saldo">Saldo: ${{ saldo_usdt }}</div>
+        <a href="/logout" class="btn-sair">Sair</a>
+    </div>
+    <div class="container">
+        <h2>Painel de Operações</h2>
 
-{% block content %}
-<div class="topo">
-    <span class="logo">📈 ClaraVerse • Operação em Tempo Real</span>
-    <span class="saldo">💰 Saldo Real: {{ saldo_usdt }} USDT</span>
-    <a href="/logout" class="btn-sair">Sair</a>
-</div>
+        <h3>Sugestão da IA</h3>
+        <button id="ia-sugestao-btn">Obter Sugestão</button>
+        <div id="sugestao-container">
+            <!-- A sugestão da IA será exibida aqui -->
+        </div>
 
-<div class="grafico-tradingview">
-    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-            frameborder="0" width="100%" height="400"></iframe>
-</div>
+        <h3>Executar Ordem</h3>
+        <form id="executar-ordem-form">
+            <div>
+                <label>
+                    <input type="radio" name="tipo" value="compra" checked> Compra
+                </label>
+                <label>
+                    <input type="radio" name="tipo" value="venda"> Venda
+                </label>
+            </div>
+            <div>
+                <label for="simbolo">Símbolo:</label>
+                <input type="text" id="simbolo" value="BTCUSDT">
+            </div>
+            <div>
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" value="0.001" step="0.001" min="0.001">
+            </div>
+            <button type="submit">Executar Ordem</button>
+        </form>
 
-<div class="container">
-    <h2>📊 Visão de Mercado</h2>
-
-    <table class="tabela" id="crypto-table">
-        <thead>
-            <tr>
-                <th>Moeda</th>
-                <th>Preço</th>
-                <th>24h</th>
-                <th>Volume</th>
-                <th>RSI</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for symbol, data in crypto_data.items() %}
-            <tr>
-                <td>{{ symbol }}</td>
-                <td>{{ data.price }}</td>
-                <td>{{ data.change_24h }}%</td>
-                <td>{{ data.volume_24h }}</td>
-                <td>{{ data.rsi }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h3 style="margin-top: 30px;">📚 Últimas Operações</h3>
-    <table class="tabela">
-        <thead>
-            <tr>
-                <th>Par</th>
-                <th>Tipo</th>
-                <th>Entrada</th>
-                <th>Saída</th>
-                <th>Lucro</th>
-                <th>Estratégia</th>
-                <th>Horário</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for trade in trades %}
-            <tr>
-                <td>{{ trade.symbol }}</td>
-                <td>{{ trade.side }}</td>
-                <td>{{ trade.entry_price }}</td>
-                <td>{{ trade.exit_price or '---' }}</td>
-                <td>{{ trade.profit_loss or '---' }}</td>
-                <td>{{ trade.strategy_used }}</td>
-                <td>{{ trade.timestamp.strftime('%d/%m %H:%M') }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h3 style="margin-top: 30px;">💱 Realizar Trade</h3>
-    <form id="tradeForm">
-        <label for="symbol" style="color: #ccc;">📈 Par de Moeda (ex: BTCUSDT)</label>
-        <input type="text" id="symbol" name="symbol" required
-               style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
-
-        <label for="side" style="color: #ccc;">🔄 Tipo de Operação</label>
-        <select id="side" name="side" required
-                style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
-            <option value="compra">Comprar</option>
-            <option value="venda">Vender</option>
-        </select>
-
-        <label for="quantity" style="color: #ccc;">💵 Quantidade</label>
-        <input type="number" id="quantity" name="quantity" required min="0.001" step="0.001"
-               style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
-
-        <button type="submit"
-                style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-            🚀 Executar Trade
-        </button>
-    </form>
-</div>
-
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-<script>
-document.getElementById('tradeForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const simbolo = document.getElementById('symbol').value;
-    const tipo = document.getElementById('side').value;
-    const quantidade = document.getElementById('quantity').value;
-
-    const resposta = await fetch("/executar_ordem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ simbolo, tipo, quantidade })
-    });
-
-    const resultado = await resposta.json();
-    if (resultado.status) {
-        alert("✅ " + resultado.status);
-    } else {
-        alert("❌ Erro: " + resultado.erro);
-    }
-});
-</script>
-{% endblock %}
+        <h3>Histórico de Ordens</h3>
+        <table class="tabela">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Símbolo</th>
+                    <th>Quantidade</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                <tr>
+                    <td>{{ trade.tipo }}</td>
+                    <td>{{ trade.simbolo }}</td>
+                    <td>{{ trade.quantidade }}</td>
+                    <td>{{ trade.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
