@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
 from clarinha_ia import ClarinhaIA
 
+# === App base ===
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave_claraverse_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
@@ -33,7 +34,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# === Rota inicial ===
+# === Rota base ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -87,29 +88,38 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# === Painel Operacional ===
+# === Painel principal ===
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
     user = User.query.get(session['user_id'])
-    saldo = 0.0
-    api_configurada = bool(user.api_key and user.api_secret)
 
-    if api_configurada:
-        try:
-            client = Client(api_key=user.api_key, api_secret=user.api_secret)
-            info = client.get_account()
-            for b in info['balances']:
-                if b['asset'] == 'USDT':
-                    saldo = round(float(b['free']), 2)
-                    break
-        except Exception as e:
-            flash(f'Erro Binance: {str(e)}', 'error')
+    if not user.api_key or not user.api_secret:
+        return redirect(url_for('configurar'))
+
+    try:
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        info = client.get_account()
+        for b in info['balances']:
+            if b['asset'] == 'USDT':
+                saldo = round(float(b['free']), 2)
+                break
+        else:
+            saldo = 0.0
+    except Exception as e:
+        saldo = 0.0
+        flash('Erro ao conectar com Binance: ' + str(e), 'error')
 
     ia = ClarinhaIA()
     sugestao = ia.analisar()
 
-    return render_template('painel.html', saldo=saldo, sugestao=sugestao, api_configurada=api_configurada)
+    return render_template(
+        'painel.html',
+        saldo_usdt=saldo,
+        sugestao=sugestao,
+        crypto_data={},      # por enquanto vazio
+        trades=[]            # histórico de trades vazio
+    )
 
 # === Configurar API ===
 @app.route('/configurar', methods=['GET', 'POST'])
@@ -151,7 +161,7 @@ def executar_ordem():
     except Exception as e:
         return jsonify({'erro': str(e)})
 
-# === IA Sugestão ===
+# === IA Sugestão (opcional) ===
 @app.route('/ia_sugestao')
 @login_required
 def ia_sugestao():
@@ -163,6 +173,6 @@ def ia_sugestao():
 with app.app_context():
     db.create_all()
 
-# === Rodar aplicação ===
+# === Executar ===
 if __name__ == '__main__':
     app.run(debug=True)
