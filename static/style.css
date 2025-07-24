@@ -125,6 +125,7 @@ a:hover {
 p.success {
   color: var(--green);
 }
+
 p.error {
   color: var(--red);
 }
@@ -134,6 +135,7 @@ p.error {
   .topo {
     flex-direction: column;
     text-align: center;
+    gap: 10px;
   }
 
   .container {
