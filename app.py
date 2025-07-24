@@ -4,9 +4,10 @@ from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
 from binance.client import Client
+import os
 
 app = Flask(__name__)
-app.secret_key = "claraverse_secret"
+app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///claraverse.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
@@ -54,9 +55,12 @@ def register():
         email = request.form['email']
         password = generate_password_hash(request.form['password'])
         user = User(username=username, email=email, password=password)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        except Exception as e:
+            return render_template("register.html", erro="Erro ao registrar usuário.")
     return render_template("register.html")
 
 @app.route('/logout')
@@ -97,7 +101,7 @@ def painel_operacao():
 
     return render_template("painel.html", saldo=saldo, sugestao=sugestao)
 
-# === EXECUÇÃO LOCAL OU INICIALIZAÇÃO DO BANCO NO RENDER ===
+# === EXECUÇÃO FINAL GARANTIDA ===
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
