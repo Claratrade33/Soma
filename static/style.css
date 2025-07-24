@@ -1,181 +1,146 @@
-/* RESET */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  --bg: #0f0f17;
+  --card: #1c1c1c;
+  --neon: #00ffff;
+  --light: #cccccc;
+  --border: #444;
+  --green: #00ff88;
+  --red: #ff0066;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #0a0a0f;
-  color: #ffffff;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--light);
+  margin: 0;
+  padding: 0;
 }
 
-/* TOPO */
 .topo {
-  background: linear-gradient(90deg, #8a2be2, #00ffff);
-  color: #fff;
-  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--card);
+  padding: 15px 30px;
+  box-shadow: 0 0 10px var(--neon);
 }
 
-.topo .logo {
-  font-size: 1.3rem;
-  font-weight: bold;
+.logo {
+  font-size: 1.5em;
+  color: var(--neon);
 }
 
-.topo .saldo {
-  font-weight: bold;
-  color: #00ff88;
+.saldo {
+  font-size: 1em;
+  color: var(--green);
 }
 
 .btn-sair {
-  color: #fff;
-  background-color: #ff0040;
-  padding: 8px 16px;
+  background-color: var(--neon);
+  color: #000;
+  padding: 8px 15px;
+  border-radius: 5px;
   text-decoration: none;
-  border-radius: 6px;
   font-weight: bold;
-  transition: background 0.3s;
 }
 
-.btn-sair:hover {
-  background-color: #cc0033;
-}
-
-/* GERAL */
 .container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+  padding: 30px;
+  max-width: 900px;
+  margin: auto;
 }
 
-/* GRÁFICO */
-.grafico-tradingview {
-  margin-top: 20px;
-  border: 2px solid #333;
-  border-radius: 10px;
-  overflow: hidden;
+h2, h3 {
+  color: var(--neon);
 }
 
-/* TABELAS */
-.tabela {
-  margin-top: 30px;
+table.tabela {
+  width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table.tabela th,
+table.tabela td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+table.tabela th {
+  color: var(--neon);
+}
+
+table.tabela tr:hover {
+  background-color: #1a1a26;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select {
   width: 100%;
+  padding: 10px;
   background-color: #111;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--light);
+  border-radius: 5px;
+}
+
+button {
+  background-color: var(--neon);
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 8px var(--neon);
+}
+
+.grafico-tradingview {
+  margin: 20px auto;
+  max-width: 900px;
+  border: 2px solid var(--neon);
+  border-radius: 10px;
   overflow: hidden;
 }
 
-.tabela th, .tabela td {
-  padding: 12px 16px;
-  text-align: center;
-  border-bottom: 1px solid #222;
+a {
+  color: var(--neon);
+  text-decoration: none;
 }
 
-.tabela th {
-  background-color: #121212;
-  color: #00f7ff;
-  text-transform: uppercase;
-  font-size: 0.9rem;
+a:hover {
+  text-decoration: underline;
 }
 
-.tabela tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+/* Flash messages */
+p.success {
+  color: var(--green);
+}
+p.error {
+  color: var(--red);
 }
 
-/* BOTÕES */
-.botao {
-  background-color: #00ffff;
-  color: #000;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  margin: 5px;
-}
-
-.botao:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px #00ffff;
-}
-
-/* MENSAGENS */
-.flash-message {
-  padding: 12px;
-  margin: 20px auto;
-  border-radius: 6px;
-  max-width: 600px;
-  text-align: center;
-}
-
-.flash-message.success {
-  background-color: #00aa88;
-  color: #fff;
-}
-
-.flash-message.error {
-  background-color: #aa0033;
-  color: #fff;
-}
-
-/* FORMULÁRIOS */
-form {
-  max-width: 600px;
-  margin: 20px auto;
-  background-color: #111;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
-}
-
-form input[type="text"],
-form input[type="email"],
-form input[type="password"],
-form input[type="number"] {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: none;
-  border-radius: 8px;
-  background-color: #1a1a1a;
-  color: #fff;
-}
-
-form input[type="submit"] {
-  background-color: #00ffcc;
-  color: #000;
-  font-weight: bold;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-form input[type="submit"]:hover {
-  background-color: #00e6b8;
-}
-
-/* RESPONSIVO */
+/* Responsivo */
 @media (max-width: 768px) {
   .topo {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
   }
 
-  .grafico-tradingview iframe {
-    height: 300px;
+  .container {
+    padding: 15px;
   }
 
-  .tabela th, .tabela td {
-    padding: 8px;
-    font-size: 0.85rem;
+  table.tabela {
+    font-size: 0.9em;
   }
 }
