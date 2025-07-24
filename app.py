@@ -1,83 +1,71 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
+from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
 from clarinha_ia import ClarinhaIA
-from galactic_bot import iniciar_galactic_bot
 
-# === CONFIG ===
+# === App base ===
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave_claraverse_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
 
-# === MODELOS ===
+# === Modelo de Usuário ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), nullable=False)
-    email = db.Column(db.String(150), nullable=False, unique=True)
+    username = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    api_key = db.Column(db.String(255))
+    api_secret = db.Column(db.String(255))
 
-class Configuracao(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    api_key = db.Column(db.String(255), nullable=False)
-    api_secret = db.Column(db.String(255), nullable=False)
-    openai_key = db.Column(db.String(255), nullable=True)
+# === Login obrigatório ===
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return wrapper
 
-class Trade(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-    symbol = db.Column(db.String(20))
-    side = db.Column(db.String(10))
-    entry_price = db.Column(db.String(50))
-    exit_price = db.Column(db.String(50), nullable=True)
-    profit_loss = db.Column(db.String(50), nullable=True)
-    strategy_used = db.Column(db.String(50))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-# === FUNÇÕES ===
-def get_binance_client(user_id):
-    config = Configuracao.query.filter_by(user_id=user_id).first()
-    if config:
-        return Client(config.api_key, config.api_secret)
-    return None
-
-def get_openai_key(user_id):
-    config = Configuracao.query.filter_by(user_id=user_id).first()
-    return config.openai_key if config else None
-
-# === ROTAS ===
+# === Rota base ===
 @app.route('/')
 def index():
+    if 'user_id' in session:
+        return redirect(url_for('painel_operacao'))
     return redirect(url_for('login'))
 
+# === Registro ===
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        nome = request.form['username']
         email = request.form['email']
         senha = request.form['password']
 
         if User.query.filter_by(email=email).first():
-            flash('E-mail já cadastrado.', 'error')
+            flash('Email já cadastrado', 'error')
             return redirect(url_for('register'))
 
-        senha_hash = generate_password_hash(senha)
-        novo_user = User(username=username, email=email, password=senha_hash)
+        novo_user = User(
+            username=nome,
+            email=email,
+            password=generate_password_hash(senha)
+        )
         db.session.add(novo_user)
         db.session.commit()
-
-        flash('Cadastro realizado! Faça login.', 'success')
+        flash('Conta criada com sucesso. Faça login.', 'success')
         return redirect(url_for('login'))
 
     return render_template('register.html')
 
+# === Login ===
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -87,122 +75,98 @@ def login():
 
         if user and check_password_hash(user.password, senha):
             session['user_id'] = user.id
-            session.permanent = True
             return redirect(url_for('painel_operacao'))
         else:
             flash('Credenciais inválidas.', 'error')
+            return redirect(url_for('login'))
 
     return render_template('login.html')
 
+# === Logout ===
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# === Painel principal ===
+@app.route('/painel_operacao')
+@login_required
+def painel_operacao():
+    user = User.query.get(session['user_id'])
+
+    if not user.api_key or not user.api_secret:
+        return redirect(url_for('configurar'))
+
+    try:
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        info = client.get_account()
+        for b in info['balances']:
+            if b['asset'] == 'USDT':
+                saldo = round(float(b['free']), 2)
+                break
+        else:
+            saldo = 0.0
+    except Exception as e:
+        saldo = 0.0
+        flash('Erro ao conectar com Binance: ' + str(e), 'error')
+
+    ia = ClarinhaIA()
+    sugestao = ia.analisar()
+
+    return render_template('painel.html', saldo=saldo, sugestao=sugestao)
+
+# === Configurar API ===
 @app.route('/configurar', methods=['GET', 'POST'])
+@login_required
 def configurar():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
 
     if request.method == 'POST':
-        api_key = request.form['api_key']
-        api_secret = request.form['api_secret']
-        openai_key = request.form['openai_key']
-        user_id = session['user_id']
-
-        config = Configuracao.query.filter_by(user_id=user_id).first()
-        if config:
-            config.api_key = api_key
-            config.api_secret = api_secret
-            config.openai_key = openai_key
-        else:
-            config = Configuracao(user_id=user_id, api_key=api_key, api_secret=api_secret, openai_key=openai_key)
-            db.session.add(config)
-
+        user.api_key = request.form['api_key']
+        user.api_secret = request.form['api_secret']
         db.session.commit()
+        flash('Chaves salvas com sucesso.', 'success')
         return redirect(url_for('painel_operacao'))
 
     return render_template('configurar.html')
 
-@app.route('/painel_operacao')
-def painel_operacao():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    client = get_binance_client(user_id)
-
-    if not client:
-        return redirect(url_for('configurar'))
-
-    try:
-        saldo_usdt = client.get_asset_balance(asset='USDT')['free']
-    except:
-        saldo_usdt = "0.00"
-
-    trades = Trade.query.filter_by(user_id=user_id).order_by(Trade.timestamp.desc()).limit(10).all()
-    crypto_data = {
-        "BTCUSDT": {"price": "0", "change_24h": 0, "volume_24h": 0, "rsi": 50},
-        "ETHUSDT": {"price": "0", "change_24h": 0, "volume_24h": 0, "rsi": 50},
-    }
-
-    return render_template('painel_operacao.html', saldo_usdt=saldo_usdt, trades=trades, crypto_data=crypto_data)
-
+# === Executar Ordem Real ===
 @app.route('/executar_ordem', methods=['POST'])
-def trade():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+@login_required
+def executar_ordem():
+    user = User.query.get(session['user_id'])
+    if not user.api_key or not user.api_secret:
+        return jsonify({'erro': 'Chaves não configuradas.'})
 
-    symbol = request.form['symbol']
-    side = request.form['side']
-    quantity = float(request.form['quantity'])
-    user_id = session['user_id']
-    client = get_binance_client(user_id)
-
-    if not client:
-        flash("Configuração inválida", "error")
-        return redirect(url_for('configurar'))
+    tipo = request.json.get('tipo')
+    simbolo = request.json.get('simbolo', 'BTCUSDT')
+    quantidade = float(request.json.get('quantidade', 0.001))
 
     try:
-        ordem = client.create_order(
-            symbol=symbol,
-            side=side,
-            type='MARKET',
-            quantity=quantity
-        )
-        preco_executado = ordem['fills'][0]['price']
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        if tipo == 'compra':
+            ordem = client.order_market_buy(symbol=simbolo, quantity=quantidade)
+        elif tipo == 'venda':
+            ordem = client.order_market_sell(symbol=simbolo, quantity=quantidade)
+        else:
+            return jsonify({'erro': 'Tipo inválido'})
 
-        novo_trade = Trade(
-            user_id=user_id,
-            symbol=symbol,
-            side=side,
-            entry_price=preco_executado,
-            strategy_used='Manual'
-        )
-        db.session.add(novo_trade)
-        db.session.commit()
-
-        flash("Ordem executada com sucesso!", "success")
+        return jsonify({'status': 'Ordem executada', 'ordem': ordem})
     except Exception as e:
-        flash(f"Erro: {str(e)}", "error")
+        return jsonify({'erro': str(e)})
 
-    return redirect(url_for('painel_operacao'))
+# === IA Sugestão (opcional) ===
+@app.route('/ia_sugestao')
+@login_required
+def ia_sugestao():
+    ia = ClarinhaIA()
+    sugestao = ia.analisar()
+    return jsonify(sugestao)
 
-@app.route('/sugestao_ia')
-def sugestao_ia():
-    if 'user_id' not in session:
-        return jsonify({'erro': 'Usuário não autenticado'})
+# === Banco ===
+with app.app_context():
+    db.create_all()
 
-    openai_key = get_openai_key(session['user_id'])
-    clarinha = ClarinhaIA(openai_key=openai_key)
-    resposta = clarinha.gerar_sugestao(simbolo="BTCUSDT")
-    return jsonify(resposta)
-
-# === INICIAR PROTEÇÃO GALÁCTICA ===
-iniciar_galactic_bot()
-
-# === EXECUÇÃO PRINCIPAL ===
+# === Executar ===
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
