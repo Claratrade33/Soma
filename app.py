@@ -30,7 +30,7 @@ def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))  # Redireciona para a página inicial se não estiver logado
         return f(*args, **kwargs)
     return wrapper
 
@@ -39,7 +39,7 @@ def login_required(f):
 def index():
     if 'user_id' in session:
         return redirect(url_for('painel_operacao'))
-    return redirect(url_for('login'))
+    return render_template('index.html')  # Template para opções de login e registro
 
 # === Registro ===
 @app.route('/register', methods=['GET', 'POST'])
@@ -61,7 +61,7 @@ def register():
         db.session.add(novo_user)
         db.session.commit()
         flash('Conta criada com sucesso. Faça login.', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('index'))  # Redireciona para a página inicial após registro
 
     return render_template('register.html')
 
@@ -75,7 +75,7 @@ def login():
 
         if user and check_password_hash(user.password, senha):
             session['user_id'] = user.id
-            return redirect(url_for('painel_operacao'))
+            return redirect(url_for('painel_operacao'))  # Redireciona para a página de operações ao logar
         else:
             flash('Credenciais inválidas.', 'error')
             return redirect(url_for('login'))
@@ -86,7 +86,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))  # Redireciona para a página inicial ao sair
 
 # === Painel principal ===
 @app.route('/painel_operacao')
@@ -134,7 +134,7 @@ def configurar():
         user.api_secret = request.form['binance_secret']
         db.session.commit()
         flash('🔐 Chaves salvas com sucesso!', 'success')
-        return redirect(url_for('painel_operacao'))
+        return redirect(url_for('painel_operacao'))  # Redireciona para o painel de operações após salvar
 
     return render_template('configurar.html', user=user)
 
