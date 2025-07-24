@@ -100,25 +100,24 @@ def painel_operacao():
     try:
         client = Client(api_key=user.api_key, api_secret=user.api_secret)
         info = client.get_account()
+        saldo_usdt = 0.0
         for b in info['balances']:
             if b['asset'] == 'USDT':
-                saldo = round(float(b['free']), 2)
+                saldo_usdt = round(float(b['free']), 2)
                 break
-        else:
-            saldo = 0.0
     except Exception as e:
-        saldo = 0.0
-        flash('Erro ao conectar com Binance: ' + str(e), 'error')
+        saldo_usdt = 0.0
+        flash(f'Erro ao conectar com a Binance: {str(e)}', 'error')
 
     ia = ClarinhaIA()
     sugestao = ia.analisar()
 
     return render_template(
         'painel.html',
-        saldo_usdt=saldo,
+        saldo_usdt=saldo_usdt,
         sugestao=sugestao,
-        crypto_data={},      # por enquanto vazio
-        trades=[]            # histórico de trades vazio
+        crypto_data={},
+        trades=[]
     )
 
 # === Configurar API ===
@@ -136,7 +135,7 @@ def configurar():
 
     return render_template('configurar.html')
 
-# === Executar Ordem Real ===
+# === Executar Ordem via API externa (JSON) ===
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
@@ -161,6 +160,36 @@ def executar_ordem():
     except Exception as e:
         return jsonify({'erro': str(e)})
 
+# === Executar Trade via Formulário (painel.html) ===
+@app.route('/trade', methods=['POST'])
+@login_required
+def trade():
+    user = User.query.get(session['user_id'])
+
+    if not user.api_key or not user.api_secret:
+        flash('Configure suas chaves de API antes de operar.', 'error')
+        return redirect(url_for('configurar'))
+
+    symbol = request.form['symbol']
+    side = request.form['side']
+    quantity = float(request.form['quantity'])
+
+    try:
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        if side == 'BUY':
+            ordem = client.order_market_buy(symbol=symbol, quantity=quantity)
+        elif side == 'SELL':
+            ordem = client.order_market_sell(symbol=symbol, quantity=quantity)
+        else:
+            flash('Tipo de operação inválido.', 'error')
+            return redirect(url_for('painel_operacao'))
+
+        flash('Ordem executada com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao executar ordem: {str(e)}', 'error')
+
+    return redirect(url_for('painel_operacao'))
+
 # === IA Sugestão (opcional) ===
 @app.route('/ia_sugestao')
 @login_required
@@ -169,10 +198,10 @@ def ia_sugestao():
     sugestao = ia.analisar()
     return jsonify(sugestao)
 
-# === Banco ===
+# === Criar Tabelas ===
 with app.app_context():
     db.create_all()
 
-# === Executar ===
+# === Rodar app ===
 if __name__ == '__main__':
     app.run(debug=True)
