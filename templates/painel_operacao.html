@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>ClaraVerse • Operação em Tempo Real</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <script defer src="/static/js/dashboard.js"></script>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}ClaraVerse • Operação em Tempo Real{% endblock %}
+
+{% block content %}
   <div class="topo">
     <span class="logo">📉 ClaraVerse • <span style="color: #00ffff">Operação Real</span></span>
     <span class="saldo">💰 Saldo: {{ saldo }} USDT</span>
@@ -52,5 +46,4 @@
 
     <div id="status_operacao" style="font-weight: bold; font-size: 1.1em;">Pronto para operar.</div>
   </div>
-</body>
-</html>
+{% endblock %}
