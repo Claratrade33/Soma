@@ -93,7 +93,7 @@ def logout():
 @login_required
 def painel_operacao():
     user = User.query.get(session['user_id'])
-    saldo_usdt = 0.0
+    saldo = 0.0
     sugestao = {}
     crypto_data = {}
     trades = []
@@ -104,7 +104,7 @@ def painel_operacao():
             info = client.get_account()
             for b in info['balances']:
                 if b['asset'] == 'USDT':
-                    saldo_usdt = round(float(b['free']), 2)
+                    saldo = round(float(b['free']), 2)
                     break
         except Exception as e:
             flash(f'Erro Binance: {str(e)}', 'error')
@@ -117,7 +117,7 @@ def painel_operacao():
 
     return render_template(
         'painel_operacao.html',
-        saldo=saldo_usdt,
+        saldo=saldo,
         sugestao=sugestao,
         crypto_data=crypto_data,
         trades=trades
@@ -146,29 +146,35 @@ def executar_ordem():
     if not user.api_key or not user.api_secret:
         return jsonify({'erro': 'Chaves não configuradas.'})
 
-    tipo = request.json.get('tipo')
+    tipo = request.json.get('acao')
     simbolo = request.json.get('simbolo', 'BTCUSDT')
     quantidade = float(request.json.get('quantidade', 0.001))
 
     try:
         client = Client(api_key=user.api_key, api_secret=user.api_secret)
-        if tipo == 'compra':
+        if tipo == 'entrada' or tipo == 'compra':
             ordem = client.order_market_buy(symbol=simbolo, quantity=quantidade)
-        elif tipo == 'venda':
+        elif tipo == 'venda' or tipo == 'stop' or tipo == 'alvo':
             ordem = client.order_market_sell(symbol=simbolo, quantity=quantidade)
+        elif tipo == 'executar' or tipo == 'automatico':
+            # Placeholder para ações futuras
+            ordem = {'mensagem': 'Modo automático ativado.'}
         else:
             return jsonify({'erro': 'Tipo inválido'})
         return jsonify({'status': 'Ordem executada', 'ordem': ordem})
     except Exception as e:
         return jsonify({'erro': str(e)})
 
-# === Sugestão da IA via rota auxiliar ===
+# === Sugestão da IA ===
 @app.route('/ia_sugestao')
 @login_required
 def ia_sugestao():
-    ia = ClarinhaIA(openai_key=os.environ.get("OPENAI_API_KEY"))
-    sugestao = ia.gerar_sugestao()
-    return jsonify(sugestao)
+    try:
+        ia = ClarinhaIA(openai_key=os.environ.get("OPENAI_API_KEY"))
+        sugestao = ia.gerar_sugestao()
+        return jsonify(sugestao)
+    except Exception as e:
+        return jsonify({'erro': 'Erro IA: ' + str(e)})
 
 # === Criar Tabelas ===
 with app.app_context():
