@@ -1,69 +1,56 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Operações</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> <!-- Link para o CSS -->
-    <script src="{{ url_for('static', filename='scripts.js') }}" defer></script> <!-- Link para o JS -->
+  <meta charset="UTF-8">
+  <title>ClaraVerse • Operação em Tempo Real</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script defer src="/static/js/dashboard.js"></script>
 </head>
 <body>
-    <div class="topo">
-        <div class="logo">Meu App</div>
-        <div class="saldo">Saldo: ${{ saldo_usdt }}</div>
-        <a href="/logout" class="btn-sair">Sair</a>
+  <div class="topo">
+    <span class="logo">📉 ClaraVerse • <span style="color: #00ffff">Operação Real</span></span>
+    <span class="saldo">💰 Saldo: {{ saldo }} USDT</span>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </div>
+
+  <div class="grafico-tradingview">
+    <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+            frameborder="0" width="100%" height="400"></iframe>
+  </div>
+
+  <div class="container">
+    <h2>📊 Indicadores de Mercado</h2>
+    <table class="tabela">
+      <tr>
+        <th>Preço Atual</th>
+        <th>RSI</th>
+        <th>Suporte</th>
+        <th>Resistência</th>
+      </tr>
+      <tr>
+        <td id="preco_atual">--</td>
+        <td id="rsi_valor">--</td>
+        <td id="suporte_valor">--</td>
+        <td id="resistencia_valor">--</td>
+      </tr>
+    </table>
+
+    <h3>🤖 Sugestão da IA Clarinha</h3>
+    <div id="sugestao_ia">
+      <p>Carregando sugestão...</p>
     </div>
-    <div class="container">
-        <h2>Painel de Operações</h2>
 
-        <h3>Sugestão da IA</h3>
-        <button id="ia-sugestao-btn">Obter Sugestão</button>
-        <div id="sugestao-container">
-            <!-- A sugestão da IA será exibida aqui -->
-        </div>
-
-        <h3>Executar Ordem</h3>
-        <form id="executar-ordem-form">
-            <div>
-                <label>
-                    <input type="radio" name="tipo" value="compra" checked> Compra
-                </label>
-                <label>
-                    <input type="radio" name="tipo" value="venda"> Venda
-                </label>
-            </div>
-            <div>
-                <label for="simbolo">Símbolo:</label>
-                <input type="text" id="simbolo" value="BTCUSDT">
-            </div>
-            <div>
-                <label for="quantidade">Quantidade:</label>
-                <input type="number" id="quantidade" value="0.001" step="0.001" min="0.001">
-            </div>
-            <button type="submit">Executar Ordem</button>
-        </form>
-
-        <h3>Histórico de Ordens</h3>
-        <table class="tabela">
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Símbolo</th>
-                    <th>Quantidade</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trade in trades %}
-                <tr>
-                    <td>{{ trade.tipo }}</td>
-                    <td>{{ trade.simbolo }}</td>
-                    <td>{{ trade.quantidade }}</td>
-                    <td>{{ trade.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <h3>🎯 Comandos de Operação</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+      <button id="btn_entrada">ENTRADA</button>
+      <button id="btn_stop">STOP</button>
+      <button id="btn_alvo">ALVO</button>
+      <button id="btn_executar">EXECUTAR</button>
+      <button id="btn_auto">AUTOMÁTICO</button>
     </div>
+
+    <div id="status_operacao" style="font-weight: bold; font-size: 1.1em;">Pronto para operar.</div>
+  </div>
 </body>
 </html>
