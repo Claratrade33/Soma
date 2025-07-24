@@ -14,14 +14,14 @@
     {% endwith %}
 
     <form method="post" action="{{ url_for('configurar') }}">
-      <label for="binance_api_key" style="color: #ccc;">🔑 Binance API Key</label>
-      <input type="text" id="binance_api_key" name="binance_api_key"
-             value="{{ user.binance_api_key or '' }}"
+      <label for="binance_key" style="color: #ccc;">🔑 Binance API Key</label>
+      <input type="text" id="binance_key" name="binance_key"
+             value="{{ user.binance_key or '' }}"
              style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
 
-      <label for="binance_api_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
-      <input type="text" id="binance_api_secret" name="binance_api_secret"
-             value="{{ user.binance_api_secret or '' }}"
+      <label for="binance_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
+      <input type="text" id="binance_secret" name="binance_secret"
+             value="{{ user.binance_secret or '' }}"
              style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: none;">
 
       <button type="submit"
