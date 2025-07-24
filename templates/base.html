@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <title>{% block title %}ClaraVerse{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
     <style>
         body {
             margin: 0;
@@ -69,6 +72,8 @@
     </style>
 </head>
 <body>
+
     {% block content %}{% endblock %}
+
 </body>
 </html>
