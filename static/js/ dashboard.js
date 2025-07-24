@@ -1,48 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
   const socket = io();
 
+  // Conecta e assina o canal de dados
   socket.on('connect', () => {
     socket.emit('subscribe_market');
   });
 
+  // Recebe dados do mercado e atualiza a tabela de cripto
   socket.on('market_update', data => {
     updateCryptoTable(data.crypto);
-    updateBrTable(data.brazilian);
   });
 
   function updateCryptoTable(crypto) {
     const tbody = document.querySelector('#crypto-table tbody');
     if (!tbody) return;
+
     tbody.innerHTML = '';
-    for (let sym in crypto) {
-      const d = crypto[sym];
+    for (let symbol in crypto) {
+      const d = crypto[symbol];
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${sym}</td>
+        <td>${symbol}</td>
         <td>${d.price.toFixed(2)}</td>
         <td>${d.change_24h.toFixed(2)}%</td>
-        <td>${d.volume_24h.toLocaleString()}</td>
+        <td>${d.volume_24h}</td>
         <td>${d.rsi.toFixed(1)}</td>
       `;
       tbody.appendChild(tr);
     }
   }
 
-  function updateBrTable(br) {
-    const tbody = document.querySelector('#br-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    for (let sym in br) {
-      const d = br[sym];
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${sym}</td>
-        <td>${d.price.toFixed(2)}</td>
-        <td>${d.change_24h.toFixed(2)}%</td>
-        <td>${d.volume_24h.toLocaleString()}</td>
-        <td>${d.rsi.toFixed(1)}</td>
-      `;
-      tbody.appendChild(tr);
-    }
-  }
+  // Mostra alerta de conexão
+  socket.on('connect_error', () => {
+    alert("Erro de conexão com o servidor. Verifique sua internet.");
+  });
 });
