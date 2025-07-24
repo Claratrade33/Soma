@@ -1,39 +1,83 @@
-{% extends "base.html" %}
-{% block title %}Cadastro • ClaraVerse{% endblock %}
+import os
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
 
-{% block content %}
-  <div style="max-width: 400px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
-    <h2 style="text-align: center; color: #00ffff;">📝 Criar Conta na ClaraVerse</h2>
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=6)
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <p style="color: {{ 'red' if category == 'error' else 'lime' }};">{{ message }}</p>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+db = SQLAlchemy(app)
 
-    <form method="POST" action="{{ url_for('register') }}">
-      <label for="username" style="color: #ccc;">👤 Usuário</label>
-      <input type="text" id="username" name="username" required
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+# ======== MODELO DE USUÁRIO ========
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
 
-      <label for="email" style="color: #ccc;">📧 E-mail</label>
-      <input type="email" id="email" name="email" required
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+# ======== ROTA: HOME =========
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
 
-      <label for="password" style="color: #ccc;">🔒 Senha</label>
-      <input type="password" id="password" name="password" required
-             style="width: 100%; padding: 10px; margin-bottom: 25px; border-radius: 5px; border: none;">
+# ======== ROTA: LOGIN ========
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['password']
+        user = User.query.filter_by(email=email).first()
 
-      <button type="submit"
-              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        ✅ Cadastrar
-      </button>
-    </form>
+        if user and check_password_hash(user.password, senha):
+            session['user_id'] = user.id
+            session.permanent = True
+            return redirect(url_for('painel_operacao'))
+        else:
+            flash('Credenciais inválidas.', 'error')
 
-    <p style="text-align: center; margin-top: 20px; color: #999;">
-      Já tem uma conta? <a href="{{ url_for('login') }}" style="color: #00ffff;">Entrar</a>
-    </p>
-  </div>
-{% endblock %}
+    return render_template('login.html')
+
+# ======== ROTA: REGISTRO ========
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        senha = request.form['password']
+
+        if User.query.filter_by(email=email).first():
+            flash('E-mail já cadastrado.', 'error')
+            return redirect(url_for('register'))
+
+        senha_hash = generate_password_hash(senha)
+        novo_user = User(username=username, email=email, password=senha_hash)
+        db.session.add(novo_user)
+        db.session.commit()
+
+        flash('Cadastro realizado com sucesso! Faça login.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+# ======== ROTA: LOGOUT ========
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+# ======== ROTA: PAINEL OPERACIONAL ========
+@app.route('/painel_operacao')
+def painel_operacao():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('painel_operacao.html', saldo_usdt="0.00", crypto_data={}, trades=[])
+
+# ======== EXECUÇÃO LOCAL ========
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
