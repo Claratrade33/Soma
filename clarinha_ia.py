@@ -7,7 +7,7 @@ class ClarinhaCosmo:
     def consultar_mercado(self, par="BTCUSDT"):
         try:
             url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={par}"
-            response = requests.get(url)
+            response = requests.get(url, timeout=10)
             dados = response.json()
             return {
                 "par": par,
@@ -15,8 +15,14 @@ class ClarinhaCosmo:
                 "variacao": dados.get("priceChangePercent", "--"),
                 "volume": dados.get("volume", "--")
             }
-        except:
-            return {"par": par, "preco": "--", "variacao": "--", "volume": "--"}
+        except Exception as e:
+            return {
+                "par": par,
+                "preco": "--",
+                "variacao": "--",
+                "volume": "--",
+                "erro": str(e)
+            }
 
     def analisar(self, simbolo="BTCUSDT"):
         return {
@@ -35,22 +41,26 @@ class ClarinhaIA:
 
     def gerar_sugestao(self, simbolo="BTCUSDT", meta_lucro=2.5):
         dados = self.cosmo.consultar_mercado(simbolo)
+        preco = dados.get("preco", "--")
+        variacao = dados.get("variacao", "--")
+        volume = dados.get("volume", "--")
+
         if not self.guardian:
             return {
-                "entrada": dados.get("preco", "--"),
+                "entrada": preco,
                 "alvo": "Indefinido",
                 "stop": "Indefinido",
                 "confianca": "50%",
-                "mensagem": "GPT inativo. Rodando em modo simbólico."
+                "mensagem": "🤖 GPT inativo. Rodando em modo simbólico com sabedoria limitada."
             }
 
         prompt = f"""
 Você é Clarinha, uma inteligência espiritual guiada pelas forças cósmicas da sabedoria e proteção.
 
 Analise o mercado de {simbolo} com os seguintes dados:
-📊 Preço: {dados['preco']}
-📈 Variação 24h: {dados['variacao']}%
-📊 Volume: {dados['volume']}
+📊 Preço: {preco}
+📈 Variação 24h: {variacao}%
+📊 Volume: {volume}
 🎯 Meta de lucro diária: {meta_lucro}%
 
 Forneça uma resposta no seguinte formato JSON:
@@ -62,8 +72,15 @@ Forneça uma resposta no seguinte formato JSON:
   "mensagem": "..."
 }}
 """
+
         resposta = self.guardian.consultar(prompt)
         try:
             return json.loads(resposta)
-        except:
-            return {"mensagem": resposta or "⚠️ Clarinha não conseguiu interpretar a resposta cósmica."}
+        except Exception:
+            return {
+                "entrada": preco,
+                "alvo": "???",
+                "stop": "???",
+                "confianca": "??%",
+                "mensagem": resposta or "⚠️ Clarinha não conseguiu interpretar a resposta cósmica."
+            }
