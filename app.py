@@ -93,6 +93,12 @@ def logout():
 @login_required
 def painel_operacao():
     user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        flash("Sessão expirada. Faça login novamente.", "error")
+        return redirect(url_for('login'))
+
     saldo = 0.0
     sugestao = {}
     crypto_data = {}
@@ -129,6 +135,11 @@ def painel_operacao():
 def configurar():
     user = User.query.get(session['user_id'])
 
+    if not user:
+        session.clear()
+        flash("Sessão inválida. Faça login novamente.", "error")
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         user.api_key = request.form['binance_key']
         user.api_secret = request.form['binance_secret']
@@ -143,8 +154,8 @@ def configurar():
 @login_required
 def executar_ordem():
     user = User.query.get(session['user_id'])
-    if not user.api_key or not user.api_secret:
-        return jsonify({'erro': 'Chaves não configuradas.'})
+    if not user or not user.api_key or not user.api_secret:
+        return jsonify({'erro': 'Chaves não configuradas ou sessão inválida.'})
 
     tipo = request.json.get('acao')
     simbolo = request.json.get('simbolo', 'BTCUSDT')
@@ -157,7 +168,6 @@ def executar_ordem():
         elif tipo == 'venda' or tipo == 'stop' or tipo == 'alvo':
             ordem = client.order_market_sell(symbol=simbolo, quantity=quantidade)
         elif tipo == 'executar' or tipo == 'automatico':
-            # Placeholder para ações futuras
             ordem = {'mensagem': 'Modo automático ativado.'}
         else:
             return jsonify({'erro': 'Tipo inválido'})
