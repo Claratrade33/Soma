@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnAuto) btnAuto.addEventListener('click', () => executarAcao('automatico'));
 
   // === Sugestão da IA Clarinha ===
-  fetch('/sugestao_ia')
+  fetch('/ia_sugestao')
     .then(res => res.json())
     .then(data => {
       if (data && data.sinal) {
