@@ -93,31 +93,34 @@ def logout():
 @login_required
 def painel_operacao():
     user = User.query.get(session['user_id'])
+    saldo_usdt = 0.0
+    sugestao = {}
+    crypto_data = {}
+    trades = []
 
-    if not user.api_key or not user.api_secret:
-        return redirect(url_for('configurar'))
+    if user.api_key and user.api_secret:
+        try:
+            client = Client(api_key=user.api_key, api_secret=user.api_secret)
+            info = client.get_account()
+            for b in info['balances']:
+                if b['asset'] == 'USDT':
+                    saldo_usdt = round(float(b['free']), 2)
+                    break
+        except Exception as e:
+            flash(f'Erro Binance: {str(e)}', 'error')
 
-    try:
-        client = Client(api_key=user.api_key, api_secret=user.api_secret)
-        info = client.get_account()
-        saldo_usdt = 0.0
-        for b in info['balances']:
-            if b['asset'] == 'USDT':
-                saldo_usdt = round(float(b['free']), 2)
-                break
-    except Exception as e:
-        saldo_usdt = 0.0
-        flash(f'Erro ao conectar com a Binance: {str(e)}', 'error')
-
-    ia = ClarinhaIA()
-    sugestao = ia.analisar()
+        try:
+            ia = ClarinhaIA(openai_key=os.environ.get("OPENAI_API_KEY"))
+            sugestao = ia.gerar_sugestao()
+        except Exception as e:
+            sugestao = {"mensagem": "Erro IA: " + str(e)}
 
     return render_template(
         'painel.html',
         saldo_usdt=saldo_usdt,
         sugestao=sugestao,
-        crypto_data={},
-        trades=[]
+        crypto_data=crypto_data,
+        trades=trades
     )
 
 # === Configurar API ===
@@ -127,15 +130,15 @@ def configurar():
     user = User.query.get(session['user_id'])
 
     if request.method == 'POST':
-        user.api_key = request.form['api_key']
-        user.api_secret = request.form['api_secret']
+        user.api_key = request.form['binance_key']
+        user.api_secret = request.form['binance_secret']
         db.session.commit()
-        flash('Chaves salvas com sucesso.', 'success')
+        flash('🔐 Chaves salvas com sucesso!', 'success')
         return redirect(url_for('painel_operacao'))
 
-    return render_template('configurar.html')
+    return render_template('configurar.html', user=user)
 
-# === Executar Ordem via API externa (JSON) ===
+# === Executar Ordem via JSON (AJAX) ===
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
@@ -155,53 +158,22 @@ def executar_ordem():
             ordem = client.order_market_sell(symbol=simbolo, quantity=quantidade)
         else:
             return jsonify({'erro': 'Tipo inválido'})
-
         return jsonify({'status': 'Ordem executada', 'ordem': ordem})
     except Exception as e:
         return jsonify({'erro': str(e)})
 
-# === Executar Trade via Formulário (painel.html) ===
-@app.route('/trade', methods=['POST'])
-@login_required
-def trade():
-    user = User.query.get(session['user_id'])
-
-    if not user.api_key or not user.api_secret:
-        flash('Configure suas chaves de API antes de operar.', 'error')
-        return redirect(url_for('configurar'))
-
-    symbol = request.form['symbol']
-    side = request.form['side']
-    quantity = float(request.form['quantity'])
-
-    try:
-        client = Client(api_key=user.api_key, api_secret=user.api_secret)
-        if side == 'BUY':
-            ordem = client.order_market_buy(symbol=symbol, quantity=quantity)
-        elif side == 'SELL':
-            ordem = client.order_market_sell(symbol=symbol, quantity=quantity)
-        else:
-            flash('Tipo de operação inválido.', 'error')
-            return redirect(url_for('painel_operacao'))
-
-        flash('Ordem executada com sucesso!', 'success')
-    except Exception as e:
-        flash(f'Erro ao executar ordem: {str(e)}', 'error')
-
-    return redirect(url_for('painel_operacao'))
-
-# === IA Sugestão (opcional) ===
+# === Sugestão da IA via rota auxiliar ===
 @app.route('/ia_sugestao')
 @login_required
 def ia_sugestao():
-    ia = ClarinhaIA()
-    sugestao = ia.analisar()
+    ia = ClarinhaIA(openai_key=os.environ.get("OPENAI_API_KEY"))
+    sugestao = ia.gerar_sugestao()
     return jsonify(sugestao)
 
 # === Criar Tabelas ===
 with app.app_context():
     db.create_all()
 
-# === Rodar app ===
+# === Iniciar App ===
 if __name__ == '__main__':
     app.run(debug=True)
