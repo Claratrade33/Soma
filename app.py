@@ -30,7 +30,7 @@ def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('index'))  # Redireciona para a página inicial se não estiver logado
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return wrapper
 
@@ -39,7 +39,7 @@ def login_required(f):
 def index():
     if 'user_id' in session:
         return redirect(url_for('painel_operacao'))
-    return render_template('index.html')  # Template para opções de login e registro
+    return render_template('index.html')
 
 # === Registro ===
 @app.route('/register', methods=['GET', 'POST'])
@@ -61,7 +61,7 @@ def register():
         db.session.add(novo_user)
         db.session.commit()
         flash('Conta criada com sucesso. Faça login.', 'success')
-        return redirect(url_for('index'))  # Redireciona para a página inicial após registro
+        return redirect(url_for('index'))
 
     return render_template('register.html')
 
@@ -75,7 +75,7 @@ def login():
 
         if user and check_password_hash(user.password, senha):
             session['user_id'] = user.id
-            return redirect(url_for('painel_operacao'))  # Redireciona para a página de operações ao logar
+            return redirect(url_for('painel_operacao'))
         else:
             flash('Credenciais inválidas.', 'error')
             return redirect(url_for('login'))
@@ -86,7 +86,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))  # Redireciona para a página inicial ao sair
+    return redirect(url_for('index'))
 
 # === Painel principal ===
 @app.route('/painel_operacao')
@@ -116,8 +116,8 @@ def painel_operacao():
             sugestao = {"mensagem": "Erro IA: " + str(e)}
 
     return render_template(
-        'painel.html',
-        saldo_usdt=saldo_usdt,
+        'painel_operacao.html',
+        saldo=saldo_usdt,
         sugestao=sugestao,
         crypto_data=crypto_data,
         trades=trades
@@ -134,7 +134,7 @@ def configurar():
         user.api_secret = request.form['binance_secret']
         db.session.commit()
         flash('🔐 Chaves salvas com sucesso!', 'success')
-        return redirect(url_for('painel_operacao'))  # Redireciona para o painel de operações após salvar
+        return redirect(url_for('painel_operacao'))
 
     return render_template('configurar.html', user=user)
 
