@@ -17,12 +17,12 @@
 
     <form method="POST" action="{{ url_for('configurar') }}">
       <label for="api_key" style="color: #ccc;">🔑 Binance API Key</label>
-      <input type="text" id="api_key" name="api_key" required
+      <input type="text" id="api_key" name="binance_key" required
              value="{{ user.api_key or '' }}"
              style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
 
       <label for="api_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
-      <input type="text" id="api_secret" name="api_secret" required
+      <input type="text" id="api_secret" name="binance_secret" required
              value="{{ user.api_secret or '' }}"
              style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
 
