@@ -1,146 +1,98 @@
-:root {
-  --bg: #0f0f17;
-  --card: #1c1c1c;
-  --neon: #00ffff;
-  --light: #cccccc;
-  --border: #444;
-  --green: #00ff88;
-  --red: #ff0066;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const socket = io();
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: var(--bg);
-  color: var(--light);
-  margin: 0;
-  padding: 0;
-}
+  // === Atualização de Mercado via WebSocket ===
+  socket.on('connect', () => {
+    socket.emit('subscribe_market');
+  });
 
-.topo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--card);
-  padding: 15px 30px;
-  box-shadow: 0 0 10px var(--neon);
-}
+  socket.on('market_update', (data) => {
+    if (data && data.price) {
+      document.getElementById('preco_atual').innerText = `${parseFloat(data.price).toFixed(2)} USDT`;
+    }
+    if (data && data.rsi) {
+      document.getElementById('rsi_valor').innerText = `${parseFloat(data.rsi).toFixed(2)}`;
+    }
+    if (data && data.suporte) {
+      document.getElementById('suporte_valor').innerText = `${parseFloat(data.suporte).toFixed(2)}`;
+    }
+    if (data && data.resistencia) {
+      document.getElementById('resistencia_valor').innerText = `${parseFloat(data.resistencia).toFixed(2)}`;
+    }
+  });
 
-.logo {
-  font-size: 1.5em;
-  color: var(--neon);
-}
+  // === Botões de Operações ===
+  const btnEntrada = document.getElementById('btn_entrada');
+  const btnStop = document.getElementById('btn_stop');
+  const btnAlvo = document.getElementById('btn_alvo');
+  const btnExecutar = document.getElementById('btn_executar');
+  const btnAuto = document.getElementById('btn_auto');
 
-.saldo {
-  font-size: 1em;
-  color: var(--green);
-}
+  const statusDiv = document.getElementById('status_operacao');
+  const iaDiv = document.getElementById('sugestao_ia');
 
-.btn-sair {
-  background-color: var(--neon);
-  color: #000;
-  padding: 8px 15px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-}
+  const atualizarStatus = (mensagem) => {
+    if (statusDiv) statusDiv.innerText = mensagem;
+  };
 
-.container {
-  padding: 30px;
-  max-width: 900px;
-  margin: auto;
-}
+  const exibirSugestaoIA = (sugestao) => {
+    if (iaDiv && sugestao) {
+      iaDiv.innerHTML = `
+        <p><strong>Sinal:</strong> ${sugestao.sinal}</p>
+        <p><strong>Alvo:</strong> ${sugestao.alvo}</p>
+        <p><strong>Stop:</strong> ${sugestao.stop}</p>
+        <p><strong>Confiança:</strong> ${sugestao.confianca}</p>
+      `;
+    }
+  };
 
-h2, h3 {
-  color: var(--neon);
-}
+  const executarAcao = (acao) => {
+    fetch(`/executar_ordem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: acao })
+    })
+    .then(res => res.json())
+    .then(data => {
+      atualizarStatus(data.status || 'Operação realizada');
+    })
+    .catch(() => {
+      atualizarStatus('Erro ao executar operação.');
+    });
+  };
 
-table.tabela {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-table.tabela th,
-table.tabela td {
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-}
-
-table.tabela th {
-  color: var(--neon);
-}
-
-table.tabela tr:hover {
-  background-color: #1a1a26;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-select {
-  width: 100%;
-  padding: 10px;
-  background-color: #111;
-  border: 1px solid var(--border);
-  color: var(--light);
-  border-radius: 5px;
-}
-
-button {
-  background-color: var(--neon);
-  color: #000;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  padding: 12px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-button:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 8px var(--neon);
-}
-
-.grafico-tradingview {
-  margin: 20px auto;
-  max-width: 900px;
-  border: 2px solid var(--neon);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-a {
-  color: var(--neon);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* Flash messages */
-p.success {
-  color: var(--green);
-}
-p.error {
-  color: var(--red);
-}
-
-/* Responsivo */
-@media (max-width: 768px) {
-  .topo {
-    flex-direction: column;
-    text-align: center;
+  // === Eventos dos Botões ===
+  if (btnEntrada) {
+    btnEntrada.addEventListener('click', () => executarAcao('entrada'));
   }
 
-  .container {
-    padding: 15px;
+  if (btnStop) {
+    btnStop.addEventListener('click', () => executarAcao('stop'));
   }
 
-  table.tabela {
-    font-size: 0.9em;
+  if (btnAlvo) {
+    btnAlvo.addEventListener('click', () => executarAcao('alvo'));
   }
-}
+
+  if (btnExecutar) {
+    btnExecutar.addEventListener('click', () => executarAcao('executar'));
+  }
+
+  if (btnAuto) {
+    btnAuto.addEventListener('click', () => executarAcao('automatico'));
+  }
+
+  // === Carregar Sugestão da IA ===
+  fetch('/sugestao_ia')
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.sinal) {
+        exibirSugestaoIA(data);
+      } else {
+        iaDiv.innerHTML = '<p>Sem sugestão no momento.</p>';
+      }
+    })
+    .catch(() => {
+      iaDiv.innerHTML = '<p>Erro ao carregar sugestão da IA.</p>';
+    });
+});
