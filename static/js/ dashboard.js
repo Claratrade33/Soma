@@ -1,37 +1,146 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const socket = io();
+:root {
+  --bg: #0f0f17;
+  --card: #1c1c1c;
+  --neon: #00ffff;
+  --light: #cccccc;
+  --border: #444;
+  --green: #00ff88;
+  --red: #ff0066;
+}
 
-  // Conecta e assina o canal de dados
-  socket.on('connect', () => {
-    socket.emit('subscribe_market');
-  });
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--light);
+  margin: 0;
+  padding: 0;
+}
 
-  // Recebe dados do mercado e atualiza a tabela de cripto
-  socket.on('market_update', data => {
-    updateCryptoTable(data.crypto);
-  });
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card);
+  padding: 15px 30px;
+  box-shadow: 0 0 10px var(--neon);
+}
 
-  function updateCryptoTable(crypto) {
-    const tbody = document.querySelector('#crypto-table tbody');
-    if (!tbody) return;
+.logo {
+  font-size: 1.5em;
+  color: var(--neon);
+}
 
-    tbody.innerHTML = '';
-    for (let symbol in crypto) {
-      const d = crypto[symbol];
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${symbol}</td>
-        <td>${d.price.toFixed(2)}</td>
-        <td>${d.change_24h.toFixed(2)}%</td>
-        <td>${d.volume_24h}</td>
-        <td>${d.rsi.toFixed(1)}</td>
-      `;
-      tbody.appendChild(tr);
-    }
+.saldo {
+  font-size: 1em;
+  color: var(--green);
+}
+
+.btn-sair {
+  background-color: var(--neon);
+  color: #000;
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.container {
+  padding: 30px;
+  max-width: 900px;
+  margin: auto;
+}
+
+h2, h3 {
+  color: var(--neon);
+}
+
+table.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table.tabela th,
+table.tabela td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+table.tabela th {
+  color: var(--neon);
+}
+
+table.tabela tr:hover {
+  background-color: #1a1a26;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px;
+  background-color: #111;
+  border: 1px solid var(--border);
+  color: var(--light);
+  border-radius: 5px;
+}
+
+button {
+  background-color: var(--neon);
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 8px var(--neon);
+}
+
+.grafico-tradingview {
+  margin: 20px auto;
+  max-width: 900px;
+  border: 2px solid var(--neon);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+a {
+  color: var(--neon);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Flash messages */
+p.success {
+  color: var(--green);
+}
+p.error {
+  color: var(--red);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .topo {
+    flex-direction: column;
+    text-align: center;
   }
 
-  // Mostra alerta de conexão
-  socket.on('connect_error', () => {
-    alert("Erro de conexão com o servidor. Verifique sua internet.");
-  });
-});
+  .container {
+    padding: 15px;
+  }
+
+  table.tabela {
+    font-size: 0.9em;
+  }
+}
