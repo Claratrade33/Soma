@@ -81,20 +81,23 @@ def painel_operacao():
     user = get_current_user()
     if not user:
         return redirect(url_for('login'))
+
     if user.api_key and user.api_secret:
         try:
             client = Client(user.api_key, user.api_secret)
             balance = client.get_asset_balance(asset='USDT')
             saldo = round(float(balance['free']), 2)
-        except Exception as e:
+        except Exception:
             saldo = "Erro ao conectar"
     else:
         saldo = "Chaves não configuradas"
+
     ia = ClarinhaIA()
     sugestao = ia.analise()
+
     return render_template("painel.html", saldo=saldo, sugestao=sugestao)
 
-# === EXECUÇÃO ===
+# === EXECUÇÃO LOCAL OU INICIALIZAÇÃO DO BANCO NO RENDER ===
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
