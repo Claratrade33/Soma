@@ -2,31 +2,33 @@
 {% block title %}Configurar • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="max-width: 500px; margin: 40px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
-    <h2 style="text-align: center; color: #00ffff; margin-bottom: 20px;">⚙️ Configurações da Binance</h2>
+  <div style="max-width: 500px; margin: 60px auto; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 0 15px #00ffff;">
+    <h2 style="text-align: center; color: #00ffff; margin-bottom: 25px;">⚙️ Configurações da Binance</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div style="margin-bottom: 10px; color: {{ 'red' if category == 'error' else '#00ffcc' }};">{{ message }}</div>
+          <p style="color: {{ 'red' if category == 'error' else '#00ff88' }}; text-align: center; font-weight: bold;">
+            {{ message }}
+          </p>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('configurar') }}">
-      <label for="binance_key" style="color: #ccc;">🔑 Binance API Key</label>
-      <input type="text" id="binance_key" name="binance_key"
-             value="{{ user.binance_key or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+    <form method="POST" action="{{ url_for('configurar') }}">
+      <label for="api_key" style="color: #ccc;">🔑 Binance API Key</label>
+      <input type="text" id="api_key" name="api_key" required
+             value="{{ user.api_key or '' }}"
+             style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
 
-      <label for="binance_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
-      <input type="text" id="binance_secret" name="binance_secret"
-             value="{{ user.binance_secret or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: none;">
+      <label for="api_secret" style="color: #ccc;">🕶️ Binance API Secret</label>
+      <input type="text" id="api_secret" name="api_secret" required
+             value="{{ user.api_secret or '' }}"
+             style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
 
       <button type="submit"
-              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        💾 Salvar e Conectar à Binance
+              style="width: 100%; padding: 14px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; font-size: 1em;">
+        💾 Salvar e Conectar
       </button>
     </form>
   </div>
