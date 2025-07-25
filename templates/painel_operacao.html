@@ -1,43 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse • Painel de Operações</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <title>ClaraVerse • Operações</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/dashboard.js" defer></script>
 </head>
-<body class="painel-body">
-    <div class="topo">
-        <span class="logo">📉 ClaraVerse • <span style="color: #00ffff">Painel de Operações</span></span>
-        <span class="saldo">💰 Saldo Atual: {{ saldo }} USDT</span>
-        <a href="/logout" class="btn-sair">Sair</a>
-    </div>
+<body>
+  <header class="topo">
+    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
+    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </header>
 
-    <div class="grafico-tradingview">
-        <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=1&theme=dark"
-                frameborder="0" width="100%" height="500"></iframe>
-    </div>
+  <section class="grafico">
+    <iframe 
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+      width="100%" height="400" frameborder="0">
+    </iframe>
+  </section>
 
-    <div class="info-operacoes">
-        <div class="caixa-ia">
-            <h3>🧠 IA Clarinha • Análise de Mercado</h3>
-            {% if sugestao %}
-                <p><strong>Sugestão:</strong> {{ sugestao.entrada }}</p>
-                <p><strong>Alvo:</strong> {{ sugestao.alvo }}</p>
-                <p><strong>Stop:</strong> {{ sugestao.stop }}</p>
-                <p><strong>Confiança:</strong> {{ sugestao.confianca }}%</p>
-            {% else %}
-                <p>Aguardando resposta da IA...</p>
-            {% endif %}
-        </div>
+  <section class="acoes">
+    <button>ENTRADA</button>
+    <button>STOP</button>
+    <button>ALVO</button>
+    <button>AUTOMÁTICO</button>
+    <button>CONFIGURAR</button>
+  </section>
 
-        <div class="painel-botoes">
-            <form action="/executar_ordem" method="post">
-                <button name="acao" value="compra" class="botao-compra">ENTRADA (BUY)</button>
-                <button name="acao" value="venda" class="botao-venda">SAÍDA (SELL)</button>
-                <button name="acao" value="auto" class="botao-auto">ATIVAR MODO AUTOMÁTICO</button>
-            </form>
-            <a href="/configurar" class="botao-config">⚙️ Configurar API</a>
-        </div>
+  <section class="sugestao">
+    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
+    <div id="sugestao_ia">
+      {{ sugestao }}
     </div>
+    <div id="status_operacao" class="status"></div>
+  </section>
 </body>
 </html>
