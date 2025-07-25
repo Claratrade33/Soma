@@ -23,14 +23,14 @@ class User(db.Model):
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
 
-# === FUNÇÃO USUÁRIO ATUAL ===
+# === USUÁRIO ATUAL ===
 def get_current_user():
     user_id = session.get("user_id")
     if user_id:
         return User.query.get(user_id)
     return None
 
-# === ROTAS PRINCIPAIS ===
+# === ROTAS ===
 
 @app.route('/')
 def index():
@@ -103,8 +103,7 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === EXECUÇÃO LOCAL (desativado no Render) ===
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+# === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
+with app.app_context():
+    db.create_all()
+
