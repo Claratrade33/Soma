@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
@@ -31,81 +32,9 @@ def get_current_user():
     return None
 
 # === ROTAS ===
-
-@app.before_request
-def garantir_banco():
-    db.create_all()
-
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
-@app.route('/login', methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
-            session.permanent = True
-            session['user_id'] = user.id
-            return redirect(url_for('painel_operacao'))
-        return render_template("login.html", erro="Credenciais inválidas")
-    return render_template("login.html")
+@app.route('/login', methods=["GET", "POST"]()
 
-@app.route('/register', methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form['username']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
-        user = User(username=username, email=email, password=password)
-        try:
-            db.session.add(user)
-            db.session.commit()
-            return redirect(url_for('login'))
-        except Exception:
-            return render_template("register.html", erro="Erro ao registrar. Tente outro email.")
-    return render_template("register.html")
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/configurar', methods=["GET", "POST"])
-def configurar():
-    user = get_current_user()
-    if not user:
-        return redirect(url_for('login'))
-    if request.method == "POST":
-        user.api_key = request.form['api_key']
-        user.api_secret = request.form['api_secret']
-        db.session.commit()
-        return redirect(url_for('painel_operacao'))
-    return render_template("configurar.html", user=user)
-
-@app.route('/painel_operacao')
-def painel_operacao():
-    user = get_current_user()
-    if not user:
-        return redirect(url_for('login'))
-
-    if user.api_key and user.api_secret:
-        try:
-            client = Client(user.api_key, user.api_secret)
-            balance = client.get_asset_balance(asset='USDT')
-            saldo = round(float(balance['free']), 2)
-        except Exception:
-            saldo = "Erro ao conectar"
-    else:
-        saldo = "Chaves não configuradas"
-
-    ia = ClarinhaIA()
-    sugestao = ia.analise()
-
-    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
-
-# === INICIALIZAÇÃO ===
-if __name__ == '__main__':
-    app.run(debug=True)
