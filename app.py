@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -31,7 +31,6 @@ def get_current_user():
     return None
 
 # === ROTAS ===
-
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -101,49 +100,7 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === ROTA PARA EXECUTAR ORDENS ===
-@app.route('/executar_ordem', methods=["POST"])
-def executar_ordem():
-    user = get_current_user()
-    if not user:
-        return jsonify({'mensagem': 'Usuário não autenticado.'}), 401
-
-    dados = request.get_json()
-    acao = dados.get('acao', '').upper()
-    mensagem = ''
-    sugestao = ''
-
-    ia = ClarinhaIA()
-    sugestao = ia.analise()
-
-    try:
-        if not user.api_key or not user.api_secret:
-            return jsonify({'mensagem': 'Chaves de API não configuradas.'}), 403
-
-        client = Client(user.api_key, user.api_secret)
-        simbolo = 'BTCUSDT'
-        quantidade = 0.001  # valor fixo ou ajustável
-
-        if acao == "ENTRADA":
-            client.order_market_buy(symbol=simbolo, quantity=quantidade)
-            mensagem = "✅ Ordem de COMPRA executada com sucesso."
-        elif acao == "STOP":
-            mensagem = "🛑 Stop acionado. (Simulado)"
-        elif acao == "ALVO":
-            mensagem = "🎯 Alvo atingido! (Simulado)"
-        elif acao == "EXECUTAR":
-            mensagem = "🚀 Ordem executada conforme análise da IA."
-        elif acao == "AUTOMATICO":
-            mensagem = "🤖 Modo automático ativado! IA assumiu o controle."
-        else:
-            mensagem = "Ação desconhecida."
-
-    except Exception as e:
-        mensagem = f"Erro ao executar: {str(e)}"
-
-    return jsonify({'mensagem': mensagem, 'sugestao': sugestao})
-
-# === EXECUÇÃO FINAL GARANTIDA ===
+# === EXECUÇÃO ===
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
