@@ -59,7 +59,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('login'))
-        except Exception as e:
+        except Exception:
             return render_template("register.html", erro="Erro ao registrar usuário.")
     return render_template("register.html")
 
@@ -99,7 +99,7 @@ def painel_operacao():
     ia = ClarinhaIA()
     sugestao = ia.analise()
 
-    return render_template("painel.html", saldo=saldo, sugestao=sugestao)
+    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
 # === EXECUÇÃO FINAL GARANTIDA ===
 if __name__ == '__main__':
