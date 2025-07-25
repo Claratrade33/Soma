@@ -1,29 +1,22 @@
-<!-- templates/configurar.html -->
-
 {% extends "base.html" %}
-{% block title %}Configurar Chaves • ClaraVerse{% endblock %}
+{% block title %}Configurar API • ClaraVerse{% endblock %}
 
 {% block content %}
-  <div style="max-width: 500px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 12px #00ffff;">
-    <h2 style="text-align: center; color: #00ffff;">🔐 Configurar API Binance</h2>
+<div style="max-width: 500px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
+  <h2 style="text-align: center; color: #00ffff;">⚙️ Configurar API da Binance</h2>
+  <form method="POST" action="{{ url_for('configurar') }}">
+    <label for="api_key" style="color: #ccc;">🔑 API Key</label>
+    <input type="text" id="api_key" name="api_key" value="{{ user.api_key or '' }}" required
+           style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; background-color: #2a2a2a; color: white; border: none;">
 
-    <form method="POST">
-      <label for="api_key" style="color: #ccc;">🔑 API Key</label>
-      <input type="text" id="api_key" name="api_key" required value="{{ user.api_key or '' }}"
-             style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
+    <label for="api_secret" style="color: #ccc;">🕵️ API Secret</label>
+    <input type="text" id="api_secret" name="api_secret" value="{{ user.api_secret or '' }}" required
+           style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 6px; background-color: #2a2a2a; color: white; border: none;">
 
-      <label for="api_secret" style="color: #ccc;">🔒 API Secret</label>
-      <input type="text" id="api_secret" name="api_secret" required value="{{ user.api_secret or '' }}"
-             style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 6px; border: none; background-color: #2a2a2a; color: #fff;">
-
-      <button type="submit"
-              style="width: 100%; padding: 14px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        💾 Salvar e Ativar
-      </button>
-    </form>
-
-    <p style="text-align: center; margin-top: 20px;">
-      <a href="{{ url_for('painel_operacao') }}" style="color: #00ffff;">⬅ Voltar ao Painel</a>
-    </p>
-  </div>
+    <button type="submit"
+            style="width: 100%; padding: 14px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
+      💾 Salvar e Ir para Painel
+    </button>
+  </form>
+</div>
 {% endblock %}
