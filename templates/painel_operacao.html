@@ -1,94 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>ClaraVerse • Painel de Operações</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <meta charset="UTF-8">
+    <title>ClaraVerse • Painel de Operações</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-  <div class="topo">
-    <span class="logo">📈 ClaraVerse • Operações ao Vivo</span>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </div>
-
-  <div class="painel">
-    <!-- Gráfico TradingView -->
-    <div class="grafico">
-      <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_12345&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-        frameborder="0" width="100%" height="400" allowtransparency="true"></iframe>
+<body class="painel-body">
+    <div class="topo">
+        <span class="logo">📉 ClaraVerse • <span style="color: #00ffff">Painel de Operações</span></span>
+        <span class="saldo">💰 Saldo Atual: {{ saldo }} USDT</span>
+        <a href="/logout" class="btn-sair">Sair</a>
     </div>
 
-    <!-- Indicadores -->
-    <div class="indicadores">
-      <h3>📊 Indicadores em Tempo Real</h3>
-      <ul>
-        <li><strong>Preço:</strong> <span id="preco">Carregando...</span> USDT</li>
-        <li><strong>RSI:</strong> <span id="rsi">-</span></li>
-        <li><strong>Suporte:</strong> <span id="suporte">-</span></li>
-        <li><strong>Resistência:</strong> <span id="resistencia">-</span></li>
-        <li><strong>Volume:</strong> <span id="volume">-</span></li>
-      </ul>
+    <div class="grafico-tradingview">
+        <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=1&theme=dark"
+                frameborder="0" width="100%" height="500"></iframe>
     </div>
 
-    <!-- IA Clarinha -->
-    <div class="ia">
-      <h3>🤖 Sugestão da Clarinha</h3>
-      <p><strong>Entrada:</strong> <span id="entrada">-</span></p>
-      <p><strong>Alvo:</strong> <span id="alvo">-</span></p>
-      <p><strong>Stop:</strong> <span id="stop">-</span></p>
-      <p><strong>Confiança:</strong> <span id="confianca">-</span></p>
+    <div class="info-operacoes">
+        <div class="caixa-ia">
+            <h3>🧠 IA Clarinha • Análise de Mercado</h3>
+            {% if sugestao %}
+                <p><strong>Sugestão:</strong> {{ sugestao.entrada }}</p>
+                <p><strong>Alvo:</strong> {{ sugestao.alvo }}</p>
+                <p><strong>Stop:</strong> {{ sugestao.stop }}</p>
+                <p><strong>Confiança:</strong> {{ sugestao.confianca }}%</p>
+            {% else %}
+                <p>Aguardando resposta da IA...</p>
+            {% endif %}
+        </div>
+
+        <div class="painel-botoes">
+            <form action="/executar_ordem" method="post">
+                <button name="acao" value="compra" class="botao-compra">ENTRADA (BUY)</button>
+                <button name="acao" value="venda" class="botao-venda">SAÍDA (SELL)</button>
+                <button name="acao" value="auto" class="botao-auto">ATIVAR MODO AUTOMÁTICO</button>
+            </form>
+            <a href="/configurar" class="botao-config">⚙️ Configurar API</a>
+        </div>
     </div>
-
-    <!-- Botões -->
-    <div class="botoes">
-      <button onclick="executarOrdem('compra')">🟩 Entrar (Comprar)</button>
-      <button onclick="executarOrdem('venda')">🟥 Sair (Vender)</button>
-      <button onclick="recarregarIA()">🔁 Atualizar IA</button>
-    </div>
-  </div>
-
-  <script>
-    async function carregarDados() {
-      try {
-        const res = await axios.get('/dados_mercado');
-        const { preco, rsi, suporte, resistencia, volume } = res.data;
-        document.getElementById("preco").innerText = preco;
-        document.getElementById("rsi").innerText = rsi;
-        document.getElementById("suporte").innerText = suporte;
-        document.getElementById("resistencia").innerText = resistencia;
-        document.getElementById("volume").innerText = volume;
-      } catch (err) {
-        console.error('Erro ao carregar mercado:', err);
-      }
-    }
-
-    async function recarregarIA() {
-      try {
-        const res = await axios.get('/sugestao_ia');
-        const { entrada, alvo, stop, confianca } = res.data;
-        document.getElementById("entrada").innerText = entrada;
-        document.getElementById("alvo").innerText = alvo;
-        document.getElementById("stop").innerText = stop;
-        document.getElementById("confianca").innerText = confianca;
-      } catch (err) {
-        console.error('Erro IA:', err);
-      }
-    }
-
-    async function executarOrdem(tipo) {
-      try {
-        const res = await axios.post('/executar_ordem', { tipo });
-        alert(res.data.mensagem);
-      } catch (err) {
-        alert('Erro ao executar ordem');
-      }
-    }
-
-    carregarDados();
-    recarregarIA();
-    setInterval(carregarDados, 15000);
-    setInterval(recarregarIA, 30000);
-  </script>
 </body>
 </html>
