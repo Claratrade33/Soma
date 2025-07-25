@@ -16,11 +16,4 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function feedback(botao) {
-    if (status) status.innerText = `✅ Comando "${botao}" executado com sucesso!`;
-  }
-
-  document.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => feedback(btn.innerText));
-  });
-});
-
+    if (status) status.innerText = `✅ Comando "${bot
