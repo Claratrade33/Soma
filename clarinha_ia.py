@@ -1,20 +1,18 @@
-# clarinha_ia.py
-
 import random
-from datetime import datetime
 
 class ClarinhaIA:
-    def analise(self, simbolo="BTCUSDT"):
-        # Lógica simbólica + espiritual + leitura básica de mercado
-        direcao = random.choice(["COMPRA", "VENDA", "AGUARDAR"])
-        confianca = round(random.uniform(0.55, 0.95), 2)
-        stop = round(random.uniform(0.5, 2), 2)
-        alvo = round(random.uniform(1.5, 4), 2)
-
-        mensagem = (
-            f"🌙 Clarinha prevê: <b>{direcao}</b> com confiança de <b>{confianca * 100:.0f}%</b><br>"
-            f"🎯 Alvo: <b>{alvo}%</b> • 🛑 Stop: <b>{stop}%</b><br>"
-            f"🧿 {datetime.now().strftime('%d/%m %H:%M')} — siga sua intuição."
-        )
-
-        return mensagem
+    def analise(self):
+        sinais = ['ENTRADA COMPRADA', 'ENTRADA VENDIDA', 'AGUARDAR', 'STOP CURTO', 'ALVO LONGO']
+        confianca = round(random.uniform(0.6, 0.99), 2)
+        simbolo = "BTCUSDT"
+        direcao = random.choice(sinais)
+        retorno = {
+            'simbolo': simbolo,
+            'entrada': round(random.uniform(20000, 70000), 2),
+            'alvo': round(random.uniform(entrada := random.uniform(20000, 70000), entrada + 1000), 2),
+            'stop': round(entrada - 300, 2),
+            'direcao': direcao,
+            'confianca': confianca,
+            'mensagem': f"A IA Clarinha sugere: {direcao} com confiança de {confianca * 100:.0f}%"
+        }
+        return retorno
