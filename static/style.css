@@ -1,153 +1,39 @@
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>ClaraVerse • Operações</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="topo">
+    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
+    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </header>
 
-body, html {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #0a0a0f;
-    color: #f0f0f0;
-    height: 100%;
-    width: 100%;
-}
+  <section class="grafico">
+    <iframe 
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+      width="100%" height="400" frameborder="0">
+    </iframe>
+  </section>
 
-/* TOPO */
-.topo {
-    background-color: #121212;
-    color: #00ffff;
-    padding: 20px;
-    text-align: center;
-    font-size: 18px;
-    border-bottom: 2px solid #00ffff44;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+  <section class="acoes">
+    <button>ENTRADA</button>
+    <button>STOP</button>
+    <button>ALVO</button>
+    <button>AUTOMÁTICO</button>
+    <button>CONFIGURAR</button>
+  </section>
 
-.logo {
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.saldo {
-    color: #ffffff;
-    font-weight: bold;
-    background-color: #1f1f1f;
-    padding: 8px 15px;
-    border-radius: 8px;
-}
-
-.btn-sair {
-    text-decoration: none;
-    background-color: #ff0044;
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-/* GRÁFICO */
-.grafico-tradingview {
-    margin: 20px auto;
-    width: 90%;
-    border: 2px solid #222;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-/* INFO MERCADO */
-.info-operacoes {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-    padding: 30px 10px;
-}
-
-/* CAIXA IA */
-.caixa-ia {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 20px;
-    border: 2px solid #b847ff;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 600px;
-}
-
-.caixa-ia h3 {
-    color: #00ffff;
-    margin-bottom: 10px;
-}
-
-/* BOTÕES */
-.painel-botoes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-}
-
-.painel-botoes button,
-.painel-botoes a {
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    color: #fff;
-}
-
-.botao-compra {
-    background-color: #00c27a;
-}
-
-.botao-compra:hover {
-    background-color: #00e696;
-}
-
-.botao-venda {
-    background-color: #c20000;
-}
-
-.botao-venda:hover {
-    background-color: #ff3333;
-}
-
-.botao-auto {
-    background-color: #b847ff;
-}
-
-.botao-auto:hover {
-    background-color: #d077ff;
-}
-
-.botao-config {
-    background-color: #444;
-}
-
-.botao-config:hover {
-    background-color: #666;
-}
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    .topo {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-
-    .painel-botoes {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .grafico-tradingview iframe {
-        height: 400px;
-    }
-}
+  <section class="sugestao">
+    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
+    <div id="sugestao_ia">
+      {{ sugestao }}
+    </div>
+    <div id="status_operacao" class="status"></div>
+  </section>
+</body>
+</html>
