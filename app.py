@@ -31,6 +31,11 @@ def get_current_user():
     return None
 
 # === ROTAS ===
+
+@app.before_request
+def garantir_banco():
+    db.create_all()
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -42,6 +47,7 @@ def login():
         password = request.form['password']
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
+            session.permanent = True
             session['user_id'] = user.id
             return redirect(url_for('painel_operacao'))
         return render_template("login.html", erro="Credenciais inválidas")
@@ -59,7 +65,7 @@ def register():
             db.session.commit()
             return redirect(url_for('login'))
         except Exception:
-            return render_template("register.html", erro="Erro ao registrar usuário.")
+            return render_template("register.html", erro="Erro ao registrar. Tente outro email.")
     return render_template("register.html")
 
 @app.route('/logout')
@@ -100,8 +106,6 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === EXECUÇÃO ===
+# === INICIALIZAÇÃO ===
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
