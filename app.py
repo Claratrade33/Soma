@@ -1,12 +1,10 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
 from binance.client import Client
-import threading
-import os
-import time
+import os, threading, time
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
@@ -15,7 +13,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
-threads_automaticas = {}
 
 # === MODELO DE USUÁRIO ===
 class User(db.Model):
@@ -25,6 +22,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
+    openai_key = db.Column(db.String(300))
+    modo_auto = db.Column(db.Boolean, default=False)
 
 # === USUÁRIO ATUAL ===
 def get_current_user():
@@ -33,8 +32,21 @@ def get_current_user():
         return User.query.get(user_id)
     return None
 
-# === ROTAS ===
+# === LOOP AUTOMÁTICO ===
+def iniciar_loop_automatico(user):
+    def loop():
+        while user.modo_auto:
+            try:
+                ia = ClarinhaIA(user.api_key, user.api_secret, user.openai_key)
+                sugestao = ia.analisar()
+                print("🔁 IA Clarinha analisando:", sugestao)
+                time.sleep(15)
+            except Exception as e:
+                print("Erro IA automática:", e)
+                break
+    threading.Thread(target=loop, daemon=True).start()
 
+# === ROTAS ===
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -79,6 +91,7 @@ def configurar():
     if request.method == "POST":
         user.api_key = request.form['api_key']
         user.api_secret = request.form['api_secret']
+        user.openai_key = request.form['openai_key']
         db.session.commit()
         return redirect(url_for('painel_operacao'))
     return render_template("configurar.html", user=user)
@@ -99,76 +112,27 @@ def painel_operacao():
             saldo = "Erro ao conectar"
 
     try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        ia = ClarinhaIA(user.api_key, user.api_secret, user.openai_key)
         sugestao = ia.analisar()
     except Exception:
         sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-@app.route('/sinal_ia')
-def sinal_ia():
-    user = get_current_user()
-    if not user:
-        return jsonify({"erro": "Não autenticado"}), 401
-    try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
-        sugestao = ia.analisar()
-        return jsonify(sugestao)
-    except Exception:
-        return jsonify({"erro": "Erro ao analisar mercado"}), 500
-
 @app.route('/executar_ordem', methods=["POST"])
 def executar_ordem():
     user = get_current_user()
     if not user:
-        return jsonify({"erro": "Não autenticado"}), 401
-    dados = request.json
-    try:
-        client = Client(user.api_key, user.api_secret)
-        lado = dados.get("lado")
-        quantidade = dados.get("quantidade", 11)
-        if lado == "compra":
-            ordem = client.order_market_buy(symbol="BTCUSDT", quantity=quantidade)
-        elif lado == "venda":
-            ordem = client.order_market_sell(symbol="BTCUSDT", quantity=quantidade)
-        else:
-            return jsonify({"erro": "Lado inválido"}), 400
-        return jsonify({"mensagem": "Ordem executada", "ordem": ordem})
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+        return redirect(url_for('login'))
 
-@app.route('/modo_automatico', methods=["POST"])
-def modo_automatico():
-    user = get_current_user()
-    if not user:
-        return jsonify({"erro": "Não autenticado"}), 401
+    acao = request.form.get("acao")
+    if acao == "automatico":
+        user.modo_auto = not user.modo_auto
+        db.session.commit()
+        if user.modo_auto:
+            iniciar_loop_automatico(user)
+    return redirect(url_for('painel_operacao'))
 
-    user_id = user.id
-    if user_id in threads_automaticas:
-        return jsonify({"mensagem": "Modo automático já está ativo"})
-
-    def executar_loop():
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
-        client = Client(user.api_key, user.api_secret)
-        while True:
-            try:
-                sinal = ia.analisar()
-                if sinal['sinal'] == 'BUY':
-                    client.order_market_buy(symbol="BTCUSDT", quantity=11)
-                elif sinal['sinal'] == 'SELL':
-                    client.order_market_sell(symbol="BTCUSDT", quantity=11)
-                time.sleep(40)  # Aguarda 40s entre análises
-            except Exception as e:
-                print("Erro no modo automático:", e)
-                break
-
-    thread = threading.Thread(target=executar_loop)
-    thread.daemon = True
-    thread.start()
-    threads_automaticas[user_id] = thread
-    return jsonify({"mensagem": "Modo automático ativado"})
-
-# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
+# === CRIAÇÃO AUTOMÁTICA DO BANCO ===
 with app.app_context():
     db.create_all()
