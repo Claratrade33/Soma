@@ -106,4 +106,3 @@ def painel_operacao():
 # === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
 with app.app_context():
     db.create_all()
-
