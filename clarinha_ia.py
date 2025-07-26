@@ -5,6 +5,7 @@ from binance.client import Client
 import statistics
 import numpy as np
 import os
+import json
 
 class ClarinhaIA:
     def __init__(self, api_key=None, api_secret=None, openai_key=None):
@@ -77,7 +78,7 @@ class ClarinhaIA:
                 temperature=0.6
             )
             texto = resposta.choices[0].message['content']
-            return eval(texto)  # Espera JSON válido retornado pela IA
+            dados_json = json.loads(texto)
+            return dados_json
         except Exception as e:
             return {"erro": "Erro na IA Clarinha", "detalhe": str(e)}
-
