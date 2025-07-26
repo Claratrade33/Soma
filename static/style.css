@@ -21,17 +21,23 @@
   </section>
 
   <section class="acoes">
-    <button>ENTRADA</button>
-    <button>STOP</button>
-    <button>ALVO</button>
-    <button>AUTOMÁTICO</button>
-    <button>CONFIGURAR</button>
+    <button onclick="executarOrdem('entrada')">ENTRADA</button>
+    <button onclick="executarOrdem('stop')">STOP</button>
+    <button onclick="executarOrdem('alvo')">ALVO</button>
+    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
+    <form action="/configurar" method="get" style="display:inline;">
+      <button type="submit">CONFIGURAR</button>
+    </form>
   </section>
 
   <section class="sugestao">
     <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
     <div id="sugestao_ia">
-      {{ sugestao }}
+      {% if sugestao and sugestao.sinal != 'Erro' %}
+        <pre>{{ sugestao | tojson(indent=2) }}</pre>
+      {% else %}
+        <p style="color: orange;">IA indisponível no momento. Verifique suas chaves em CONFIGURAR.</p>
+      {% endif %}
     </div>
     <div id="status_operacao" class="status"></div>
   </section>
