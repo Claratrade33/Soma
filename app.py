@@ -1,4 +1,4 @@
-# app.py (corrigido e completo)
+# app.py (corrigido, completo, com relatório e integração aprimorada)
 import os
 from datetime import timedelta
 from functools import wraps
@@ -23,6 +23,17 @@ class User(db.Model):
     username = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
+
+# Modelo de operação
+class Operacao(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    entrada = db.Column(db.String(50))
+    alvo = db.Column(db.String(50))
+    stop = db.Column(db.String(50))
+    confianca = db.Column(db.String(50))
+    sugestao = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 # Decorador de login
 def login_required(f):
@@ -66,13 +77,34 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# Painel de operação com proteção e integração com IA
+# Painel de operação aprimorado com proteção, integração com IA e relatório
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
     ia = ClarinhaIA(os.getenv("OPENAI_API_KEY"))
     sugestao = ia.gerar_sugestao()
-    return render_template('painel_operacao.html', sugestao=sugestao)
+
+    # Salvando a operação gerada no relatório
+    nova_operacao = Operacao(
+        usuario_id=session['user_id'],
+        entrada=sugestao.get("entrada"),
+        alvo=sugestao.get("alvo"),
+        stop=sugestao.get("stop"),
+        confianca=sugestao.get("confianca"),
+        sugestao=sugestao.get("sugestao")
+    )
+    db.session.add(nova_operacao)
+    db.session.commit()
+
+    # Obtendo operações anteriores para relatório
+    operacoes = Operacao.query.filter_by(usuario_id=session['user_id']).order_by(Operacao.timestamp.desc()).all()
+
+    return render_template('painel_operacao.html', sugestao=sugestao, operacoes=operacoes)
+
+# Rota para relatório detalhado
+def gerar_relatorio(usuario_id):
+    operacoes = Operacao.query.filter_by(usuario_id=usuario_id).order_by(Operacao.timestamp.desc()).all()
+    return operacoes
 
 if __name__ == '__main__':
     with app.app_context():
