@@ -1,74 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}ClaraVerse{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0c10;
-            color: #ffffff;
-        }
-        .topo {
-            background-color: #10131a;
-            color: #00ffff;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #00ffff33;
-        }
-        .logo {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .btn-sair {
-            text-decoration: none;
-            background-color: #ff0044;
-            padding: 6px 12px;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-        }
-        .container {
-            padding: 30px;
-            max-width: 1000px;
-            margin: auto;
-        }
-        .tabela {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        .tabela th, .tabela td {
-            padding: 10px;
-            border-bottom: 1px solid #00ffff33;
-            text-align: center;
-        }
-        .tabela th {
-            background-color: #1f1f2e;
-            color: #00ffff;
-        }
-        .grafico-tradingview {
-            margin: 20px auto;
-            width: 100%;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            .topo {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>{% block title %}ClaraVerse{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    {% block content %}{% endblock %}
+  {% block content %}{% endblock %}
 </body>
 </html>
