@@ -1,39 +1,37 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <title>ClaraVerse • Painel de Operações</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <script src="/static/dashboard.js" defer></script>
-</head>
-<body>
-  <header class="topo">
-    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
-    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </header>
+// static/dashboard.js
 
-  <section class="grafico">
-    <iframe 
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-      width="100%" height="400" frameborder="0">
-    </iframe>
-  </section>
+document.addEventListener('DOMContentLoaded', () => {
+  const sugestaoIa = document.getElementById('sugestao_ia');
+  const statusOperacao = document.getElementById('status_operacao');
 
-  <section class="acoes">
-    <button onclick="executarOrdem('entrada')">ENTRADA</button>
-    <button onclick="executarOrdem('stop')">STOP</button>
-    <button onclick="executarOrdem('alvo')">ALVO</button>
-    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
-    <a href="/configurar"><button>CONFIGURAR</button></a>
-  </section>
+  // Exibe mensagens no painel
+  function exibirStatus(mensagem, tipo = 'ok') {
+    statusOperacao.textContent = mensagem;
+    statusOperacao.style.color = tipo === 'erro' ? 'red' : '#00ff88';
+  }
 
-  <section class="sugestao">
-    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
-    <div id="sugestao_ia">
-      Carregando sugestão da IA...
-    </div>
-    <div id="status_operacao" class="status"></div>
-  </section>
-</body>
-</html>
+  // Função principal de execução de ordens
+  window.executarOrdem = function (tipo) {
+    exibirStatus(`⏳ Enviando ordem: ${tipo.toUpperCase()}...`);
+
+    fetch('/executar_ordem', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tipo: tipo })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        exibirStatus(`✅ Ordem ${tipo.toUpperCase()} executada com sucesso.`);
+      } else {
+        exibirStatus(`❌ Erro: ${data.erro}`, 'erro');
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      exibirStatus('❌ Erro de conexão com o servidor.', 'erro');
+    });
+  };
+});
