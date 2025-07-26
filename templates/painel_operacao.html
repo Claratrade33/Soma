@@ -11,14 +11,14 @@ def painel_operacao():
             balance = client.get_asset_balance(asset='USDT')
             saldo = round(float(balance['free']), 2)
         except Exception as e:
-            print(f"Erro ao conectar na Binance: {e}")  # <- Log detalhado
+            print(f"Erro ao conectar na Binance: {e}")
             saldo = "Erro ao conectar"
 
     try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
         sugestao = ia.analisar()
     except Exception as e:
-        print(f"Erro ao consultar IA: {e}")  # <- Log da IA
+        print(f"Erro ao consultar IA: {e}")
         sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
