@@ -1,53 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse • Painel de Operações</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <title>ClaraVerse • Painel de Operações</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/dashboard.js" defer></script>
 </head>
-<body class="painel">
-    <div class="topo">
-        <span class="logo">📉 ClaraVerse <span style="color:#00ffff">Operações</span></span>
-        <span class="saldo">💰 Saldo: {{ saldo }} USDT</span>
-        <a href="/logout" class="btn-sair">Sair</a>
-    </div>
+<body>
+  <header class="topo">
+    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
+    <div class="saldo">💰 Saldo USDT: ao vivo via API</div>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </header>
 
-    <div class="conteudo-painel">
-        <div class="grafico-container">
-            <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-                frameborder="0" width="100%" height="400"></iframe>
-        </div>
+  <section class="grafico">
+    <iframe 
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+      width="100%" height="400" frameborder="0">
+    </iframe>
+  </section>
 
-        <div class="botoes-operacoes">
-            <button onclick="executarOrdem('entrada')">🟢 ENTRADA</button>
-            <button onclick="executarOrdem('stop')">🔴 STOP</button>
-            <button onclick="executarOrdem('alvo')">🎯 ALVO</button>
-            <button onclick="executarOrdem('automatico')">⚙️ AUTOMÁTICO</button>
-            <a href="/configurar"><button>🔑 CONFIGURAR</button></a>
-        </div>
+  <section class="acoes">
+    <button onclick="executarOrdem('comprar')">ENTRADA</button>
+    <button onclick="executarOrdem('vender')">SAÍDA</button>
+    <button onclick="executarOrdem('stop')">STOP</button>
+    <button onclick="executarOrdem('alvo')">ALVO</button>
+    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
+    <a href="/configurar"><button>CONFIGURAR</button></a>
+  </section>
 
-        <div class="sugestao-ia">
-            <h3>🔮 Sugestão da IA Clarinha</h3>
-            <pre>{{ sugestao }}</pre>
-        </div>
-    </div>
-
-    <script>
-        function executarOrdem(tipo) {
-            fetch("/executar_ordem", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    simbolo: "BTCUSDT",
-                    lado: tipo === "entrada" ? "BUY" : "SELL",
-                    quantidade: 0.001,
-                    tipo: tipo
-                })
-            })
-            .then(res => res.json())
-            .then(data => alert(data.status || data.mensagem || 'Erro'))
-            .catch(err => alert("Falha ao executar ordem"));
-        }
-    </script>
+  <section class="sugestao">
+    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
+    <div id="sugestao_ia">Carregando sugestão da IA...</div>
+    <div id="status_operacao" class="status"></div>
+  </section>
 </body>
 </html>
