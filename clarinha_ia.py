@@ -1,112 +1,15 @@
 import openai
-from binance.client import Client
-import statistics
-import numpy as np
-import os
-import json
-import time
 
 class ClarinhaIA:
-    def __init__(self, api_key=None, api_secret=None, openai_key=None):
-        self.api_key = api_key
-        self.api_secret = api_secret
-        self.openai_key = openai_key
-        self.symbolo = "BTCUSDT"
-
-    def pegar_dados_binance(self):
+    def gerar_sugestao(self, modo='real', chave=None):
         try:
-            client = Client(self.api_key, self.api_secret)
-            klines = client.get_klines(symbol=self.symbolo, interval=Client.KLINE_INTERVAL_1MINUTE, limit=100)
-            closes = [float(k[4]) for k in klines]
-            volumes = [float(k[5]) for k in klines]
-            rsi = self.calcular_rsi(closes)
-            suporte = min(closes[-20:])
-            resistencia = max(closes[-20:])
-            preco_atual = closes[-1]
-            variacao = closes[-1] - closes[-2]
-            return {
-                "preco": preco_atual,
-                "rsi": round(rsi, 2),
-                "suporte": round(suporte, 2),
-                "resistencia": round(resistencia, 2),
-                "variacao": round(variacao, 2),
-                "volume": round(statistics.mean(volumes[-5:]), 2)
-            }
-        except Exception as e:
-            return {"erro": str(e)}
-
-    def calcular_rsi(self, precos, periodo=14):
-        ganhos, perdas = [], []
-        for i in range(1, periodo + 1):
-            delta = precos[i] - precos[i - 1]
-            if delta >= 0:
-                ganhos.append(delta)
-                perdas.append(0)
-            else:
-                ganhos.append(0)
-                perdas.append(-delta)
-        media_ganho = sum(ganhos) / periodo
-        media_perda = sum(perdas) / periodo
-        if media_perda == 0:
-            return 100
-        rs = media_ganho / media_perda
-        return 100 - (100 / (1 + rs))
-
-    def analise(self):
-        dados = self.pegar_dados_binance()
-        if "erro" in dados:
-            return {"erro": "Erro ao obter dados da Binance"}
-
-        prompt = (
-            f"Você é uma IA de trading chamada Clarinha. Com base nos seguintes dados reais de mercado:\n"
-            f"Preço atual: {dados['preco']}\n"
-            f"RSI: {dados['rsi']}\n"
-            f"Suporte: {dados['suporte']}\n"
-            f"Resistência: {dados['resistencia']}\n"
-            f"Variação: {dados['variacao']}\n"
-            f"Volume: {dados['volume']}\n"
-            f"Dê uma sugestão clara de entrada, alvo, stop e direção. Formato JSON puro com campos: "
-            f"'simbolo', 'entrada', 'alvo', 'stop', 'direcao', 'confianca', 'mensagem'."
-        )
-
-        openai.api_key = self.openai_key
-        try:
+            openai.api_key = chave
+            prompt = "Com base no mercado BTC/USDT agora, me diga: entrada, alvo, stop e confiança (em JSON)"
             resposta = openai.ChatCompletion.create(
                 model="gpt-4",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.6
+                messages=[{"role": "user", "content": prompt}]
             )
-            texto = resposta.choices[0].message['content']
-            dados_json = json.loads(texto)
-            return dados_json
-        except Exception as e:
-            return {"erro": "Erro na IA Clarinha", "detalhe": str(e)}
-
-# === LOOP AUTOMÁTICO COM EXECUÇÃO REAL ===
-def loop_automatico(ia, client):
-    if hasattr(loop_automatico, 'ativo') and loop_automatico.ativo:
-        print("⚠️ Loop já está rodando.")
-        return
-    loop_automatico.ativo = True
-
-    while True:
-        try:
-            analise = ia.analise()
-            print("🔮 Sinal IA:", analise)
-
-            if analise.get("direcao") == "COMPRA":
-                client.order_market_buy(symbol="BTCUSDT", quantity=0.001)
-                print("✅ COMPRA executada")
-            elif analise.get("direcao") == "VENDA":
-                client.order_market_sell(symbol="BTCUSDT", quantity=0.001)
-                print("✅ VENDA executada")
-
-            # Log simples
-            with open("log_operacoes.txt", "a") as f:
-                f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {analise.get('direcao')} | Confiança: {analise.get('confianca')} | Entrada: {analise.get('entrada')}\n")
-
-            time.sleep(60)  # Espera 1 minuto
-
-        except Exception as e:
-            print("Erro no loop automático:", e)
-            time.sleep(60)
+            conteudo = resposta.choices[0].message.content
+            return conteudo
+        except Exception:
+            return '{"entrada": null, "alvo": null, "stop": null, "confianca": 0}'
