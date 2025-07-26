@@ -1,104 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse | Operações Reais</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body { background-color: #0d0d0d; color: #f0f0f0; font-family: 'Segoe UI', sans-serif; }
-        .topo {
-            background: #1a1a1a;
-            padding: 15px;
-            font-size: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .topo span.logo {
-            color: violet;
-            font-weight: bold;
-        }
-        .topo .saldo {
-            color: gold;
-        }
-        .grafico-tradingview {
-            margin: 20px auto;
-            width: 95%;
-            border: 2px solid #444;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .botoes {
-            text-align: center;
-            margin: 25px 0;
-        }
-        .botoes button {
-            margin: 5px;
-            padding: 10px 18px;
-            font-size: 16px;
-            background: #111;
-            border: 1px solid #999;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .botoes button:hover {
-            background: #333;
-            border-color: #fff;
-        }
-        .sugestao {
-            background: #111;
-            margin: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            color: #7fffd4;
-            font-family: monospace;
-            font-size: 15px;
-        }
-        .erro-saldo {
-            color: tomato;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>ClaraVerse | Operações Reais</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/dashboard.js" defer></script>
 </head>
 <body>
-    <div class="topo">
-        <span class="logo">ClaraVerse | <span style="color: #00ffff;">Operações Reais</span></span>
-        <div>
-            {% if saldo == 'Erro ao conectar' %}
-                <span class="erro-saldo">💰 Saldo USDT: Erro ao conectar</span>
-            {% else %}
-                <span class="saldo">💰 Saldo USDT: {{ saldo }}</span>
-            {% endif %}
-            <a href="/logout" style="margin-left: 20px; color: #66ccff;">Sair</a>
-        </div>
-    </div>
+  <header class="topo">
+    <div class="logo"><b style="color:#d45bff">ClaraVerse</b> | <span style="color:#00ffff">Operações Reais</span></div>
+    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </header>
 
-    <div class="grafico-tradingview">
-        <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-                frameborder="0" width="100%" height="400"></iframe>
-    </div>
+  <section class="grafico">
+    <iframe 
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+      width="100%" height="400" frameborder="0">
+    </iframe>
+  </section>
 
-    <div class="botoes">
-        <button onclick="executarOrdem('entrada')">ENTRADA</button>
-        <button onclick="executarOrdem('stop')">STOP</button>
-        <button onclick="executarOrdem('alvo')">ALVO</button>
-        <button onclick="executarOrdem('auto')">AUTOMÁTICO</button>
-        <button onclick="window.location.href='/configurar'">CONFIGURAR</button>
-    </div>
+  <div style="text-align:center; margin-top: 15px;">
+    <button onclick="executarOrdem('entrada')">ENTRADA</button>
+    <button onclick="executarOrdem('stop')">STOP</button>
+    <button onclick="executarOrdem('alvo')">ALVO</button>
+    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
+    <button onclick="window.location.href='/configurar'">CONFIGURAR</button>
+  </div>
 
-    <div class="sugestao">
-        <h3>🧠 IA Clarinha – Sinal ao vivo:</h3>
-        <pre>{{ sugestao }}</pre>
+  <section class="sugestao">
+    <h3>🔮 IA Clarinha – Sinal ao vivo:</h3>
+    <div id="sugestao_ia">
+      {{ sugestao }}
     </div>
-
-    <script>
-        function executarOrdem(tipo) {
-            fetch(`/executar_ordem?tipo=${tipo}`)
-                .then(res => res.json())
-                .then(d => alert(`✅ ${d.status}`))
-                .catch(err => alert('Erro ao executar ordem.'));
-        }
-    </script>
+    <div id="status_operacao" class="status"></div>
+  </section>
 </body>
 </html>
+
