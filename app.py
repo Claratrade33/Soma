@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from clarinha_ia import ClarinhaIA
 from binance.client import Client
+from clarinha_ia import ClarinhaIA
 import os
 
 app = Flask(__name__)
@@ -14,7 +14,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
 
-# === MODELO DE USUÁRIO ===
+# === MODELO DO USUÁRIO ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -22,9 +22,9 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
-    openai_key = db.Column(db.String(300))  # Nova coluna
+    openai_key = db.Column(db.String(300))  # nova coluna
 
-# === USUÁRIO ATUAL ===
+# === USUÁRIO LOGADO ===
 def get_current_user():
     user_id = session.get("user_id")
     if user_id:
@@ -61,7 +61,7 @@ def register():
             db.session.commit()
             return redirect(url_for('login'))
         except Exception:
-            return render_template("register.html", erro="Erro ao registrar usuário.")
+            return render_template("register.html", erro="Erro ao registrar.")
     return render_template("register.html")
 
 @app.route('/logout')
@@ -94,23 +94,17 @@ def painel_operacao():
             client = Client(user.api_key, user.api_secret)
             balance = client.get_asset_balance(asset='USDT')
             saldo = round(float(balance['free']), 2)
-        except Exception as e:
-            print(f"Erro ao conectar na Binance: {e}")
+        except Exception:
             saldo = "Erro ao conectar"
 
     try:
-        ia = ClarinhaIA(
-            api_key=user.api_key,
-            api_secret=user.api_secret,
-            openai_key=user.openai_key
-        )
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
         sugestao = ia.analisar()
-    except Exception as e:
-        print(f"Erro ao consultar IA: {e}")
+    except Exception:
         sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
+# === BANCO LOCAL ===
 with app.app_context():
     db.create_all()
