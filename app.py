@@ -4,7 +4,7 @@ from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
 from binance.client import Client
-import os, threading, time
+import os
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
@@ -22,8 +22,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
-    openai_key = db.Column(db.String(300))
-    modo_auto = db.Column(db.Boolean, default=False)
+    openai_key = db.Column(db.String(300))  # NOVO CAMPO
 
 # === USUÁRIO ATUAL ===
 def get_current_user():
@@ -32,21 +31,8 @@ def get_current_user():
         return User.query.get(user_id)
     return None
 
-# === LOOP AUTOMÁTICO ===
-def iniciar_loop_automatico(user):
-    def loop():
-        while user.modo_auto:
-            try:
-                ia = ClarinhaIA(user.api_key, user.api_secret, user.openai_key)
-                sugestao = ia.analisar()
-                print("🔁 IA Clarinha analisando:", sugestao)
-                time.sleep(15)
-            except Exception as e:
-                print("Erro IA automática:", e)
-                break
-    threading.Thread(target=loop, daemon=True).start()
-
 # === ROTAS ===
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -108,31 +94,19 @@ def painel_operacao():
             client = Client(user.api_key, user.api_secret)
             balance = client.get_asset_balance(asset='USDT')
             saldo = round(float(balance['free']), 2)
-        except Exception:
+        except Exception as e:
+            print(f"Erro ao conectar na Binance: {e}")
             saldo = "Erro ao conectar"
 
     try:
-        ia = ClarinhaIA(user.api_key, user.api_secret, user.openai_key)
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
         sugestao = ia.analisar()
-    except Exception:
+    except Exception as e:
+        print(f"Erro ao consultar IA: {e}")
         sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-@app.route('/executar_ordem', methods=["POST"])
-def executar_ordem():
-    user = get_current_user()
-    if not user:
-        return redirect(url_for('login'))
-
-    acao = request.form.get("acao")
-    if acao == "automatico":
-        user.modo_auto = not user.modo_auto
-        db.session.commit()
-        if user.modo_auto:
-            iniciar_loop_automatico(user)
-    return redirect(url_for('painel_operacao'))
-
-# === CRIAÇÃO AUTOMÁTICA DO BANCO ===
+# === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
 with app.app_context():
     db.create_all()
