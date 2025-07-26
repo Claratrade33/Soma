@@ -1,4 +1,4 @@
-from app import app  # Importa a aplicação Flask do arquivo app.py
+from app import app, socketio  # importa o app e o socketio
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)  # Inicia a aplicação
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
