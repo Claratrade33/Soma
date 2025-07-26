@@ -16,5 +16,8 @@
       <div class="flash">{{ messages[0] }}</div>
     {% endif %}
   {% endwith %}
+  {% if erro %}
+    <div class="flash">{{ erro }}</div>
+  {% endif %}
 </div>
 {% endblock %}
