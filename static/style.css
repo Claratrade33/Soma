@@ -1,77 +1,67 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #0a0a0f;
-  color: #f0f0f0;
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #12161C;
+    font-family: 'Arial', sans-serif;
+    color: #fff;
 }
 
-.topo {
-  background: #1b1b2f;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.2em;
+.container {
+    display: flex;
+    height: 100%;
 }
 
-.saldo {
-  color: #00ffcc;
+.sidebar {
+    width: 200px;
+    background-color: #181F27;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.btn-sair {
-  background: #ff0040;
-  color: white;
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 6px;
-  transition: 0.3s;
-}
-.btn-sair:hover {
-  background: #ff3366;
+.sidebar button, .sidebar a {
+    padding: 10px;
+    color: #fff;
+    text-decoration: none;
+    background: #282D35;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
 }
 
-.grafico {
-  padding: 20px;
-  background: #111;
+.sidebar button:hover, .sidebar a:hover {
+    background: #39404A;
 }
 
-.acoes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding: 20px;
+.conteudo {
+    flex-grow: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.acoes button {
-  background-color: #121c2b;
-  border: 2px solid #00f7ff;
-  color: #00f7ff;
-  font-size: 1em;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-.acoes button:hover {
-  background-color: #00f7ff;
-  color: #000;
-  transform: scale(1.05);
+.iframe-binance {
+    flex-grow: 1;
+    border-radius: 8px;
+    width: 100%;
 }
 
-.sugestao {
-  background: #101018;
-  margin: 30px auto;
-  padding: 20px;
-  max-width: 800px;
-  border: 1px solid #00ffff33;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #00f7ff33;
-  font-size: 1.1em;
+.ia-sugestao, .relatorio-operacoes {
+    background: #181F27;
+    padding: 15px;
+    border-radius: 8px;
 }
 
-.status {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #00ff88;
+.relatorio-operacoes table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.relatorio-operacoes th, .relatorio-operacoes td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #39404A;
 }
