@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
 from binance.client import Client
-import os, threading, time, random
+import threading
+import os
+import time
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
@@ -13,6 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
+threads_automaticas = {}
 
 # === MODELO DE USUÁRIO ===
 class User(db.Model):
@@ -29,36 +32,6 @@ def get_current_user():
     if user_id:
         return User.query.get(user_id)
     return None
-
-# === VARREDURA AUTOMÁTICA ===
-modo_auto = {}
-
-def iniciar_loop_automatico(user_id):
-    if modo_auto.get(user_id):
-        return  # já está rodando
-
-    def loop():
-        user = User.query.get(user_id)
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
-        client = Client(user.api_key, user.api_secret)
-
-        while modo_auto.get(user_id):
-            try:
-                print(f"🤖 IA Clarinha (user {user_id}) escaneando mercado...")
-                sugestao = ia.analisar()
-                print("SUGESTÃO:", sugestao)
-
-                if sugestao.get("sinal") == "ENTRADA COMPRADA" and sugestao.get("confianca", 0) > 0.7:
-                    print("🔁 Entrada automatizada autorizada. (Simulada)")
-                    # Aqui pode colocar a execução real com client.create_order() se desejar.
-
-                time.sleep(random.randint(25, 75))  # intervalo irregular
-            except Exception as e:
-                print(f"Erro IA auto: {e}")
-                time.sleep(60)
-
-    modo_auto[user_id] = True
-    threading.Thread(target=loop, daemon=True).start()
 
 # === ROTAS ===
 
@@ -133,16 +106,69 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-@app.route('/ativar_automatico', methods=["POST"])
-def ativar_automatico():
+@app.route('/sinal_ia')
+def sinal_ia():
     user = get_current_user()
     if not user:
-        return redirect(url_for('login'))
+        return jsonify({"erro": "Não autenticado"}), 401
+    try:
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        sugestao = ia.analisar()
+        return jsonify(sugestao)
+    except Exception:
+        return jsonify({"erro": "Erro ao analisar mercado"}), 500
 
-    iniciar_loop_automatico(user.id)
-    return redirect(url_for('painel_operacao'))
+@app.route('/executar_ordem', methods=["POST"])
+def executar_ordem():
+    user = get_current_user()
+    if not user:
+        return jsonify({"erro": "Não autenticado"}), 401
+    dados = request.json
+    try:
+        client = Client(user.api_key, user.api_secret)
+        lado = dados.get("lado")
+        quantidade = dados.get("quantidade", 11)
+        if lado == "compra":
+            ordem = client.order_market_buy(symbol="BTCUSDT", quantity=quantidade)
+        elif lado == "venda":
+            ordem = client.order_market_sell(symbol="BTCUSDT", quantity=quantidade)
+        else:
+            return jsonify({"erro": "Lado inválido"}), 400
+        return jsonify({"mensagem": "Ordem executada", "ordem": ordem})
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
+
+@app.route('/modo_automatico', methods=["POST"])
+def modo_automatico():
+    user = get_current_user()
+    if not user:
+        return jsonify({"erro": "Não autenticado"}), 401
+
+    user_id = user.id
+    if user_id in threads_automaticas:
+        return jsonify({"mensagem": "Modo automático já está ativo"})
+
+    def executar_loop():
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        client = Client(user.api_key, user.api_secret)
+        while True:
+            try:
+                sinal = ia.analisar()
+                if sinal['sinal'] == 'BUY':
+                    client.order_market_buy(symbol="BTCUSDT", quantity=11)
+                elif sinal['sinal'] == 'SELL':
+                    client.order_market_sell(symbol="BTCUSDT", quantity=11)
+                time.sleep(40)  # Aguarda 40s entre análises
+            except Exception as e:
+                print("Erro no modo automático:", e)
+                break
+
+    thread = threading.Thread(target=executar_loop)
+    thread.daemon = True
+    thread.start()
+    threads_automaticas[user_id] = thread
+    return jsonify({"mensagem": "Modo automático ativado"})
 
 # === CRIAÇÃO AUTOMÁTICA DE BANCO ===
 with app.app_context():
     db.create_all()
-
