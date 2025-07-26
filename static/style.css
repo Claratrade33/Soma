@@ -1,45 +1,106 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <title>ClaraVerse • Operações</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <script src="/static/dashboard.js" defer></script>
-</head>
-<body>
-  <header class="topo">
-    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
-    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </header>
+/* ClaraVerse - style.css */
 
-  <section class="grafico">
-    <iframe 
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-      width="100%" height="400" frameborder="0">
-    </iframe>
-  </section>
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0a0a0f;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-  <section class="acoes">
-    <button onclick="executarOrdem('entrada')">ENTRADA</button>
-    <button onclick="executarOrdem('stop')">STOP</button>
-    <button onclick="executarOrdem('alvo')">ALVO</button>
-    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
-    <form action="/configurar" method="get" style="display:inline;">
-      <button type="submit">CONFIGURAR</button>
-    </form>
-  </section>
+.topo {
+  background-color: #10131a;
+  color: #00ffff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #00ffff33;
+}
 
-  <section class="sugestao">
-    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
-    <div id="sugestao_ia">
-      {% if sugestao and sugestao.sinal != 'Erro' %}
-        <pre>{{ sugestao | tojson(indent=2) }}</pre>
-      {% else %}
-        <p style="color: orange;">IA indisponível no momento. Verifique suas chaves em CONFIGURAR.</p>
-      {% endif %}
-    </div>
-    <div id="status_operacao" class="status"></div>
-  </section>
-</body>
-</html>
+.logo {
+  font-weight: bold;
+  font-size: 1.3em;
+}
+
+.saldo {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.btn-sair {
+  text-decoration: none;
+  background-color: #ff0044;
+  padding: 6px 12px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+}
+
+.grafico {
+  margin: 20px auto;
+  width: 100%;
+  max-width: 960px;
+}
+
+.acoes {
+  text-align: center;
+  margin: 30px auto;
+}
+
+.acoes button {
+  background-color: #00ffff;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: 0.3s;
+}
+
+.acoes button:hover {
+  background-color: #00dddd;
+}
+
+.sugestao {
+  background-color: #1c1c24;
+  margin: 40px auto;
+  padding: 20px;
+  max-width: 960px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00ffff44;
+}
+
+.sugestao h3 {
+  color: #00ffff;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.status {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #00ff88;
+  text-align: center;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .topo {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .acoes button {
+    width: 90%;
+    margin: 8px 0;
+  }
+
+  .grafico iframe {
+    height: 300px;
+  }
+}
