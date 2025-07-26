@@ -1,22 +1,26 @@
-{% extends "base.html" %}
-{% block title %}Configurar API • ClaraVerse{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>ClaraVerse • Configurar API</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topo">
+    <span class="logo">⚙️ Configurar API Binance</span>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </div>
 
-{% block content %}
-<div style="max-width: 500px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 10px #00ffff;">
-  <h2 style="text-align: center; color: #00ffff;">⚙️ Configurar API da Binance</h2>
-  <form method="POST" action="{{ url_for('configurar') }}">
-    <label for="api_key" style="color: #ccc;">🔑 API Key</label>
-    <input type="text" id="api_key" name="api_key" value="{{ user.api_key or '' }}" required
-           style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; background-color: #2a2a2a; color: white; border: none;">
+  <div class="painel">
+    <form method="POST" style="max-width: 400px; margin: 0 auto;">
+      <label>API Key:</label>
+      <input type="text" name="api_key" required value="{{ user.api_key or '' }}">
+      
+      <label>API Secret:</label>
+      <input type="text" name="api_secret" required value="{{ user.api_secret or '' }}">
 
-    <label for="api_secret" style="color: #ccc;">🕵️ API Secret</label>
-    <input type="text" id="api_secret" name="api_secret" value="{{ user.api_secret or '' }}" required
-           style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 6px; background-color: #2a2a2a; color: white; border: none;">
-
-    <button type="submit"
-            style="width: 100%; padding: 14px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-      💾 Salvar e Ir para Painel
-    </button>
-  </form>
-</div>
-{% endblock %}
+      <button type="submit">Salvar e Voltar ao Painel</button>
+    </form>
+  </div>
+</body>
+</html>
