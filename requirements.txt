@@ -1,10 +1,10 @@
+setuptools>=65.5.0
+wheel
 Flask==2.3.3
 openai==1.13.3
 cryptography==41.0.3
 python-binance==1.0.17
 flask-sqlalchemy==3.1.1
-flask-socketio==5.3.6
-eventlet==0.33.3
 requests
 gunicorn
 numpy==1.24.4
