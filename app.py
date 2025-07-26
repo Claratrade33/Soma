@@ -1,29 +1,41 @@
 import os
-import time
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from datetime import timedelta
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
 from clarinha_ia import ClarinhaIA
 
+# === App base ===
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'chave_claraverse_2025')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usuarios.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave_claraverse_2025')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
 
+# === Modelos ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), unique=True)
     password = db.Column(db.String(200))
     api_key_binance = db.Column(db.String(200))
     api_secret_binance = db.Column(db.String(200))
     openai_key = db.Column(db.String(200))
 
-with app.app_context():
-    db.create_all()
+# === Login obrigatório ===
+def login_required(view_func):
+    from functools import wraps
+    @wraps(view_func)
+    def wrapped_view(**kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return view_func(**kwargs)
+    return wrapped_view
 
+# === Rotas ===
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -33,25 +45,24 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        senha = request.form['senha']
-        user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, senha):
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and check_password_hash(user.password, request.form['password']):
             session['user_id'] = user.id
             return redirect(url_for('painel_operacao'))
-        return render_template('login.html', erro='Credenciais inválidas')
+        flash('Usuário ou senha incorretos.')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        username = request.form['username']
         email = request.form['email']
-        senha = request.form['senha']
+        senha = request.form['password']
         if User.query.filter_by(email=email).first():
             return render_template('register.html', erro='Email já cadastrado')
         hash_senha = generate_password_hash(senha)
-        user = User(email=email, password=hash_senha)
-        db.session.add(user)
+        novo = User(username=username, email=email, password=hash_senha)
+        db.session.add(novo)
         db.session.commit()
         return redirect(url_for('login'))
     return render_template('register.html')
@@ -61,25 +72,9 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/painel_operacao')
-def painel_operacao():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    user = User.query.get(session['user_id'])
-    saldo = 0.0
-    try:
-        if user.api_key_binance and user.api_secret_binance:
-            cliente = Client(user.api_key_binance, user.api_secret_binance)
-            conta = cliente.get_asset_balance(asset='USDT')
-            saldo = round(float(conta['free']), 2)
-    except Exception as e:
-        print("Erro ao obter saldo:", e)
-    return render_template("painel_operacao.html", saldo=saldo)
-
-@app.route('/configurar', methods=["GET", "POST"])
+@app.route('/configurar', methods=['GET', 'POST'])
+@login_required
 def configurar():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
     if request.method == 'POST':
         user.api_key_binance = request.form['api_key']
@@ -89,53 +84,54 @@ def configurar():
         return redirect(url_for('painel_operacao'))
     return render_template('configurar.html', user=user)
 
-@app.route('/executar_ordem', methods=["POST"])
-def executar_ordem():
-    if 'user_id' not in session:
-        return jsonify({'erro': 'Não autenticado'})
+@app.route('/painel_operacao')
+@login_required
+def painel_operacao():
     user = User.query.get(session['user_id'])
-    tipo = request.json.get("tipo")
+    if not user.api_key_binance or not user.api_secret_binance or not user.openai_key:
+        return redirect(url_for('configurar'))
+
     try:
-        cliente = Client(user.api_key_binance, user.api_secret_binance)
-        if tipo == "entrada":
-            cliente.order_market_buy(symbol="BTCUSDT", quantity=0.001)
-            return jsonify({"status": "Compra executada"})
-        elif tipo == "stop":
-            cliente.order_market_sell(symbol="BTCUSDT", quantity=0.001)
-            return jsonify({"status": "Stop executado"})
-        elif tipo == "alvo":
-            cliente.order_market_sell(symbol="BTCUSDT", quantity=0.001)
-            return jsonify({"status": "Alvo executado"})
-        elif tipo == "automatico":
-            ia = ClarinhaIA(user.api_key_binance, user.api_secret_binance, user.openai_key)
-            from threading import Thread
-            Thread(target=loop_automatico, args=(ia, cliente), daemon=True).start()
-            return jsonify({"status": "Modo automático ativado"})
-        else:
-            return jsonify({"erro": "Tipo inválido"})
+        client = Client(user.api_key_binance, user.api_secret_binance)
+        saldo = client.get_asset_balance(asset='USDT')
+        valor = saldo['free'] if saldo else '0.00'
     except Exception as e:
-        return jsonify({"erro": str(e)})
+        valor = "Erro ao conectar"
 
-@app.route('/sugestao_ia')
-def sugestao_ia():
-    if 'user_id' not in session:
-        return jsonify({'erro': 'Não autenticado'})
+    return render_template('painel_operacao.html', saldo=valor)
+
+@app.route('/executar_ordem', methods=['POST'])
+@login_required
+def executar_ordem():
     user = User.query.get(session['user_id'])
-    ia = ClarinhaIA(user.api_key_binance, user.api_secret_binance, user.openai_key)
-    resultado = ia.analise()
-    return jsonify(resultado)
+    tipo = request.form.get('tipo')  # 'compra', 'venda', 'auto'
+    if not all([user.api_key_binance, user.api_secret_binance, user.openai_key]):
+        return 'Chaves não configuradas', 400
 
-def loop_automatico(ia, cliente):
-    while True:
-        try:
-            sinal = ia.analise()
-            print("IA:", sinal)
-            if sinal.get("direcao") == "COMPRA":
-                cliente.order_market_buy(symbol="BTCUSDT", quantity=0.001)
-            elif sinal.get("direcao") == "VENDA":
-                cliente.order_market_sell(symbol="BTCUSDT", quantity=0.001)
-            with open("log_operacoes.txt", "a") as f:
-                f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {sinal}\n")
-        except Exception as e:
-            print("Erro loop automático:", e)
-        time.sleep(60)
+    client = Client(user.api_key_binance, user.api_secret_binance)
+
+    try:
+        if tipo == 'auto':
+            clarinha = ClarinhaIA(user.openai_key)
+            sugestao = clarinha.gerar_sugestao("BTCUSDT")
+            if sugestao['entrada'] and sugestao['direcao'] == 'compra':
+                client.order_market_buy(symbol="BTCUSDT", quantity=15)
+            elif sugestao['direcao'] == 'venda':
+                client.order_market_sell(symbol="BTCUSDT", quantity=15)
+            return 'Ordem automática executada'
+        elif tipo == 'compra':
+            client.order_market_buy(symbol="BTCUSDT", quantity=15)
+            return 'Compra executada com sucesso'
+        elif tipo == 'venda':
+            client.order_market_sell(symbol="BTCUSDT", quantity=15)
+            return 'Venda executada com sucesso'
+        else:
+            return 'Tipo de ordem inválido', 400
+    except Exception as e:
+        return f'Erro: {str(e)}', 500
+
+# === Inicialização ===
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
