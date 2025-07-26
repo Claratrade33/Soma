@@ -1,16 +1,48 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const sugDiv = document.querySelector(".sugestao-ia pre");
+document.addEventListener('DOMContentLoaded', () => {
+  obterSugestaoIA();
 
-  fetch("/sugestao_ia")
+  const botoes = ['comprar', 'vender', 'stop', 'alvo', 'automatico'];
+  botoes.forEach(acao => {
+    const botao = document.querySelector(`button[onclick*="${acao}"]`);
+    if (botao) {
+      botao.addEventListener('click', () => executarOrdem(acao));
+    }
+  });
+});
+
+function obterSugestaoIA() {
+  fetch('/sugestao_ia')
     .then(res => res.json())
     .then(data => {
-      if (data && !data.erro) {
-        sugDiv.innerText = JSON.stringify(data, null, 2);
+      if (data.erro) {
+        document.getElementById('sugestao_ia').innerText = 'Erro ao obter sugestão da IA';
       } else {
-        sugDiv.innerText = "⚠️ IA não respondeu. Verifique suas chaves.";
+        document.getElementById('sugestao_ia').innerHTML = `
+          <strong>Entrada:</strong> ${data.entrada}<br>
+          <strong>Alvo:</strong> ${data.alvo}<br>
+          <strong>Stop:</strong> ${data.stop}<br>
+          <strong>Confiança:</strong> ${data.confianca}<br>
+          <em>${data.sugestao}</em>
+        `;
       }
     })
     .catch(() => {
-      sugDiv.innerText = "⚠️ Erro ao obter sugestão da IA.";
+      document.getElementById('sugestao_ia').innerText = 'Erro na comunicação com a IA.';
     });
-});
+}
+
+function executarOrdem(tipo) {
+  fetch('/executar_ordem', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tipo })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('status_operacao').innerText = `✅ ${data.status || data.resultado || 'Ordem executada com sucesso'}`;
+    obterSugestaoIA();  // Atualiza sugestão após ordem
+  })
+  .catch(() => {
+    document.getElementById('status_operacao').innerText = '❌ Erro ao executar a ordem';
+  });
+}
