@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ClaraVerse • Configurar API</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <div class="topo">
-    <span class="logo">⚙️ Configurar API Binance</span>
+  <header class="topo">
+    <div class="logo">⚙️ Configurar API Binance & OpenAI</div>
     <a href="/logout" class="btn-sair">Sair</a>
-  </div>
+  </header>
 
-  <div class="painel">
-    <form method="POST" style="max-width: 400px; margin: 0 auto;">
-      <label>API Key:</label>
-      <input type="text" name="api_key" required value="{{ user.api_key or '' }}">
-      
-      <label>API Secret:</label>
-      <input type="text" name="api_secret" required value="{{ user.api_secret or '' }}">
+  <main class="painel-config">
+    <form method="POST">
+      <label>API Key (Binance):</label>
+      <input type="text" name="api_key" value="{{ user.api_key or '' }}" required /><br>
+
+      <label>API Secret (Binance):</label>
+      <input type="text" name="api_secret" value="{{ user.api_secret or '' }}" required /><br>
+
+      <label>OpenAI Key:</label>
+      <input type="text" name="openai_key" value="{{ user.openai_key or '' }}" required /><br>
 
       <button type="submit">Salvar e Voltar ao Painel</button>
     </form>
-  </div>
+  </main>
 </body>
 </html>
