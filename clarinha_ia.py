@@ -1,3 +1,4 @@
+# clarinha_ia.py (corrigido e completo)
 import openai
 import requests
 
@@ -18,14 +19,14 @@ DADOS:
 - Volume: {dados['volume']}
 - RSI: {dados['rsi']}
 
-Responda com formato JSON:
-{{
+Responda exclusivamente em formato JSON:
+{
   "entrada": "...",
   "alvo": "...",
   "stop": "...",
   "confianca": "...",
   "sugestao": "..."
-}}
+}
 """
             resposta = openai.ChatCompletion.create(
                 model="gpt-4",
@@ -38,20 +39,24 @@ Responda com formato JSON:
             return {"erro": str(e)}
 
     def obter_dados_mercado(self):
-        url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-        resposta = requests.get(url).json()
+        try:
+            url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+            resposta = requests.get(url)
+            resposta.raise_for_status()
+            dados = resposta.json()
 
-        preco = float(resposta["lastPrice"])
-        variacao = float(resposta["priceChangePercent"])
-        volume = float(resposta["volume"])
+            preco = float(dados["lastPrice"])
+            variacao = float(dados["priceChangePercent"])
+            volume = float(dados["volume"])
 
-        # Cálculo simplificado de RSI simulado
-        rsi = 50 + (variacao * 0.5)
-        rsi = min(max(rsi, 0), 100)
+            rsi = 50 + (variacao * 0.5)
+            rsi = min(max(rsi, 0), 100)
 
-        return {
-            "preco_atual": preco,
-            "variacao_24h": variacao,
-            "volume": volume,
-            "rsi": rsi,
-        }
+            return {
+                "preco_atual": preco,
+                "variacao_24h": variacao,
+                "volume": volume,
+                "rsi": rsi,
+            }
+        except requests.RequestException as e:
+            raise Exception(f"Erro ao obter dados da Binance: {str(e)}")
