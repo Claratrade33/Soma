@@ -1,24 +1,42 @@
-@app.route('/painel_operacao')
-def painel_operacao():
-    user = get_current_user()
-    if not user:
-        return redirect(url_for('login'))
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ClaraVerse | Operações Reais</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="topo">
+        <span style="color: violet; font-weight: bold;">ClaraVerse | <span style="color: #00ffff;">Operações Reais</span></span><br>
+        <span style="color: gold;">💰 Saldo USDT: {{ saldo }}</span>
+        <a href="/logout" style="margin-left: 15px; color: blue;">Sair</a>
+    </div>
 
-    saldo = "Chaves não configuradas"
-    if user.api_key and user.api_secret:
-        try:
-            client = Client(user.api_key, user.api_secret)
-            balance = client.get_asset_balance(asset='USDT')
-            saldo = round(float(balance['free']), 2)
-        except Exception as e:
-            print(f"Erro ao conectar na Binance: {e}")
-            saldo = "Erro ao conectar"
+    <div class="grafico-tradingview">
+        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+                frameborder="0" width="100%" height="400"></iframe>
+    </div>
 
-    try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
-        sugestao = ia.analisar()
-    except Exception as e:
-        print(f"Erro ao consultar IA: {e}")
-        sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
+    <div class="botoes" style="margin-top: 10px; text-align: center;">
+        <button onclick="executarOrdem('entrada')">ENTRADA</button>
+        <button onclick="executarOrdem('stop')">STOP</button>
+        <button onclick="executarOrdem('alvo')">ALVO</button>
+        <button onclick="executarOrdem('auto')">AUTOMÁTICO</button>
+        <button onclick="window.location.href='/configurar'">CONFIGURAR</button>
+    </div>
 
-    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
+    <div style="margin-top: 20px; padding: 20px;">
+        <h3>🌾 IA Clarinha - Sinal ao vivo:</h3>
+        <pre>{{ sugestao }}</pre>
+    </div>
+
+    <script>
+        function executarOrdem(tipo) {
+            fetch(`/executar_ordem?tipo=${tipo}`)
+                .then(res => res.json())
+                .then(d => alert(`✅ ${d.status}`))
+                .catch(err => alert('Erro ao executar ordem.'));
+        }
+    </script>
+</body>
+</html>
