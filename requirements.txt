@@ -1,11 +1,11 @@
 setuptools>=61.0.0
 Flask==2.3.3
-openai==1.13.3
-cryptography==41.0.3
-python-binance==1.0.17
-flask-sqlalchemy==3.1.1
-flask-socketio==5.3.6
+flask_sqlalchemy==3.1.1
+flask_socketio==5.3.6
 eventlet==0.33.3
-requests
 gunicorn
+openai==1.13.3
+python-binance==1.0.17
+cryptography==41.0.3
+requests
 numpy==1.26.4
