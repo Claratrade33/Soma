@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from functools import wraps
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
@@ -8,23 +9,30 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
 from clarinha_ia import ClarinhaIA
 
+# === Configuração base ===
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'chave_secreta_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")  # CORRIGIDO
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-# MODELO DE USUÁRIO
+clarinha = ClarinhaIA()
+
+# ===== MODELO DE USUÁRIO =====
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
+    api_key = db.Column(db.String(300))
+    api_secret = db.Column(db.String(300))
+    gpt_key = db.Column(db.String(300))
 
-# DECORADOR DE LOGIN
+
+# ===== LOGIN OBRIGATÓRIO =====
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -33,26 +41,13 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ROTA PRINCIPAL
+
+# ===== ROTAS =====
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
-# LOGIN
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            return redirect(url_for('painel_operacao'))
-        flash('Credenciais inválidas')
-    return render_template('login.html')
-
-# REGISTRO
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -60,70 +55,108 @@ def register():
         email = request.form['email']
         password = generate_password_hash(request.form['password'])
         if User.query.filter_by(email=email).first():
-            flash('Email já cadastrado')
+            flash('E-mail já registrado.')
             return redirect(url_for('register'))
-        new_user = User(username=username, email=email, password=password)
-        db.session.add(new_user)
+        user = User(username=username, email=email, password=password)
+        db.session.add(user)
         db.session.commit()
-        flash('Conta criada com sucesso!')
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# LOGOUT
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('painel_operacao'))
+        flash('Login inválido.')
+        return redirect(url_for('login'))
+    return render_template('login.html')
+
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ROTA DO PAINEL
-@app.route('/painel_operacao')
-@login_required
-def painel_operacao():
-    return render_template('painel_operacao.html')
 
-# ROTA DE CONFIGURAR API
 @app.route('/configurar', methods=['GET', 'POST'])
 @login_required
 def configurar():
+    user = User.query.get(session['user_id'])
     if request.method == 'POST':
-        session['binance_api'] = request.form.get('binance_api')
-        session['binance_secret'] = request.form.get('binance_secret')
-        session['openai_key'] = request.form.get('openai_key')
+        user.api_key = request.form['api_key']
+        user.api_secret = request.form['api_secret']
+        user.gpt_key = request.form['gpt_key']
+        db.session.commit()
         return redirect(url_for('painel_operacao'))
-    return render_template('configurar.html')
+    return render_template('configurar.html', user=user)
 
-# ROTA PARA EXECUTAR ORDENS
+
+@app.route('/painel_operacao')
+@login_required
+def painel_operacao():
+    user = User.query.get(session['user_id'])
+    if not user.api_key or not user.api_secret:
+        return redirect(url_for('configurar'))
+
+    try:
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        saldo = client.get_asset_balance(asset='USDT')
+        saldo_real = round(float(saldo['free']), 2) if saldo else 0.0
+    except:
+        saldo_real = 0.0
+
+    resposta_ia = clarinha.gerar_sugestao(user.gpt_key, user.api_key, user.api_secret)
+
+    return render_template('painel_operacao.html', saldo=saldo_real, resposta_ia=resposta_ia)
+
+
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
-    dados = request.json
-    acao = dados.get('acao')
+    user = User.query.get(session['user_id'])
+    dados = request.get_json()
+    direcao = dados.get('direcao')
 
-    api_key = session.get('binance_api')
-    api_secret = session.get('binance_secret')
-
-    if not api_key or not api_secret:
-        return jsonify({'erro': 'Chaves da Binance não configuradas.'}), 400
-
-    client = Client(api_key, api_secret)
     try:
-        if acao == 'comprar':
-            order = client.order_market_buy(symbol='BTCUSDT', quantity=0.001)
-        elif acao == 'vender':
-            order = client.order_market_sell(symbol='BTCUSDT', quantity=0.001)
+        client = Client(api_key=user.api_key, api_secret=user.api_secret)
+        quantidade = 15  # valor fixo para ordem
+        if direcao == 'compra':
+            order = client.create_order(
+                symbol='BTCUSDT',
+                side='BUY',
+                type='MARKET',
+                quantity=quantidade
+            )
+        elif direcao == 'venda':
+            order = client.create_order(
+                symbol='BTCUSDT',
+                side='SELL',
+                type='MARKET',
+                quantity=quantidade
+            )
         else:
-            return jsonify({'erro': 'Ação inválida'}), 400
-        return jsonify({'mensagem': 'Ordem executada com sucesso!', 'ordem': order})
+            return jsonify({'status': 'erro', 'mensagem': 'direção inválida'})
+        return jsonify({'status': 'ok', 'mensagem': 'ordem executada com sucesso'})
     except Exception as e:
-        return jsonify({'erro': str(e)}), 500
+        return jsonify({'status': 'erro', 'mensagem': str(e)})
 
-# SUGESTÃO DA IA CLARINHA
+
 @app.route('/sugestao_ia')
 @login_required
 def sugestao_ia():
-    openai_key = session.get('openai_key')
-    if not openai_key:
-        return jsonify({'erro': 'Chave OpenAI não configurada'}), 400
-    ia = ClarinhaIA(openai_key)
-    resultado = ia.gerar_sugestao()
-    return jsonify(resultado)
+    user = User.query.get(session['user_id'])
+    resposta = clarinha.gerar_sugestao(user.gpt_key, user.api_key, user.api_secret)
+    return jsonify({'resposta': resposta})
+
+
+# ========= EXECUÇÃO =========
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    socketio.run(app, host='0.0.0.0', port=10000)
