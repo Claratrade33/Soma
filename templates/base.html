@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>{% block title %}ClaraVerse{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  {% block content %}{% endblock %}
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Erro {{ error_code }} • ClaraVerse{% endblock %}
+
+{% block content %}
+  <div style="max-width: 500px; margin: 100px auto; padding: 30px; background-color: #1c1c1e; border-radius: 12px; box-shadow: 0 0 12px #ff4d4d33; text-align: center;">
+    <h2 style="color: #ff4d4d;">🚫 Erro {{ error_code }}</h2>
+    <p style="color: #ccc; margin: 20px 0;">{{ error_message }}</p>
+    <a href="{{ url_for('login') }}">
+      <button style="padding: 12px 24px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">
+        🔙 Voltar ao Login
+      </button>
+    </a>
+  </div>
+{% endblock %}
