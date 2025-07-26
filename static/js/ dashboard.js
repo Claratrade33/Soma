@@ -1,49 +1,57 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const sugestaoDiv = document.getElementById("sugestao_ia");
-  const status = document.getElementById("status_operacao");
+document.addEventListener('DOMContentLoaded', () => {
+  let modoAutomatico = false;
+  let intervaloIA;
 
-  // Atualiza sugestão da IA se estiver carregando
-  if (sugestaoDiv && sugestaoDiv.innerText.includes("Carregando")) {
-    fetch("/painel_operacao")
-      .then(r => r.text())
-      .then(html => {
-        const temp = document.createElement("div");
-        temp.innerHTML = html;
-        const novaSugestao = temp.querySelector("#sugestao_ia");
-        if (novaSugestao) {
-          sugestaoDiv.innerHTML = novaSugestao.innerHTML;
-        }
+  async function chamarIA() {
+    try {
+      const resposta = await fetch('/ia');
+      const dados = await resposta.json();
+      document.getElementById('sugestao_ia').innerText = `
+🔁 Sinal: ${dados.sinal}
+🎯 Alvo: ${dados.alvo}
+🛑 Stop: ${dados.stop}
+📊 Confiança: ${dados.confianca}
+      `.trim();
+    } catch (erro) {
+      document.getElementById('sugestao_ia').innerText = 'Erro ao buscar sugestão da IA.';
+    }
+  }
+
+  async function executarOrdem(tipo) {
+    if (tipo === 'automatico') {
+      modoAutomatico = !modoAutomatico;
+      const status = document.getElementById('status_operacao');
+      if (modoAutomatico) {
+        status.innerText = '🤖 Modo Automático ativado!';
+        intervaloIA = setInterval(() => {
+          chamarIA();
+          fetch('/executar_ordem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'auto' })
+          });
+        }, 60000); // a cada 60 segundos
+      } else {
+        clearInterval(intervaloIA);
+        status.innerText = '❌ Modo Automático desativado.';
+      }
+      return;
+    }
+
+    try {
+      const resposta = await fetch('/executar_ordem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo })
       });
+
+      const dados = await resposta.json();
+      document.getElementById('status_operacao').innerText = `✅ ${dados.status}`;
+    } catch (erro) {
+      document.getElementById('status_operacao').innerText = 'Erro ao executar ordem.';
+    }
   }
 
-  // Feedback ao clicar nos botões
-  function feedback(mensagem) {
-    if (status) status.innerText = `✅ ${mensagem}`;
-  }
-
-  window.executarOrdem = function(tipo) {
-    fetch("/executar_ordem", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tipo })
-    })
-    .then(res => res.json())
-    .then(data => {
-      feedback(`Ordem de ${tipo.toUpperCase()} enviada`);
-    })
-    .catch(err => {
-      feedback("Erro ao executar ordem");
-    });
-  }
-
-  window.ativarModoAutomatico = function() {
-    fetch("/ativar_automatico", { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        feedback("Modo automático ativado");
-      })
-      .catch(err => {
-        feedback("Erro ao ativar automático");
-      });
-  }
+  // Torna as funções globais para os botões do HTML
+  window.executarOrdem = executarOrdem;
 });
