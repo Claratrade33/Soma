@@ -22,7 +22,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
-    openai_key = db.Column(db.String(300))  # NOVO CAMPO
+    openai_key = db.Column(db.String(300))  # Nova coluna
 
 # === USUÁRIO ATUAL ===
 def get_current_user():
@@ -99,7 +99,11 @@ def painel_operacao():
             saldo = "Erro ao conectar"
 
     try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
+        ia = ClarinhaIA(
+            api_key=user.api_key,
+            api_secret=user.api_secret,
+            openai_key=user.openai_key
+        )
         sugestao = ia.analisar()
     except Exception as e:
         print(f"Erro ao consultar IA: {e}")
@@ -107,6 +111,6 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
+# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
 with app.app_context():
     db.create_all()
