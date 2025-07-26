@@ -1,38 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <title>ClaraVerse • Painel de Operações</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <script src="/static/dashboard.js" defer></script>
+    <meta charset="UTF-8">
+    <title>Painel Operações</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </head>
 <body>
-  <header class="topo">
-    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
-    <div class="saldo">💰 Saldo USDT: ao vivo via API</div>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </header>
+<div class="container">
+    <div class="sidebar">
+        <button onclick="executarEntrada()">Entrada</button>
+        <button onclick="executarStop()">Stop</button>
+        <button onclick="executarAlvo()">Alvo</button>
+        <button onclick="configurar()">Configurações</button>
+        <button onclick="ativarAuto()">Automático</button>
+        <a href="{{ url_for('login') }}">Sair</a>
+    </div>
 
-  <section class="grafico">
-    <iframe 
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-      width="100%" height="400" frameborder="0">
-    </iframe>
-  </section>
+    <div class="conteudo">
+        <iframe src="https://www.binance.com/pt-BR/trade/BTC_USDT" frameborder="0" class="iframe-binance"></iframe>
+        
+        <div class="ia-sugestao">
+            <h2>Sugestão Inteligente (IA Clarinha)</h2>
+            <p><strong>Entrada:</strong> {{ sugestao.entrada }}</p>
+            <p><strong>Alvo:</strong> {{ sugestao.alvo }}</p>
+            <p><strong>Stop:</strong> {{ sugestao.stop }}</p>
+            <p><strong>Confiança:</strong> {{ sugestao.confianca }}</p>
+            <p>{{ sugestao.sugestao }}</p>
+        </div>
 
-  <section class="acoes">
-    <button onclick="executarOrdem('comprar')">ENTRADA</button>
-    <button onclick="executarOrdem('vender')">SAÍDA</button>
-    <button onclick="executarOrdem('stop')">STOP</button>
-    <button onclick="executarOrdem('alvo')">ALVO</button>
-    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
-    <a href="/configurar"><button>CONFIGURAR</button></a>
-  </section>
-
-  <section class="sugestao">
-    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
-    <div id="sugestao_ia">Carregando sugestão da IA...</div>
-    <div id="status_operacao" class="status"></div>
-  </section>
+        <div class="relatorio-operacoes">
+            <h2>Relatório de Operações</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Entrada</th>
+                        <th>Alvo</th>
+                        <th>Stop</th>
+                        <th>Confiança</th>
+                        <th>Sugestão</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for op in operacoes %}
+                    <tr>
+                        <td>{{ op.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}</td>
+                        <td>{{ op.entrada }}</td>
+                        <td>{{ op.alvo }}</td>
+                        <td>{{ op.stop }}</td>
+                        <td>{{ op.confianca }}</td>
+                        <td>{{ op.sugestao }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 </body>
 </html>
