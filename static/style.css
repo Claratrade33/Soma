@@ -1,106 +1,112 @@
-/* ClaraVerse - style.css */
-
 body {
   margin: 0;
   padding: 0;
-  background-color: #0a0a0f;
-  color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0a0a0a;
+  font-family: 'Segoe UI', sans-serif;
+  color: #fff;
 }
 
 .topo {
-  background-color: #10131a;
-  color: #00ffff;
-  padding: 15px 20px;
+  background-color: #111;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #00ffff33;
+  border-bottom: 2px solid #00ffff;
 }
 
 .logo {
+  font-size: 20px;
   font-weight: bold;
-  font-size: 1.3em;
+  color: #b847ff;
 }
 
 .saldo {
-  font-size: 1em;
+  color: #00ffff;
   font-weight: bold;
 }
 
 .btn-sair {
-  text-decoration: none;
-  background-color: #ff0044;
-  padding: 6px 12px;
-  border-radius: 5px;
+  background-color: #ff0055;
   color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 4px;
   font-weight: bold;
 }
 
 .grafico {
-  margin: 20px auto;
   width: 100%;
-  max-width: 960px;
+  margin: 20px 0;
 }
 
 .acoes {
-  text-align: center;
-  margin: 30px auto;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px;
 }
 
 .acoes button {
-  background-color: #00ffff;
-  color: #000;
+  padding: 10px 18px;
+  background-color: #1f1f1f;
+  border: 1px solid #00ffff;
+  color: #00ffff;
   font-weight: bold;
-  border: none;
-  padding: 12px 20px;
-  margin: 5px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1em;
-  transition: 0.3s;
+  transition: all 0.2s ease;
 }
 
 .acoes button:hover {
-  background-color: #00dddd;
+  background-color: #00ffff;
+  color: #0a0a0a;
 }
 
 .sugestao {
-  background-color: #1c1c24;
-  margin: 40px auto;
+  margin: 20px auto;
+  max-width: 800px;
   padding: 20px;
-  max-width: 960px;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-  box-shadow: 0 0 10px #00ffff44;
+  border: 1px solid #00ffff;
 }
 
 .sugestao h3 {
-  color: #00ffff;
-  margin-bottom: 15px;
-  text-align: center;
+  color: #ff00ff;
+  margin-bottom: 10px;
 }
 
 .status {
   margin-top: 15px;
-  font-weight: bold;
+  font-size: 16px;
   color: #00ff88;
-  text-align: center;
+  font-weight: bold;
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
   .topo {
     flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
-    text-align: center;
+  }
+
+  .acoes {
+    flex-direction: column;
+    align-items: center;
   }
 
   .acoes button {
     width: 90%;
-    margin: 8px 0;
   }
 
-  .grafico iframe {
-    height: 300px;
+  .sugestao {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  .btn-sair {
+    align-self: flex-end;
   }
 }
