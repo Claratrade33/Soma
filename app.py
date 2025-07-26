@@ -4,7 +4,7 @@ from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
 from binance.client import Client
-import os
+import os, threading, time, random
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
@@ -29,6 +29,36 @@ def get_current_user():
     if user_id:
         return User.query.get(user_id)
     return None
+
+# === VARREDURA AUTOMÁTICA ===
+modo_auto = {}
+
+def iniciar_loop_automatico(user_id):
+    if modo_auto.get(user_id):
+        return  # já está rodando
+
+    def loop():
+        user = User.query.get(user_id)
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        client = Client(user.api_key, user.api_secret)
+
+        while modo_auto.get(user_id):
+            try:
+                print(f"🤖 IA Clarinha (user {user_id}) escaneando mercado...")
+                sugestao = ia.analisar()
+                print("SUGESTÃO:", sugestao)
+
+                if sugestao.get("sinal") == "ENTRADA COMPRADA" and sugestao.get("confianca", 0) > 0.7:
+                    print("🔁 Entrada automatizada autorizada. (Simulada)")
+                    # Aqui pode colocar a execução real com client.create_order() se desejar.
+
+                time.sleep(random.randint(25, 75))  # intervalo irregular
+            except Exception as e:
+                print(f"Erro IA auto: {e}")
+                time.sleep(60)
+
+    modo_auto[user_id] = True
+    threading.Thread(target=loop, daemon=True).start()
 
 # === ROTAS ===
 
@@ -103,6 +133,16 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
 
-# === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
+@app.route('/ativar_automatico', methods=["POST"])
+def ativar_automatico():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('login'))
+
+    iniciar_loop_automatico(user.id)
+    return redirect(url_for('painel_operacao'))
+
+# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
 with app.app_context():
     db.create_all()
+
