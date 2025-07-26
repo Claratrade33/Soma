@@ -1,29 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>ClaraVerse • Configurar API</title>
-  <link rel="stylesheet" href="/static/style.css" />
+    <meta charset="UTF-8">
+    <title>ClaraVerse | Configurar Chaves</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background-color: #0c0c0c;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #00ffff;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #111;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #00ffff44;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #7fffd4;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            background-color: #222;
+            color: white;
+            border: 1px solid #666;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            background-color: #00ffff;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #00cccc;
+        }
+
+        .voltar {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .voltar a {
+            color: #66ccff;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <header class="topo">
-    <div class="logo">⚙️ Configurar API Binance & OpenAI</div>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </header>
+    <h2>🔐 Configurar Chaves API</h2>
+    <form method="POST" action="/configurar">
+        <label for="api_key">🔑 Binance API Key:</label>
+        <input type="text" name="api_key" id="api_key" required>
 
-  <main class="painel-config">
-    <form method="POST">
-      <label>API Key (Binance):</label>
-      <input type="text" name="api_key" value="{{ user.api_key or '' }}" required /><br>
+        <label for="api_secret">🔒 Binance API Secret:</label>
+        <input type="password" name="api_secret" id="api_secret" required>
 
-      <label>API Secret (Binance):</label>
-      <input type="text" name="api_secret" value="{{ user.api_secret or '' }}" required /><br>
+        <label for="openai_key">🧠 OpenAI Key:</label>
+        <input type="text" name="openai_key" id="openai_key" required>
 
-      <label>OpenAI Key:</label>
-      <input type="text" name="openai_key" value="{{ user.openai_key or '' }}" required /><br>
-
-      <button type="submit">Salvar e Voltar ao Painel</button>
+        <input type="submit" value="Salvar e Ativar IA">
     </form>
-  </main>
+
+    <div class="voltar">
+        <a href="/painel_operacao">← Voltar ao Painel</a>
+    </div>
 </body>
 </html>
