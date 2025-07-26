@@ -1,39 +1,24 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <title>ClaraVerse • Operações</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <script src="/static/dashboard.js" defer></script>
-</head>
-<body>
-  <header class="topo">
-    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
-    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
-    <a href="/logout" class="btn-sair">Sair</a>
-  </header>
+@app.route('/painel_operacao')
+def painel_operacao():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('login'))
 
-  <section class="grafico">
-    <iframe 
-      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
-      width="100%" height="400" frameborder="0">
-    </iframe>
-  </section>
+    saldo = "Chaves não configuradas"
+    if user.api_key and user.api_secret:
+        try:
+            client = Client(user.api_key, user.api_secret)
+            balance = client.get_asset_balance(asset='USDT')
+            saldo = round(float(balance['free']), 2)
+        except Exception as e:
+            print(f"Erro ao conectar na Binance: {e}")  # <- Log detalhado
+            saldo = "Erro ao conectar"
 
-  <section class="acoes">
-    <button onclick="executarOrdem('compra')">ENTRADA</button>
-    <button onclick="executarOrdem('venda')">STOP</button>
-    <button onclick="executarOrdem('alvo')">ALVO</button>
-    <button onclick="ativarModoAutomatico()">AUTOMÁTICO</button>
-    <button onclick="window.location.href='/configurar'">CONFIGURAR</button>
-  </section>
+    try:
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret)
+        sugestao = ia.analisar()
+    except Exception as e:
+        print(f"Erro ao consultar IA: {e}")  # <- Log da IA
+        sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
-  <section class="sugestao">
-    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
-    <div id="sugestao_ia">
-      {{ sugestao }}
-    </div>
-    <div id="status_operacao" class="status"></div>
-  </section>
-</body>
-</html>
+    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
