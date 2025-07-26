@@ -1,92 +1,110 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse | Configurar Chaves</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            background-color: #0c0c0c;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            padding: 20px;
-        }
+from flask import Flask, render_template, request, redirect, session, url_for
+from flask_sqlalchemy import SQLAlchemy
+from datetime import timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
+from binance.client import Client
+from clarinha_ia import ClarinhaIA
+import os
 
-        h2 {
-            text-align: center;
-            color: #00ffff;
-        }
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'claraverse_secret')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///claraverse.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
-        form {
-            max-width: 500px;
-            margin: 40px auto;
-            background: #111;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px #00ffff44;
-        }
+db = SQLAlchemy(app)
 
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #7fffd4;
-        }
+# === MODELO DO USUÁRIO ===
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    api_key = db.Column(db.String(300))
+    api_secret = db.Column(db.String(300))
+    openai_key = db.Column(db.String(300))  # nova coluna
 
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            background-color: #222;
-            color: white;
-            border: 1px solid #666;
-            border-radius: 5px;
-        }
+# === USUÁRIO LOGADO ===
+def get_current_user():
+    user_id = session.get("user_id")
+    if user_id:
+        return User.query.get(user_id)
+    return None
 
-        input[type="submit"] {
-            margin-top: 25px;
-            width: 100%;
-            padding: 12px;
-            background-color: #00ffff;
-            color: #000;
-            border: none;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+# === ROTAS ===
 
-        input[type="submit"]:hover {
-            background-color: #00cccc;
-        }
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
 
-        .voltar {
-            text-align: center;
-            margin-top: 20px;
-        }
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('painel_operacao'))
+        return render_template("login.html", erro="Credenciais inválidas")
+    return render_template("login.html")
 
-        .voltar a {
-            color: #66ccff;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <h2>🔐 Configurar Chaves API</h2>
-    <form method="POST" action="/configurar">
-        <label for="api_key">🔑 Binance API Key:</label>
-        <input type="text" name="api_key" id="api_key" required>
+@app.route('/register', methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form['username']
+        email = request.form['email']
+        password = generate_password_hash(request.form['password'])
+        user = User(username=username, email=email, password=password)
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        except Exception:
+            return render_template("register.html", erro="Erro ao registrar.")
+    return render_template("register.html")
 
-        <label for="api_secret">🔒 Binance API Secret:</label>
-        <input type="password" name="api_secret" id="api_secret" required>
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
-        <label for="openai_key">🧠 OpenAI Key:</label>
-        <input type="text" name="openai_key" id="openai_key" required>
+@app.route('/configurar', methods=["GET", "POST"])
+def configurar():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('login'))
+    if request.method == "POST":
+        user.api_key = request.form['api_key']
+        user.api_secret = request.form['api_secret']
+        user.openai_key = request.form['openai_key']
+        db.session.commit()
+        return redirect(url_for('painel_operacao'))
+    return render_template("configurar.html", user=user)
 
-        <input type="submit" value="Salvar e Ativar IA">
-    </form>
+@app.route('/painel_operacao')
+def painel_operacao():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('login'))
 
-    <div class="voltar">
-        <a href="/painel_operacao">← Voltar ao Painel</a>
-    </div>
-</body>
-</html>
+    saldo = "Chaves não configuradas"
+    if user.api_key and user.api_secret:
+        try:
+            client = Client(user.api_key, user.api_secret)
+            balance = client.get_asset_balance(asset='USDT')
+            saldo = round(float(balance['free']), 2)
+        except Exception:
+            saldo = "Erro ao conectar"
+
+    try:
+        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
+        sugestao = ia.analisar()
+    except Exception:
+        sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
+
+    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
+
+# === BANCO LOCAL ===
+with app.app_context():
+    db.create_all()
