@@ -1,57 +1,39 @@
-document.addEventListener('DOMContentLoaded', () => {
-  let modoAutomatico = false;
-  let intervaloIA;
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>ClaraVerse • Painel de Operações</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="topo">
+    <div class="logo">🧠 ClaraVerse | <span style="color: #00ffff">Operações Reais</span></div>
+    <div class="saldo">💰 Saldo USDT: {{ saldo }}</div>
+    <a href="/logout" class="btn-sair">Sair</a>
+  </header>
 
-  async function chamarIA() {
-    try {
-      const resposta = await fetch('/ia');
-      const dados = await resposta.json();
-      document.getElementById('sugestao_ia').innerText = `
-🔁 Sinal: ${dados.sinal}
-🎯 Alvo: ${dados.alvo}
-🛑 Stop: ${dados.stop}
-📊 Confiança: ${dados.confianca}
-      `.trim();
-    } catch (erro) {
-      document.getElementById('sugestao_ia').innerText = 'Erro ao buscar sugestão da IA.';
-    }
-  }
+  <section class="grafico">
+    <iframe 
+      src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_xxx&symbol=BINANCE:BTCUSDT&interval=1&theme=dark&style=1&locale=br"
+      width="100%" height="400" frameborder="0">
+    </iframe>
+  </section>
 
-  async function executarOrdem(tipo) {
-    if (tipo === 'automatico') {
-      modoAutomatico = !modoAutomatico;
-      const status = document.getElementById('status_operacao');
-      if (modoAutomatico) {
-        status.innerText = '🤖 Modo Automático ativado!';
-        intervaloIA = setInterval(() => {
-          chamarIA();
-          fetch('/executar_ordem', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo: 'auto' })
-          });
-        }, 60000); // a cada 60 segundos
-      } else {
-        clearInterval(intervaloIA);
-        status.innerText = '❌ Modo Automático desativado.';
-      }
-      return;
-    }
+  <section class="acoes">
+    <button onclick="executarOrdem('entrada')">ENTRADA</button>
+    <button onclick="executarOrdem('stop')">STOP</button>
+    <button onclick="executarOrdem('alvo')">ALVO</button>
+    <button onclick="executarOrdem('automatico')">AUTOMÁTICO</button>
+    <a href="/configurar"><button>CONFIGURAR</button></a>
+  </section>
 
-    try {
-      const resposta = await fetch('/executar_ordem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo })
-      });
-
-      const dados = await resposta.json();
-      document.getElementById('status_operacao').innerText = `✅ ${dados.status}`;
-    } catch (erro) {
-      document.getElementById('status_operacao').innerText = 'Erro ao executar ordem.';
-    }
-  }
-
-  // Torna as funções globais para os botões do HTML
-  window.executarOrdem = executarOrdem;
-});
+  <section class="sugestao">
+    <h3>🪐 IA Clarinha - Sinal ao vivo:</h3>
+    <div id="sugestao_ia">
+      Carregando sugestão da IA...
+    </div>
+    <div id="status_operacao" class="status"></div>
+  </section>
+</body>
+</html>
