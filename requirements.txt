@@ -3,9 +3,9 @@ Flask==2.3.3
 flask_sqlalchemy==3.1.1
 flask_socketio==5.3.6
 eventlet==0.33.3
-gunicorn
-openai==1.13.3
-python-binance==1.0.17
 cryptography==41.0.3
+python-binance==1.0.17
+openai==1.13.3
 requests
-numpy==1.26.4
+gunicorn
+numpy==1.24.4
