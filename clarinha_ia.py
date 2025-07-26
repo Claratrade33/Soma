@@ -1,11 +1,10 @@
-# clarinha_ia.py
-
 import openai
 from binance.client import Client
 import statistics
 import numpy as np
 import os
 import json
+import time
 
 class ClarinhaIA:
     def __init__(self, api_key=None, api_secret=None, openai_key=None):
@@ -82,3 +81,32 @@ class ClarinhaIA:
             return dados_json
         except Exception as e:
             return {"erro": "Erro na IA Clarinha", "detalhe": str(e)}
+
+# === LOOP AUTOMÁTICO COM EXECUÇÃO REAL ===
+def loop_automatico(ia, client):
+    if hasattr(loop_automatico, 'ativo') and loop_automatico.ativo:
+        print("⚠️ Loop já está rodando.")
+        return
+    loop_automatico.ativo = True
+
+    while True:
+        try:
+            analise = ia.analise()
+            print("🔮 Sinal IA:", analise)
+
+            if analise.get("direcao") == "COMPRA":
+                client.order_market_buy(symbol="BTCUSDT", quantity=0.001)
+                print("✅ COMPRA executada")
+            elif analise.get("direcao") == "VENDA":
+                client.order_market_sell(symbol="BTCUSDT", quantity=0.001)
+                print("✅ VENDA executada")
+
+            # Log simples
+            with open("log_operacoes.txt", "a") as f:
+                f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {analise.get('direcao')} | Confiança: {analise.get('confianca')} | Entrada: {analise.get('entrada')}\n")
+
+            time.sleep(60)  # Espera 1 minuto
+
+        except Exception as e:
+            print("Erro no loop automático:", e)
+            time.sleep(60)
