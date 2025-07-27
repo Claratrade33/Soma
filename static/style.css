@@ -1,67 +1,77 @@
-body, html {
-    height: 100%;
+body {
+    background-color: #111;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #12161C;
-    font-family: 'Arial', sans-serif;
-    color: #fff;
 }
 
 .container {
-    display: flex;
-    height: 100%;
+    max-width: 500px;
+    margin: 80px auto;
+    background-color: #1c1c1c;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #00ffff55;
 }
 
-.sidebar {
-    width: 200px;
-    background-color: #181F27;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+h2 {
+    text-align: center;
+    color: #00ffff;
+    margin-bottom: 25px;
 }
 
-.sidebar button, .sidebar a {
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
     padding: 10px;
+    background-color: #2a2a2a;
     color: #fff;
-    text-decoration: none;
-    background: #282D35;
+    border: 1px solid #00ffff44;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+input::placeholder {
+    color: #888;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00ffff;
     border: none;
+    color: #000;
+    font-weight: bold;
+    border-radius: 6px;
+    font-size: 16px;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: 0.3s ease;
 }
 
-.sidebar button:hover, .sidebar a:hover {
-    background: #39404A;
+button:hover {
+    background-color: #00cccc;
 }
 
-.conteudo {
-    flex-grow: 1;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+a {
+    display: inline-block;
+    margin-top: 20px;
+    color: #00ffff;
+    text-decoration: none;
+    font-weight: bold;
 }
 
-.iframe-binance {
-    flex-grow: 1;
-    border-radius: 8px;
-    width: 100%;
-}
-
-.ia-sugestao, .relatorio-operacoes {
-    background: #181F27;
-    padding: 15px;
-    border-radius: 8px;
-}
-
-.relatorio-operacoes table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.relatorio-operacoes th, .relatorio-operacoes td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #39404A;
+a:hover {
+    text-decoration: underline;
 }
