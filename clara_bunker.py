@@ -1,9 +1,8 @@
-# clara_bunker.py (corrigido e completo)
+# clara_bunker.py
 import os
 from cryptography.fernet import Fernet
 from app import app, socketio
 
-# Criptografia segura das chaves API
 class BunkerSeguro:
     def __init__(self, arquivo_chave='chave_secreta.key'):
         self.arquivo_chave = arquivo_chave
@@ -17,13 +16,11 @@ class BunkerSeguro:
             return f.read()
 
     def criptografar(self, texto):
-        chave = self.carregar_chave()
-        f = Fernet(chave)
+        f = Fernet(self.carregar_chave())
         return f.encrypt(texto.encode())
 
     def descriptografar(self, texto_criptografado):
-        chave = self.carregar_chave()
-        f = Fernet(chave)
+        f = Fernet(self.carregar_chave())
         return f.decrypt(texto_criptografado).decode()
 
 if __name__ == '__main__':
