@@ -1,6 +1,4 @@
-# -- nome: Dockerfile (sem extensão) --
-
-# 1. Usa Python 3.11-slim para garantir wheels pré-compiladas
+# 1. Usa Python 3.11‑slim para garantir wheels pré‑compiladas
 FROM python:3.11-slim
 
 # 2. Evita prompts interativos no apt
@@ -22,5 +20,5 @@ COPY . .
 # 7. Expõe a porta usada pelo Gunicorn
 EXPOSE 5000
 
-# 8. Comando de inicialização
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
+# 8. Comando de inicialização com Gunicorn + Eventlet
+CMD ["gunicorn", "clara_bunker:app", "--worker-class", "eventlet", "--bind", "0.0.0.0:5000"]
