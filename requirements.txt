@@ -1,4 +1,6 @@
 setuptools>=61.0.0
+wheel
+
 Flask==2.3.3
 flask_sqlalchemy==3.1.1
 flask_socketio==5.3.6
