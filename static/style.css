@@ -1,3 +1,4 @@
+/* ==== GERAL ==== */
 body {
     background-color: #111;
     color: #eee;
@@ -17,10 +18,10 @@ body {
 
 h2 {
     text-align: center;
-    color: #00ffff;
     margin-bottom: 25px;
 }
 
+/* ==== FORMULÁRIOS ==== */
 .form-group {
     margin-bottom: 20px;
 }
@@ -74,4 +75,42 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+/* ==== PÁGINA DE LOGIN/REGISTRO ==== */
+.login-container h2,
+.register-container h2 {
+    color: #00ffff;
+}
+
+/* ==== PÁGINA DE CONFIGURAR ==== */
+.config-container {
+    box-shadow: 0 0 15px #ff00ff55;
+}
+
+.config-container h2 {
+    color: #ff00ff;
+}
+
+/* ==== PÁGINA DO PAINEL ==== */
+.painel-container {
+    background-color: #0a0a0a;
+    border: 1px solid #00ff88;
+    box-shadow: 0 0 20px #00ff8855;
+}
+
+.painel-container h2 {
+    color: #00ff88;
+}
+
+.painel-dados {
+    margin-top: 25px;
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.painel-dados p {
+    font-size: 14px;
+    margin: 8px 0;
 }
