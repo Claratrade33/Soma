@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
-from binance.client import Client
 
 app = Flask(__name__)
 app.secret_key = 'claraverse_secret'
@@ -21,7 +20,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     api_key = db.Column(db.String(300))
     api_secret = db.Column(db.String(300))
-    openai_key = db.Column(db.String(300))  # NOVO CAMPO
+    openai_key = db.Column(db.String(300))
 
 # === USUÁRIO ATUAL ===
 def get_current_user():
@@ -87,25 +86,15 @@ def painel_operacao():
     if not user:
         return redirect(url_for('login'))
 
-    saldo = "Chaves não configuradas"
-    if user.api_key and user.api_secret:
-        try:
-            client = Client(user.api_key, user.api_secret)
-            balance = client.get_asset_balance(asset='USDT')
-            saldo = round(float(balance['free']), 2)
-        except Exception as e:
-            print(f"Erro ao conectar na Binance: {e}")
-            saldo = "Erro ao conectar"
-
+    sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
     try:
-        ia = ClarinhaIA(api_key=user.api_key, api_secret=user.api_secret, openai_key=user.openai_key)
-        sugestao = ia.analisar()
+        ia = ClarinhaIA(openai_key=user.openai_key)
+        sugestao = ia.gerar_sugestao()
     except Exception as e:
         print(f"Erro ao consultar IA: {e}")
-        sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
 
-    return render_template("painel_operacao.html", saldo=saldo, sugestao=sugestao)
+    return render_template("painel_operacao.html", sugestao=sugestao)
 
-# === CRIAÇÃO AUTOMÁTICA DE BANCO (funciona no Render também) ===
+# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
 with app.app_context():
     db.create_all()
