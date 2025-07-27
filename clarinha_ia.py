@@ -1,4 +1,5 @@
-# clarinha_ia.py (corrigido e completo)
+# clarinha_ia.py
+
 import openai
 import requests
 
@@ -20,13 +21,13 @@ DADOS:
 - RSI: {dados['rsi']}
 
 Responda exclusivamente em formato JSON:
-{
+{{
   "entrada": "...",
   "alvo": "...",
   "stop": "...",
   "confianca": "...",
   "sugestao": "..."
-}
+}}
 """
             resposta = openai.ChatCompletion.create(
                 model="gpt-4",
