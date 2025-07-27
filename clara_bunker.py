@@ -1,7 +1,6 @@
-# clara_bunker.py
 import os
 from cryptography.fernet import Fernet
-from app import app, socketio
+from app import app  # Removido socketio
 
 class BunkerSeguro:
     def __init__(self, arquivo_chave='chave_secreta.key'):
@@ -24,4 +23,4 @@ class BunkerSeguro:
         return f.decrypt(texto_criptografado).decode()
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
