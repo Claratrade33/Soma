@@ -8,7 +8,7 @@
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </head>
 <body>
-<div class="container">
+<div class="painel-container container">
     <div class="sidebar">
         <button onclick="executarOrdem('entrada')">Entrada</button>
         <button onclick="executarOrdem('stop')">Stop</button>
@@ -21,9 +21,10 @@
     <div class="conteudo">
         <iframe src="https://www.binance.com/pt-BR/trade/BTC_USDT"
                 frameborder="0"
-                class="iframe-binance"></iframe>
+                class="iframe-binance"
+                width="100%" height="400"></iframe>
         
-        <div class="ia-sugestao">
+        <div class="ia-sugestao painel-dados">
             <h2>Sugestão Inteligente (IA Clarinha)</h2>
             <p><strong>Entrada:</strong> {{ sugestao.entrada }}</p>
             <p><strong>Alvo:</strong> {{ sugestao.alvo }}</p>
@@ -32,7 +33,7 @@
             <p>{{ sugestao.sugestao }}</p>
         </div>
 
-        <div class="relatorio-operacoes">
+        <div class="relatorio-operacoes painel-dados">
             <h2>Relatório de Operações</h2>
             <table>
                 <thead>
