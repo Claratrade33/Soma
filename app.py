@@ -1,4 +1,4 @@
-# app.py (com execução real de ordens Binance integrada)
+# app.py (versão final com todas as rotas e integração real de IA e Binance)
 import os
 from datetime import timedelta
 from functools import wraps
@@ -100,12 +100,29 @@ def painel_operacao():
 
     return render_template('painel_operacao.html', sugestao=sugestao, operacoes=operacoes)
 
+# Configuração de chaves de API
+@app.route('/configurar', methods=['GET', 'POST'])
+@login_required
+def configurar():
+    if request.method == 'POST':
+        session['openai_key'] = request.form['openai_key']
+        session['binance_key'] = request.form['binance_key']
+        session['binance_secret'] = request.form['binance_secret']
+
+        os.environ['OPENAI_API_KEY'] = session['openai_key']
+        os.environ['BINANCE_API_KEY'] = session['binance_key']
+        os.environ['BINANCE_API_SECRET'] = session['binance_secret']
+
+        flash('Chaves salvas com sucesso!')
+        return redirect(url_for('painel_operacao'))
+    return render_template('configurar.html')
+
 # Execução real de ordens na Binance
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
     dados = request.json
-    tipo = dados.get("tipo")  # entrada, stop, alvo
+    tipo = dados.get("tipo")
     api_key = os.getenv("BINANCE_API_KEY")
     api_secret = os.getenv("BINANCE_API_SECRET")
 
