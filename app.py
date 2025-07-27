@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
+from cripto import Cripto
 
 app = Flask(__name__)
 app.secret_key = 'claraverse_secret'
@@ -11,6 +12,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
+cripto = Cripto()
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -69,9 +71,9 @@ def configurar():
     if not user:
         return redirect(url_for('login'))
     if request.method == "POST":
-        user.api_key = request.form['api_key']
-        user.api_secret = request.form['api_secret']
-        user.openai_key = request.form['openai_key']
+        user.api_key = cripto.criptografar(request.form['api_key'])
+        user.api_secret = cripto.criptografar(request.form['api_secret'])
+        user.openai_key = cripto.criptografar(request.form['openai_key'])
         db.session.commit()
         return redirect(url_for('painel_operacao'))
     return render_template("configurar.html", user=user)
@@ -84,7 +86,8 @@ def painel_operacao():
 
     sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
     try:
-        ia = ClarinhaIA(openai_key=user.openai_key)
+        openai_key = cripto.descriptografar(user.openai_key)
+        ia = ClarinhaIA(openai_key=openai_key)
         sugestao = ia.gerar_sugestao()
     except Exception as e:
         print(f"Erro ao consultar IA: {e}")
