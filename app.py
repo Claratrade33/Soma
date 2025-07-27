@@ -1,12 +1,13 @@
-# app.py (corrigido, completo, com relatório e integração aprimorada)
+# app.py (com execução real de ordens Binance integrada)
 import os
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
 from clarinha_ia import ClarinhaIA
+from binance.client import Client
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret')
@@ -77,14 +78,13 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# Painel de operação aprimorado com proteção, integração com IA e relatório
+# Painel de operação com IA e relatório
 @app.route('/painel_operacao')
 @login_required
 def painel_operacao():
     ia = ClarinhaIA(os.getenv("OPENAI_API_KEY"))
     sugestao = ia.gerar_sugestao()
 
-    # Salvando a operação gerada no relatório
     nova_operacao = Operacao(
         usuario_id=session['user_id'],
         entrada=sugestao.get("entrada"),
@@ -96,15 +96,41 @@ def painel_operacao():
     db.session.add(nova_operacao)
     db.session.commit()
 
-    # Obtendo operações anteriores para relatório
     operacoes = Operacao.query.filter_by(usuario_id=session['user_id']).order_by(Operacao.timestamp.desc()).all()
 
     return render_template('painel_operacao.html', sugestao=sugestao, operacoes=operacoes)
 
-# Rota para relatório detalhado
-def gerar_relatorio(usuario_id):
-    operacoes = Operacao.query.filter_by(usuario_id=usuario_id).order_by(Operacao.timestamp.desc()).all()
-    return operacoes
+# Execução real de ordens na Binance
+@app.route('/executar_ordem', methods=['POST'])
+@login_required
+def executar_ordem():
+    dados = request.json
+    tipo = dados.get("tipo")  # entrada, stop, alvo
+    api_key = os.getenv("BINANCE_API_KEY")
+    api_secret = os.getenv("BINANCE_API_SECRET")
+
+    if not api_key or not api_secret:
+        return jsonify({"erro": "Chaves da Binance não configuradas"}), 400
+
+    try:
+        cliente = Client(api_key, api_secret)
+
+        if tipo == "entrada":
+            ordem = cliente.order_market_buy(symbol="BTCUSDT", quantity=0.001)
+        elif tipo == "stop":
+            ordem = cliente.order_market_sell(symbol="BTCUSDT", quantity=0.001)
+        elif tipo == "alvo":
+            ordem = cliente.order_limit_sell(
+                symbol="BTCUSDT",
+                quantity=0.001,
+                price="70000",
+                timeInForce="GTC")
+        else:
+            return jsonify({"erro": "Tipo de ordem inválido"}), 400
+
+        return jsonify({"status": "Ordem executada com sucesso", "ordem": ordem})
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():
