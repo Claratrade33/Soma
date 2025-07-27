@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -88,7 +88,7 @@ def painel_operacao():
         return redirect(url_for('login'))
 
     cripto = Cripto()
-    sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
+    sugestao = {"entrada": "Erro", "alvo": "-", "stop": "-", "confianca": 0, "sugestao": "IA indisponível"}
 
     try:
         openai_key = cripto.descriptografar(user.openai_key)
@@ -98,6 +98,17 @@ def painel_operacao():
         print(f"Erro ao consultar IA: {e}")
 
     return render_template("painel_operacao.html", sugestao=sugestao)
+
+@app.route('/executar_ordem', methods=["POST"])
+def executar_ordem():
+    user = get_current_user()
+    if not user:
+        return jsonify({"erro": "Usuário não autenticado"}), 401
+
+    tipo = request.json.get("tipo")
+    print(f"🟢 Ordem recebida: {tipo}")
+    # Aqui você pode colocar lógica real com a API da corretora
+    return jsonify({"status": "Ordem executada com sucesso", "tipo": tipo})
 
 with app.app_context():
     db.create_all()
