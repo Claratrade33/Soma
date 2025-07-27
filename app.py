@@ -107,8 +107,11 @@ def executar_ordem():
 
     tipo = request.json.get("tipo")
     print(f"🟢 Ordem recebida: {tipo}")
-    # Aqui você pode colocar lógica real com a API da corretora
     return jsonify({"status": "Ordem executada com sucesso", "tipo": tipo})
+
+@app.route('/ping')
+def ping():
+    return 'pong', 200
 
 with app.app_context():
     db.create_all()
