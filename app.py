@@ -12,7 +12,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
-cripto = Cripto()
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,12 +69,16 @@ def configurar():
     user = get_current_user()
     if not user:
         return redirect(url_for('login'))
+
+    cripto = Cripto()
+
     if request.method == "POST":
         user.api_key = cripto.criptografar(request.form['api_key'])
         user.api_secret = cripto.criptografar(request.form['api_secret'])
         user.openai_key = cripto.criptografar(request.form['openai_key'])
         db.session.commit()
         return redirect(url_for('painel_operacao'))
+
     return render_template("configurar.html", user=user)
 
 @app.route('/painel_operacao')
@@ -84,7 +87,9 @@ def painel_operacao():
     if not user:
         return redirect(url_for('login'))
 
+    cripto = Cripto()
     sugestao = {"sinal": "Erro", "alvo": "-", "stop": "-", "confianca": 0}
+
     try:
         openai_key = cripto.descriptografar(user.openai_key)
         ia = ClarinhaIA(openai_key=openai_key)
