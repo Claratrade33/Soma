@@ -1,32 +1,70 @@
-{% extends "base.html" %}
-{% block title %}Configurar API • ClaraVerse{% endblock %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Configurar API</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .config-container {
+        max-width: 500px;
+        margin: 50px auto;
+        background-color: #181F27;
+        padding: 30px;
+        border-radius: 10px;
+        color: white;
+    }
 
-{% block content %}
-  <div style="max-width: 500px; margin: 60px auto; padding: 30px; background-color: #1c1c1c; border-radius: 10px; box-shadow: 0 0 12px #00ffff;">
-    <h2 style="text-align: center; color: #00ffff;">⚙️ Configurar APIs</h2>
-    <p style="color: #ccc; text-align: center;">Insira suas chaves da Binance e OpenAI para ativar o painel de operações.</p>
+    .config-container h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-    <form method="POST" action="{{ url_for('configurar') }}">
-      <label for="api_key" style="color: #ccc;">🔑 Binance API Key</label>
-      <input type="text" id="api_key" name="api_key" required value="{{ user.api_key or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; background-color: #2a2a2a; color: white; border: none;">
+    .config-container label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+    }
 
-      <label for="api_secret" style="color: #ccc;">🛡️ Binance Secret</label>
-      <input type="text" id="api_secret" name="api_secret" required value="{{ user.api_secret or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; background-color: #2a2a2a; color: white; border: none;">
+    .config-container input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+        margin-top: 5px;
+    }
 
-      <label for="openai_key" style="color: #ccc;">🧠 OpenAI Key</label>
-      <input type="text" id="openai_key" name="openai_key" required value="{{ user.openai_key or '' }}"
-             style="width: 100%; padding: 10px; margin-bottom: 25px; border-radius: 5px; background-color: #2a2a2a; color: white; border: none;">
+    .config-container button {
+        margin-top: 20px;
+        width: 100%;
+        background-color: #00ff99;
+        color: #000;
+        padding: 12px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 
-      <button type="submit"
-              style="width: 100%; padding: 12px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px;">
-        💾 Salvar e Ativar IA
-      </button>
+    .config-container button:hover {
+        background-color: #00cc7a;
+    }
+  </style>
+</head>
+<body>
+  <div class="config-container">
+    <h2>🔧 Configuração de API</h2>
+    <form method="POST" action="/configurar">
+      <label for="openai">Chave da OpenAI</label>
+      <input type="text" id="openai" name="openai_key" placeholder="sk-..." required>
+
+      <label for="binance_key">Binance API Key</label>
+      <input type="text" id="binance_key" name="binance_key" placeholder="API Key" required>
+
+      <label for="binance_secret">Binance API Secret</label>
+      <input type="text" id="binance_secret" name="binance_secret" placeholder="Secret Key" required>
+
+      <button type="submit">Salvar e Ativar</button>
     </form>
-
-    <p style="text-align: center; margin-top: 20px;">
-      <a href="{{ url_for('painel_operacao') }}" style="color: #00ffff;">⬅ Voltar para o Painel</a>
-    </p>
   </div>
-{% endblock %}
+</body>
+</html>
