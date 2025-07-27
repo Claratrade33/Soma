@@ -12,7 +12,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 
 db = SQLAlchemy(app)
 
-# === MODELO DE USUÁRIO ===
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -22,14 +21,11 @@ class User(db.Model):
     api_secret = db.Column(db.String(300))
     openai_key = db.Column(db.String(300))
 
-# === USUÁRIO ATUAL ===
 def get_current_user():
     user_id = session.get("user_id")
     if user_id:
         return User.query.get(user_id)
     return None
-
-# === ROTAS ===
 
 @app.route('/')
 def index():
@@ -95,6 +91,5 @@ def painel_operacao():
 
     return render_template("painel_operacao.html", sugestao=sugestao)
 
-# === CRIAÇÃO AUTOMÁTICA DE BANCO ===
 with app.app_context():
     db.create_all()
