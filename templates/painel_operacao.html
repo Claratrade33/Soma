@@ -10,16 +10,20 @@
 <body>
 <div class="container">
     <div class="sidebar">
-        <button onclick="executarEntrada()">Entrada</button>
-        <button onclick="executarStop()">Stop</button>
-        <button onclick="executarAlvo()">Alvo</button>
+        <button onclick="executarOrdem('entrada')">Entrada</button>
+        <button onclick="executarOrdem('stop')">Stop</button>
+        <button onclick="executarOrdem('alvo')">Alvo</button>
         <button onclick="configurar()">Configurações</button>
         <button onclick="ativarAuto()">Automático</button>
         <a href="{{ url_for('login') }}">Sair</a>
     </div>
 
     <div class="conteudo">
-        <iframe src="https://www.binance.com/pt-BR/trade/BTC_USDT" frameborder="0" class="iframe-binance"></iframe>
+        <iframe 
+            src="https://www.binance.com/pt-BR/trade/BTC_USDT" 
+            frameborder="0" 
+            class="iframe-binance">
+        </iframe>
         
         <div class="ia-sugestao">
             <h2>Sugestão Inteligente (IA Clarinha)</h2>
