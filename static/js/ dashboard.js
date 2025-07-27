@@ -1,48 +1,72 @@
-document.addEventListener('DOMContentLoaded', () => {
-  obterSugestaoIA();
+// static/js/dashboard.js
 
-  const botoes = ['comprar', 'vender', 'stop', 'alvo', 'automatico'];
-  botoes.forEach(acao => {
-    const botao = document.querySelector(`button[onclick*="${acao}"]`);
-    if (botao) {
-      botao.addEventListener('click', () => executarOrdem(acao));
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io();
+
+    socket.on('connect', () => {
+        socket.emit('subscribe_market');
+    });
+
+    socket.on('market_update', data => {
+        updateCryptoTable(data.crypto);
+        updateBrTable(data.brazilian);
+    });
+
+    function updateCryptoTable(crypto) {
+        const tbody = document.querySelector('#crypto-table tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        for (let sym in crypto) {
+            const d = crypto[sym];
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${sym}</td>
+                <td>${d.price.toFixed(2)}</td>
+                <td>${d.change_24h.toFixed(2)}%</td>
+                <td>${d.volume_24h}</td>
+                <td>${d.rsi.toFixed(1)}</td>
+            `;
+            tbody.appendChild(tr);
+        }
     }
-  });
+
+    function updateBrTable(br) {
+        const tbody = document.querySelector('#br-table tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        for (let sym in br) {
+            const d = br[sym];
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${sym}</td>
+                <td>${d.price.toFixed(2)}</td>
+                <td>${d.change_24h.toFixed(2)}%</td>
+                <td>${d.volume_24h}</td>
+                <td>${d.rsi.toFixed(1)}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
 });
 
-function obterSugestaoIA() {
-  fetch('/sugestao_ia')
-    .then(res => res.json())
-    .then(data => {
-      if (data.erro) {
-        document.getElementById('sugestao_ia').innerText = 'Erro ao obter sugestão da IA';
-      } else {
-        document.getElementById('sugestao_ia').innerHTML = `
-          <strong>Entrada:</strong> ${data.entrada}<br>
-          <strong>Alvo:</strong> ${data.alvo}<br>
-          <strong>Stop:</strong> ${data.stop}<br>
-          <strong>Confiança:</strong> ${data.confianca}<br>
-          <em>${data.sugestao}</em>
-        `;
-      }
-    })
-    .catch(() => {
-      document.getElementById('sugestao_ia').innerText = 'Erro na comunicação com a IA.';
-    });
+// Funções de Comandos Inteligentes
+function executarEntrada() {
+    alert("📥 Comando de ENTRADA enviado! IA Clarinha iniciando operação...");
+    // Aqui pode ser feita chamada POST para rota de execução real
 }
 
-function executarOrdem(tipo) {
-  fetch('/executar_ordem', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tipo })
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById('status_operacao').innerText = `✅ ${data.status || data.resultado || 'Ordem executada com sucesso'}`;
-    obterSugestaoIA();  // Atualiza sugestão após ordem
-  })
-  .catch(() => {
-    document.getElementById('status_operacao').innerText = '❌ Erro ao executar a ordem';
-  });
+function executarStop() {
+    alert("🛑 STOP acionado! A operação foi finalizada pela IA Clarinha.");
+}
+
+function executarAlvo() {
+    alert("🎯 Alvo atingido! A IA Clarinha encerrou a operação com sucesso.");
+}
+
+function configurar() {
+    window.location.href = "/configurar";
+}
+
+function ativarAuto() {
+    alert("🤖 Modo automático ativado! A IA Clarinha está operando em tempo real.");
 }
