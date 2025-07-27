@@ -49,18 +49,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Funções de Comandos Inteligentes
+// Funções reais de execução de ordens
+async function executarOrdem(tipo) {
+    try {
+        const resposta = await fetch('/executar_ordem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tipo: tipo })
+        });
+
+        const resultado = await resposta.json();
+        if (resposta.ok) {
+            alert(`✅ Ordem ${tipo.toUpperCase()} executada com sucesso!`);
+            console.log(resultado);
+        } else {
+            alert(`Erro ao executar ordem: ${resultado.erro}`);
+        }
+    } catch (erro) {
+        alert(`Erro na comunicação com o servidor: ${erro.message}`);
+    }
+}
+
 function executarEntrada() {
-    alert("📥 Comando de ENTRADA enviado! IA Clarinha iniciando operação...");
-    // Aqui pode ser feita chamada POST para rota de execução real
+    executarOrdem("entrada");
 }
 
 function executarStop() {
-    alert("🛑 STOP acionado! A operação foi finalizada pela IA Clarinha.");
+    executarOrdem("stop");
 }
 
 function executarAlvo() {
-    alert("🎯 Alvo atingido! A IA Clarinha encerrou a operação com sucesso.");
+    executarOrdem("alvo");
 }
 
 function configurar() {
