@@ -1,14 +1,18 @@
-{% extends "base.html" %}
-{% block title %}Erro {{ error_code }} • ClaraVerse{% endblock %}
-
-{% block content %}
-  <div style="max-width: 500px; margin: 100px auto; padding: 30px; background-color: #1c1c1e; border-radius: 12px; box-shadow: 0 0 12px #ff4d4d33; text-align: center;">
-    <h2 style="color: #ff4d4d;">🚫 Erro {{ error_code }}</h2>
-    <p style="color: #ccc; margin: 20px 0;">{{ error_message }}</p>
-    <a href="{{ url_for('index') }}">
-      <button style="padding: 12px 24px; background-color: #00ffff; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">
-        🔙 Voltar à Home
-      </button>
-    </a>
-  </div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Erro - Soma</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+    <div class="container center">
+        <h1 class="logo-title">Ops, algo deu errado!</h1>
+        <p class="error-message">
+            {{ mensagem if mensagem else "Erro desconhecido. Tente novamente ou volte para o início." }}
+        </p>
+        <a href="{{ url_for('home') }}" class="btn btn-main">Voltar ao início</a>
+    </div>
+</body>
+</html>
