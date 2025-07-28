@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Configurar Chaves | Soma</title>
+    <title>Configurar Chaves | ClaraVerse</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-dark">
-    <div class="container center painel-container">
+    <div class="container painel-container center">
         <h1 class="logo-title">Configurar Chaves</h1>
         <form method="POST" class="form">
             <div class="form-group">
@@ -22,7 +22,7 @@
                 <label for="gpt_api_key">OpenAI API Key</label>
                 <input type="text" id="gpt_api_key" name="gpt_api_key" value="{{ user.gpt_api_key or '' }}" required>
             </div>
-            <button type="submit" class="btn btn-main">Salvar Chaves</button>
+            <button type="submit" class="btn btn-main" style="width:100%;">Salvar Chaves</button>
         </form>
         <a href="{{ url_for('painel_operacao') }}" class="link">Voltar ao Painel</a>
         {% with messages = get_flashed_messages(with_categories=true) %}
