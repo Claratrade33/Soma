@@ -1,116 +1,254 @@
-/* ==== GERAL ==== */
-body {
-    background-color: #111;
-    color: #eee;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
+:root {
+  --main-bg: #121926;
+  --card-bg: #181f30;
+  --main-purple: #7c3aed;
+  --main-green: #00ffb2;
+  --main-blue: #00e5ff;
+  --main-pink: #ff54b0;
+  --main-error: #ff465a;
+  --font-main: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+body.bg-dark {
+  background: var(--main-bg);
+  color: #fff;
+  font-family: var(--font-main);
+  min-height: 100vh;
+  margin: 0;
 }
 
 .container {
-    max-width: 500px;
-    margin: 80px auto;
-    background-color: #1c1c1c;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #00ffff55;
+  max-width: 400px;
+  margin: 40px auto 0 auto;
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px 0 #0002;
 }
 
-h2 {
-    text-align: center;
-    margin-bottom: 25px;
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ==== FORMULÁRIOS ==== */
+.painel-container {
+  max-width: 600px;
+  margin-top: 32px;
+  padding: 2rem 1rem;
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px 0 #0003;
+}
+
+.logo-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--main-purple);
+  margin-bottom: 0.6em;
+  text-align: center;
+}
+
+.subtitle {
+  color: #a1a1a6;
+  font-size: 1.08rem;
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.form {
+  width: 100%;
+  margin-top: 1em;
+}
+
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 1.2em;
+  display: flex;
+  flex-direction: column;
 }
 
 label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ccc;
+  font-size: 1em;
+  margin-bottom: 0.3em;
+  color: #c2c2d4;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a;
-    color: #fff;
-    border: 1px solid #00ffff44;
-    border-radius: 5px;
-    font-size: 14px;
+input[type="text"], input[type="password"] {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 0.7em 1em;
+  font-size: 1em;
+  background: #232a3a;
+  color: #fff;
+  margin-bottom: 0.1em;
+  box-shadow: 0 0 0 2px #2c3350;
+  transition: box-shadow 0.2s;
 }
 
-input::placeholder {
-    color: #888;
+input[type="text"]:focus, input[type="password"]:focus {
+  box-shadow: 0 0 0 2px var(--main-purple);
 }
 
-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #00ffff;
-    border: none;
-    color: #000;
-    font-weight: bold;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s ease;
+.btn {
+  padding: 0.7em 1.6em;
+  font-size: 1.04em;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin: 0.2em;
+  letter-spacing: 0.05em;
 }
 
-button:hover {
-    background-color: #00cccc;
+.btn-main {
+  background: linear-gradient(90deg, var(--main-purple), var(--main-blue), var(--main-green));
+  color: #fff;
+  box-shadow: 0 4px 20px 0 #7c3aed66;
 }
 
-a {
-    display: inline-block;
-    margin-top: 20px;
-    color: #00ffff;
-    text-decoration: none;
-    font-weight: bold;
+.btn-secondary {
+  background: #232a3a;
+  color: #fff;
+  border: 1.5px solid var(--main-purple);
 }
 
-a:hover {
-    text-decoration: underline;
+.btn-buy {
+  background: linear-gradient(90deg, #1dd75b, #01b8a8);
+  color: #fff;
 }
 
-/* ==== PÁGINA DE LOGIN/REGISTRO ==== */
-.login-container h2,
-.register-container h2 {
-    color: #00ffff;
+.btn-sell {
+  background: linear-gradient(90deg, #ff465a, #ee7b33);
+  color: #fff;
 }
 
-/* ==== PÁGINA DE CONFIGURAR ==== */
-.config-container {
-    box-shadow: 0 0 15px #ff00ff55;
+.btn:hover, .btn-main:hover, .btn-secondary:hover {
+  box-shadow: 0 0 12px 0 var(--main-purple);
+  filter: brightness(1.1);
 }
 
-.config-container h2 {
-    color: #ff00ff;
+.link {
+  color: var(--main-blue);
+  text-decoration: underline;
+  font-size: 0.98em;
+  margin-top: 1.1em;
+  display: block;
+  text-align: center;
 }
 
-/* ==== PÁGINA DO PAINEL ==== */
-.painel-container {
-    background-color: #0a0a0a;
-    border: 1px solid #00ff88;
-    box-shadow: 0 0 20px #00ff8855;
+.saldo-info {
+  display: flex;
+  gap: 1.5em;
+  justify-content: center;
+  margin-bottom: 1.2em;
+  font-size: 1.12em;
+  color: var(--main-green);
+  font-weight: bold;
 }
 
-.painel-container h2 {
-    color: #00ff88;
+.op-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  margin-bottom: 1.3em;
 }
 
-.painel-dados {
-    margin-top: 25px;
-    background-color: #1a1a1a;
-    padding: 20px;
-    border-radius: 8px;
+.gpt-box {
+  background: #1d2333cc;
+  border-left: 5px solid var(--main-purple);
+  color: #e0e0ff;
+  font-size: 1.04em;
+  padding: 1.1em 1em;
+  margin: 1.2em 0;
+  border-radius: 11px;
+  min-height: 40px;
 }
 
-.painel-dados p {
-    font-size: 14px;
-    margin: 8px 0;
+.flash-messages {
+  margin: 1em 0 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1em;
+  text-align: center;
+}
+
+.flash-messages li {
+  margin: 0.25em 0;
+  padding: 0.6em 0.8em;
+  border-radius: 9px;
+}
+
+.flash-messages .success {
+  background: #01b46b33;
+  color: #00ffb2;
+}
+.flash-messages .error {
+  background: #ff465a22;
+  color: #ff465a;
+}
+.flash-messages .info {
+  background: #21234655;
+  color: #87a2f5;
+}
+
+.topbar {
+  width: 100%;
+  background: #191c2b;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5em;
+  padding: 1.1em 2em;
+  box-shadow: 0 2px 18px 0 #0002;
+  font-size: 1.08em;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.user-info {
+  margin-right: auto;
+  font-weight: 600;
+  color: var(--main-blue);
+  font-size: 1.08em;
+}
+
+footer.footer {
+  margin-top: 2.5em;
+  color: #a1a1a6;
+  font-size: 0.93em;
+}
+
+@media (max-width: 700px) {
+  .container, .painel-container {
+    max-width: 98vw;
+    padding: 1em 0.4em;
+  }
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+    padding: 0.7em 1em;
+    font-size: 1em;
+  }
+  .saldo-info, .op-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7em;
+  }
+  .logo-title { font-size: 1.5rem; }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #14162c;
+}
+::-webkit-scrollbar-thumb {
+  background: #292b47;
+  border-radius: 6px;
 }
