@@ -1,35 +1,30 @@
-// static/js/dashboard.js
+// static/dashboard.js
 
-async function executarOrdem(tipo) {
-    try {
-        const btn = document.querySelector(`button[data-ordem="${tipo}"]`);
-        if (btn) btn.disabled = true;
-
-        const resposta = await fetch('/executar_ordem', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo })
-        });
-
-        const resultado = await resposta.json();
-
-        if (resposta.ok) {
-            alert(`✅ Ordem ${tipo.toUpperCase()} executada com sucesso!`);
-        } else {
-            alert(`🚨 Erro: ${resultado.erro}`);
-        }
-    } catch (e) {
-        alert(`🚨 Falha na comunicação: ${e.message}`);
-    } finally {
-        const btn = document.querySelector(`button[data-ordem="${tipo}"]`);
-        if (btn) btn.disabled = false;
-    }
+function executarOrdem(tipo) {
+    const quantidade = prompt("Informe a quantidade de BTC para " + (tipo === 'compra' ? 'comprar' : 'vender') + ":", "0.001");
+    if (!quantidade || isNaN(parseFloat(quantidade))) return alert("Quantidade inválida!");
+    axios.post('/executar_ordem', {
+        tipo_ordem: tipo,
+        simbolo: 'BTCUSDT',
+        quantidade: quantidade
+    })
+    .then(resp => {
+        document.getElementById('mensagem-ordem').innerHTML = "<b>" + resp.data.mensagem + "</b>";
+    })
+    .catch(err => {
+        let msg = err.response && err.response.data && err.response.data.mensagem ? err.response.data.mensagem : "Erro na ordem.";
+        document.getElementById('mensagem-ordem').innerHTML = "<span class='error'>" + msg + "</span>";
+    });
 }
 
-function ativarAuto() {
-    const confirmacao = confirm("Deseja mesmo ativar o modo automático de ordens?");
-    if (confirmacao) {
-        alert("🤖 Modo automático ativado! As ordens serão enviadas conforme os sinais da IA.");
-        // Aqui você pode implementar uma lógica de polling ou socket futuramente
-    }
+function obterSugestaoGPT() {
+    document.getElementById('gpt-sugestao').innerHTML = "Consultando IA...";
+    axios.post('/sugestao_gpt', { prompt: "Análise para operação BTCUSDT agora." })
+        .then(resp => {
+            document.getElementById('gpt-sugestao').innerHTML = "<b>Sugestão IA:</b><br>" + resp.data.sugestao;
+        })
+        .catch(err => {
+            let msg = err.response && err.response.data && err.response.data.erro ? err.response.data.erro : "Erro na IA.";
+            document.getElementById('gpt-sugestao').innerHTML = "<span class='error'>" + msg + "</span>";
+        });
 }
