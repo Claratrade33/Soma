@@ -2,12 +2,16 @@ import os
 from datetime import timedelta
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import (
+    Flask, render_template, request, redirect, url_for,
+    session, flash, jsonify
+)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from binance.client import Client
+import openai
 
-# ========== CONFIGURAÇÃO APP ==========
+# ===== APP BASE =====
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret_2025')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
@@ -15,7 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 db = SQLAlchemy(app)
 
-# ========== MODELOS ==========
+# ===== MODEL =====
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
@@ -24,7 +28,7 @@ class User(db.Model):
     binance_api_secret = db.Column(db.String(255))
     gpt_api_key = db.Column(db.String(255))
 
-# ========== USUÁRIOS INICIAIS ==========
+# ===== USUÁRIOS INICIAIS =====
 def criar_usuarios_iniciais():
     users = [
         {"username": "admin", "password": "Bubi2025"},
@@ -40,7 +44,7 @@ def criar_usuarios_iniciais():
             db.session.add(novo)
     db.session.commit()
 
-# ========== AUTENTICAÇÃO ==========
+# ===== AUTENTICAÇÃO =====
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -54,7 +58,7 @@ def get_user():
         return User.query.get(session['user_id'])
     return None
 
-# ========== ROTAS PRINCIPAIS ==========
+# ===== ROTAS =====
 @app.before_first_request
 def inicializar():
     db.create_all()
@@ -62,9 +66,7 @@ def inicializar():
 
 @app.route('/')
 def home():
-    if 'user_id' in session:
-        return redirect(url_for('painel_operacao'))
-    return redirect(url_for('login'))
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -141,7 +143,7 @@ def painel_operacao():
                            saldo_btc=saldo_btc,
                            saldo_usdt=saldo_usdt)
 
-# ================== EXECUTAR ORDEM ==================
+# ===== EXECUTAR ORDEM BINANCE =====
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
@@ -149,9 +151,10 @@ def executar_ordem():
     if not (user.binance_api_key and user.binance_api_secret):
         return jsonify({'status': 'erro', 'mensagem': 'Chaves Binance não configuradas.'}), 400
 
-    tipo_ordem = request.form.get('tipo_ordem')
-    simbolo = request.form.get('simbolo', 'BTCUSDT')
-    quantidade = request.form.get('quantidade', '0.001')  # Ajuste padrão
+    data = request.get_json() if request.is_json else request.form
+    tipo_ordem = data.get('tipo_ordem')
+    simbolo = data.get('simbolo', 'BTCUSDT')
+    quantidade = data.get('quantidade', '0.001')  # Valor padrão
 
     try:
         client = Client(user.binance_api_key, user.binance_api_secret)
@@ -166,9 +169,7 @@ def executar_ordem():
     except Exception as e:
         return jsonify({'status': 'erro', 'mensagem': f'Erro ao executar ordem: {str(e)}'}), 400
 
-# ================== SUGESTÃO GPT (AI) ==================
-import openai
-
+# ===== SUGESTÃO GPT (AI) =====
 @app.route('/sugestao_gpt', methods=['POST'])
 @login_required
 def sugestao_gpt():
@@ -192,6 +193,15 @@ def sugestao_gpt():
     except Exception as e:
         return jsonify({'erro': f'Erro GPT: {str(e)}'}), 400
 
-# ================== EXECUTAR APP ==================
+# ===== ERROS =====
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("error.html", mensagem="Página não encontrada."), 404
+
+@app.errorhandler(500)
+def erro_interno(e):
+    return render_template("error.html", mensagem="Erro interno do servidor. Tente novamente mais tarde."), 500
+
+# ===== EXECUTAR =====
 if __name__ == '__main__':
     app.run(debug=True)
