@@ -2,14 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Registrar | Soma</title>
+    <title>Criar Conta | ClaraVerse</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-dark">
-    <div class="container center login-container">
-        <h1 class="logo-title">Criar Conta - SOMA</h1>
-        <form method="POST" action="{{ url_for('register') }}" class="form">
+    <div class="container center">
+        <h1 class="logo-title">Criar Conta</h1>
+        <form method="POST" class="form">
             <div class="form-group">
                 <label for="username">Usuário</label>
                 <input type="text" id="username" name="username" required autocomplete="username" autofocus>
@@ -18,9 +18,9 @@
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="password" required autocomplete="new-password">
             </div>
-            <button type="submit" class="btn btn-main">Registrar</button>
+            <button type="submit" class="btn btn-main" style="width:100%;">Registrar</button>
         </form>
-        <a href="{{ url_for('login') }}" class="link">Já tenho conta</a>
+        <a href="{{ url_for('login') }}" class="link">Já tem conta? Entrar</a>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <ul class="flash-messages">
