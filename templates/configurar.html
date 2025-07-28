@@ -2,29 +2,34 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Configurar Chaves | ClaraVerse</title>
+    <title>Painel de Operações | ClaraVerse</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body class="bg-dark">
-    <div class="container painel-container center">
-        <h1 class="logo-title">Configurar Chaves</h1>
-        <form method="POST" class="form">
-            <div class="form-group">
-                <label for="binance_api_key">Binance API Key</label>
-                <input type="text" id="binance_api_key" name="binance_api_key" value="{{ user.binance_api_key or '' }}" required>
-            </div>
-            <div class="form-group">
-                <label for="binance_api_secret">Binance API Secret</label>
-                <input type="password" id="binance_api_secret" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}" required>
-            </div>
-            <div class="form-group">
-                <label for="gpt_api_key">OpenAI API Key</label>
-                <input type="text" id="gpt_api_key" name="gpt_api_key" value="{{ user.gpt_api_key or '' }}" required>
-            </div>
-            <button type="submit" class="btn btn-main" style="width:100%;">Salvar Chaves</button>
-        </form>
-        <a href="{{ url_for('painel_operacao') }}" class="link">Voltar ao Painel</a>
+    <div class="topbar">
+        <span class="user-info">Usuário: <b>{{ user.username }}</b></span>
+        <a href="{{ url_for('configurar') }}" class="btn btn-secondary">Configurar Chaves</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Sair</a>
+    </div>
+    <div class="container painel-container">
+        <h1 class="logo-title">Painel de Operações - SOMA</h1>
+        <div class="saldo-info">
+            <span><b>Saldo BTC:</b> {{ saldo_btc }}</span>
+            <span><b>Saldo USDT:</b> {{ saldo_usdt }}</span>
+        </div>
+        <div class="tradingview-widget-container" style="height: 400px; margin-bottom: 1rem;">
+            <div id="tv_chart"></div>
+        </div>
+        <div class="op-buttons">
+            <button class="btn btn-buy" onclick="executarOrdem('compra')">Comprar</button>
+            <button class="btn btn-sell" onclick="executarOrdem('venda')">Vender</button>
+            <button class="btn btn-main" onclick="obterSugestaoGPT()">Sugestão IA</button>
+        </div>
+        <div id="mensagem-ordem" style="margin-top: 1rem;"></div>
+        <div id="gpt-sugestao" class="gpt-box"></div>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <ul class="flash-messages">
@@ -35,5 +40,51 @@
           {% endif %}
         {% endwith %}
     </div>
+    <script>
+        new TradingView.widget({
+            "container_id": "tv_chart",
+            "width": "100%",
+            "height": 400,
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "30",
+            "timezone": "America/Sao_Paulo",
+            "theme": "dark",
+            "style": "1",
+            "locale": "br",
+            "toolbar_bg": "#222",
+            "hide_side_toolbar": false,
+            "allow_symbol_change": false,
+            "save_image": false
+        });
+
+        function executarOrdem(tipo) {
+            const quantidade = prompt("Informe a quantidade de BTC para " + (tipo === 'compra' ? 'comprar' : 'vender') + ":", "0.001");
+            if (!quantidade || isNaN(parseFloat(quantidade))) return alert("Quantidade inválida!");
+            axios.post('/executar_ordem', {
+                tipo_ordem: tipo,
+                simbolo: 'BTCUSDT',
+                quantidade: quantidade
+            })
+            .then(resp => {
+                document.getElementById('mensagem-ordem').innerHTML = "<b>" + resp.data.mensagem + "</b>";
+            })
+            .catch(err => {
+                let msg = err.response && err.response.data && err.response.data.mensagem ? err.response.data.mensagem : "Erro na ordem.";
+                document.getElementById('mensagem-ordem').innerHTML = "<span class='error'>" + msg + "</span>";
+            });
+        }
+
+        function obterSugestaoGPT() {
+            document.getElementById('gpt-sugestao').innerHTML = "Consultando IA...";
+            axios.post('/sugestao_gpt', { prompt: "Análise para operação BTCUSDT agora." })
+                .then(resp => {
+                    document.getElementById('gpt-sugestao').innerHTML = "<b>Sugestão IA:</b><br>" + resp.data.sugestao;
+                })
+                .catch(err => {
+                    let msg = err.response && err.response.data && err.response.data.erro ? err.response.data.erro : "Erro na IA.";
+                    document.getElementById('gpt-sugestao').innerHTML = "<span class='error'>" + msg + "</span>";
+                });
+        }
+    </script>
 </body>
 </html>
