@@ -2,18 +2,19 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Soma | Bem-vindo(a)</title>
+    <title>Bem-vindo ao Soma!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="bg-dark">
-    <div class="container center">
-        <h1 class="logo-title">SOMA</h1>
-        <p class="subtitle">Plataforma de Operação Real com Binance & GPT</p>
-        <a href="{{ url_for('login') }}" class="btn btn-main">Entrar</a>
-        <footer class="footer">
-            <small>&copy; {{ 2025 }} Soma - Todos os direitos reservados.</small>
-        </footer>
-    </div>
+<body style="background:#181f30; color:#fff; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <h1>🚀 Plataforma Soma no ar!</h1>
+    <p>Seu backend Flask está respondendo corretamente.</p>
+    <p>
+      <a href="/login" style="padding:1em 2em; background:#7c3aed; color:#fff; border:none; border-radius:9px; font-size:1.2em; text-decoration:none;">Entrar</a>
+    </p>
+    <p style="color:#a1a1a6; margin-top:2em; font-size:0.95em;">
+        Se você está vendo esta página, <br>
+        o deploy foi bem-sucedido e o Render reconheceu o app!<br>
+        Agora pode personalizar o index.html depois 😉
+    </p>
 </body>
 </html>
