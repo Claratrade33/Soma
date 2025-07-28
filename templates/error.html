@@ -2,17 +2,17 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Erro - Soma</title>
+    <title>Erro | ClaraVerse</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-dark">
     <div class="container center">
-        <h1 class="logo-title">Ops, algo deu errado!</h1>
-        <p class="error-message">
-            {{ mensagem if mensagem else "Erro desconhecido. Tente novamente ou volte para o início." }}
-        </p>
-        <a href="{{ url_for('home') }}" class="btn btn-main">Voltar ao início</a>
+        <h1 class="logo-title" style="color:#ff465a;">Erro</h1>
+        <div class="gpt-box" style="background:#2d222a;color:#ffb9c6; border-left:4px solid #ff465a;">
+            {{ mensagem or "Ocorreu um erro inesperado. Tente novamente!" }}
+        </div>
+        <a href="{{ url_for('home') }}" class="btn btn-main" style="width:100%;">Voltar ao Início</a>
     </div>
 </body>
 </html>
