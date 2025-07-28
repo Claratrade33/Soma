@@ -44,6 +44,11 @@ def criar_usuarios_iniciais():
             db.session.add(novo)
     db.session.commit()
 
+# ===== Inicialização universal =====
+with app.app_context():
+    db.create_all()
+    criar_usuarios_iniciais()
+
 # ===== AUTENTICAÇÃO =====
 def login_required(f):
     @wraps(f)
@@ -59,10 +64,6 @@ def get_user():
     return None
 
 # ===== ROTAS =====
-@app.before_serving
-def inicializar():
-    db.create_all()
-    criar_usuarios_iniciais()
 
 @app.route('/')
 def home():
