@@ -2,19 +2,23 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Bem-vindo ao Soma!</title>
+    <title>Bem-vindo ao ClaraVerse | Soma</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body style="background:#181f30; color:#fff; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <h1>🚀 Plataforma Soma no ar!</h1>
-    <p>Seu backend Flask está respondendo corretamente.</p>
-    <p>
-      <a href="/login" style="padding:1em 2em; background:#7c3aed; color:#fff; border:none; border-radius:9px; font-size:1.2em; text-decoration:none;">Entrar</a>
-    </p>
-    <p style="color:#a1a1a6; margin-top:2em; font-size:0.95em;">
-        Se você está vendo esta página, <br>
-        o deploy foi bem-sucedido e o Render reconheceu o app!<br>
-        Agora pode personalizar o index.html depois 😉
-    </p>
+<body class="bg-dark">
+    <div class="container center">
+        <h1 class="logo-title">ClaraVerse / Soma</h1>
+        <p class="subtitle">
+            Plataforma exclusiva para operações seguras em criptomoedas<br>
+            com saldo real, IA integrada e proteção máxima.<br>
+            <b>Conecte-se. Realize. Evolua.</b>
+        </p>
+        <a href="{{ url_for('login') }}" class="btn btn-main" style="width:100%;">Entrar</a>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary" style="width:100%;margin-top:1em;">Criar nova conta</a>
+        <footer class="footer">
+            &copy; 2025 ClaraVerse / Soma. Todos os direitos reservados.
+        </footer>
+    </div>
 </body>
 </html>
