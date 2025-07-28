@@ -59,7 +59,7 @@ def get_user():
     return None
 
 # ===== ROTAS =====
-@app.before_first_request
+@app.before_serving
 def inicializar():
     db.create_all()
     criar_usuarios_iniciais()
