@@ -1,23 +1,35 @@
-{% extends "base.html" %}
-{% block title %}Login • ClaraVerse{% endblock %}
-
-{% block content %}
-<div class="container auth-container">
-  <h2>🔐 Entrar no ClaraVerse</h2>
-  <form method="POST" action="{{ url_for('login') }}">
-    <div class="form-group">
-      <input type="text" name="username" placeholder="Usuário" required>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Soma</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+    <div class="container center login-container">
+        <h1 class="logo-title">SOMA</h1>
+        <form method="POST" action="{{ url_for('login') }}" class="form">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-main">Entrar</button>
+        </form>
+        <a href="{{ url_for('register') }}" class="link">Criar nova conta</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
     </div>
-    <div class="form-group">
-      <input type="password" name="password" placeholder="Senha" required>
-    </div>
-    <button type="submit">Entrar</button>
-  </form>
-  <p class="small-text">Não tem conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="flash-message">{{ messages[0] }}</div>
-    {% endif %}
-  {% endwith %}
-</div>
-{% endblock %}
+</body>
+</html>
