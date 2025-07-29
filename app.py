@@ -180,9 +180,10 @@ def painel_operacao():
     user = find_user(username)
     saldo_btc = "0"
     saldo_usdt = "0"
-    try:
-        from binance.client import Client
-        if user.get("binance_key") and user.get("binance_secret"):
+    # Só consulta a Binance se o usuário tiver chave salva!
+    if user.get("binance_key") and user.get("binance_secret"):
+        try:
+            from binance.client import Client
             client = Client(
                 decrypt(user["binance_key"]),
                 decrypt(user["binance_secret"])
@@ -193,8 +194,9 @@ def painel_operacao():
                     saldo_btc = b["free"]
                 if b["asset"] == "USDT":
                     saldo_usdt = b["free"]
-    except Exception as e:
-        flash(f"Erro ao consultar saldo Binance: {e}", "danger")
+        except Exception as e:
+            flash(f"Erro ao consultar saldo Binance: {e}", "danger")
+    # Só exibe dados, nunca consulta API se não tiver chave!
     return render_template("painel_operacao.html", user={
         "username": username,
         "email": decrypt(user["email"]) if user.get("email") else ""
