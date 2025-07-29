@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Encerramento{% endblock %}
+{% block title %}Logout – Clarinha{% endblock %}
 
 {% block content %}
-  <section class="logout">
-    <h2>Saída Ritual Concluída</h2>
-    <p>Até breve, Clarinha estará aguardando sinais.</p>
-    <img src="{{ url_for('static', filename='icons/logout.svg') }}" alt="Logout">
-  </section>
+  <h2>Você saiu da sua conta</h2>
+  <p>Até breve! 🌌</p>
+  <a href="{{ url_for('index') }}">Voltar ao Início</a>
 {% endblock %}
