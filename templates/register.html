@@ -1,15 +1,40 @@
-{% extends "base.html" %}
-{% block title %}Cadastro – Clarinha{% endblock %}
-
-{% block content %}
-  <h2>Cadastrar nova conta</h2>
-  <form method="post">
-    <label>Usuário:</label><br>
-    <input type="text" name="usuario" required><br><br>
-
-    <label>Senha:</label><br>
-    <input type="password" name="senha" required><br><br>
-
-    <button type="submit">Registrar</button>
-  </form>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Novo Usuário</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+    <div class="container center">
+        <h1 class="logo-title">📝 Registro de Novo Usuário</h1>
+        <p>Preencha os dados abaixo para iniciar sua missão com a ClarinhaBubi.</p>
+        <form method="POST" class="form">
+            <div class="form-group">
+                <label for="username">Nome Completo:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <label for="confirm_password">Confirmar Senha:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="btn btn-main" style="width:100%;">Cadastrar ✨</button>
+        </form>
+        <a href="{{ url_for('login') }}" class="link">Já tem conta? Entrar</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>
