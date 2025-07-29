@@ -253,4 +253,13 @@ def sugestao_gpt():
 # ===== Error Handlers =====
 @app.errorhandler(404)
 def not_found(e):
-    return render_template('error.html', mensagem
+    return render_template('error.html', mensagem="Página não encontrada."),404
+
+@app.errorhandler(500)
+def internal_error(e):
+    logging.error(f"Server error: {e}")
+    return render_template('error.html', mensagem="Erro interno do servidor."),500
+
+# ===== Entry Point =====
+if __name__ == '__main__':
+    app.run()
