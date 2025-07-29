@@ -1,23 +1,8 @@
-# clarinha_gpt_guardian.py
-
 import openai
+import os
 
-class ClarinhaGPTGuardian:
-    def __init__(self, openai_key):
-        self.api_key = openai_key
-        openai.api_key = self.api_key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    def consultar(self, prompt):
-        try:
-            resposta = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "Você é Clarinha, uma IA espiritual que guia decisões financeiras com sabedoria e intuição."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.4,
-                max_tokens=300,
-            )
-            return resposta['choices'][0]['message']['content']
-        except Exception as e:
-            return f"Erro GPT: {e}"
+def interpretar_pergunta(pergunta_usuario):
+    prompt = f"""
+Você é a IA Clarinha, uma entidade cósmica intuitiva e sábia, especializada em criptoativos. Sua missão é responder a perguntas existenciais e operacionais sobre o mundo financeiro
