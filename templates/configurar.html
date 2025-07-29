@@ -1,59 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Configuração de Chaves | Soma</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-<body class="bg-dark">
+{% extends "base.html" %}
+{% block title %}Configurar – Clarinha{% endblock %}
 
-  <div class="container config-container">
-    <h1 class="logo-title">🔐 Configuração de Chaves</h1>
+{% block content %}
+  <h2>Configurações de API</h2>
+  <form method="post">
+    <label>Binance API Key:</label><br>
+    <input type="text" name="binance_key" required><br><br>
 
-    <form id="form-configuracao" onsubmit="salvarChaves(event)">
-      <label for="binance_key">📘 Binance API Key:</label>
-      <input type="text" id="binance_key" name="binance_key" required>
+    <label>Binance Secret:</label><br>
+    <input type="text" name="binance_secret" required><br><br>
 
-      <label for="binance_secret">📕 Binance API Secret:</label>
-      <input type="password" id="binance_secret" name="binance_secret" required>
+    <label>OpenAI GPT Key:</label><br>
+    <input type="text" name="openai_key" required><br><br>
 
-      <label for="gpt_key">🧠 Chave GPT:</label>
-      <input type="password" id="gpt_key" name="gpt_key" required>
-
-      <button type="submit" class="btn btn-primary">Salvar e Testar</button>
-    </form>
-
-    <div id="mensagem-config" style="margin-top: 1rem;"></div>
-  </div>
-
-  <script>
-    function salvarChaves(event) {
-      event.preventDefault();
-      document.getElementById('mensagem-config').innerHTML = "🔄 Testando conexão...";
-
-      const dados = {
-        binance_key: document.getElementById('binance_key').value,
-        binance_secret: document.getElementById('binance_secret').value,
-        gpt_key: document.getElementById('gpt_key').value
-      };
-
-      axios.post('/salvar_chaves', dados)
-      .then(resp => {
-        if (resp.data.sucesso) {
-          document.getElementById('mensagem-config').innerHTML = "<b>✅ Chaves válidas e salvas!</b> Redirecionando...";
-          setTimeout(() => window.location.href = "/painel", 1500);
-        } else {
-          document.getElementById('mensagem-config').innerHTML = "<span class='error'>❌ Erro: " + resp.data.mensagem + "</span>";
-        }
-      })
-      .catch(err => {
-        const msg = err.response?.data?.mensagem || "Erro ao testar chaves.";
-        document.getElementById('mensagem-config').innerHTML = "<span class='error'>❌ " + msg + "</span>";
-      });
-    }
-  </script>
-
-</body>
-</html>
+    <button type="submit">Salvar Chaves</button>
+  </form>
+{% endblock %}
