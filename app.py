@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from clarinha_core import clarinha_responder
-from crypto_utils import criptografar
+from crypto_utils import crypto_utils.py
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "chave_super_secreta_local")
