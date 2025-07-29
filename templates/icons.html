@@ -1,16 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Galeria de Ícones{% endblock %}
+{% block title %}Ícones – Clarinha{% endblock %}
 
 {% block content %}
-  <section class="icon-gallery">
-    <h2>Ícones Mágicos</h2>
-    <div class="icons-grid">
-      {% for icon in ['ai.svg', 'chart.svg', 'logout.svg', 'settings.svg', 'stop.svg', 'target.svg', 'wallet.svg'] %}
-        <div class="icon-card">
-          <img src="{{ url_for('static', filename='icons/' ~ icon) }}" alt="{{ icon }}">
-          <p>{{ icon }}</p>
-        </div>
-      {% endfor %}
-    </div>
-  </section>
+  <h2>Ícones Disponíveis</h2>
+  <ul class="grid-icones">
+    <li>
+      <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Gráfico">
+      <span>Gráfico</span>
+    </li>
+    <li>
+      <img src="{{ url_for('static', filename='icons/target.svg') }}" alt="Foco">
+      <span>Foco</span>
+    </li>
+    <li>
+      <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Carteira">
+      <span>Carteira</span>
+    </li>
+  </ul>
 {% endblock %}
