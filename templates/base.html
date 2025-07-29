@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>{% block title %}ClaraVerse{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+  <meta charset="UTF-8">
+  <title>{% block title %}Clarinha Oracular{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='js/style.css') }}">
 </head>
 <body>
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+  <header>
+    <h1>✨ Clarinha Oracular ✨</h1>
+    <nav>
+      <a href="{{ url_for('painel') }}">Painel</a>
+      <a href="{{ url_for('icons') }}">Ícones</a>
+      <a href="{{ url_for('logout') }}">Sair</a>
+    </nav>
+  </header>
+
+  {% block content %}
+  {% endblock %}
+
+  {% block scripts %}
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  {% endblock %}
 </body>
 </html>
