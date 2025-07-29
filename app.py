@@ -1,10 +1,50 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import json
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
+)
 from clarinha_core import clarinha_responder
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "chave_super_secreta_local")
+
+# Diretórios e arquivos de configuração
+BASE_DIR    = os.path.dirname(__file__)
+CONFIG_FILE = os.path.join(BASE_DIR, "user_configs.json")
+KEY_FILE    = os.path.join(BASE_DIR, "fernet.key")
+
+# Inicializa chave de encriptação (gera se não existir)
+if os.path.exists(KEY_FILE):
+    with open(KEY_FILE, "rb") as f:
+        key = f.read()
+else:
+    key = Fernet.generate_key()
+    with open(KEY_FILE, "wb") as f:
+        f.write(key)
+fernet = Fernet(key)
+
+def criptografar(text: str) -> str:
+    """Encripta texto e retorna string base64."""
+    return fernet.encrypt(text.encode()).decode()
+
+def load_configs() -> dict:
+    """Carrega configurações do JSON, retorna {} se não existir."""
+    if not os.path.exists(CONFIG_FILE):
+        return {}
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_configs(configs: dict):
+    """Salva todas as configurações no arquivo JSON."""
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(configs, f, ensure_ascii=False, indent=2)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -21,7 +61,7 @@ def login():
     if request.method == "POST":
         usuario = request.form.get("usuario")
         senha   = request.form.get("senha")
-        # TODO: Substituir por validação real em banco de dados
+        # TODO: usar validação em banco de dados real
         if usuario == "admin" and senha == "123":
             session["usuario"] = usuario
             return redirect(url_for("painel_operacao"))
@@ -37,7 +77,7 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        # TODO: Salvar novo usuário em banco de dados
+        # TODO: inserir novo usuário no DB
         flash("Cadastro concluído! Agora faça login.", "success")
         return redirect(url_for("login"))
     return render_template("register.html")
@@ -46,19 +86,35 @@ def register():
 def configurar():
     if not session.get("usuario"):
         return redirect(url_for("login"))
-    if request.method == "POST":
-        usuario         = session["usuario"]
-        binance_key     = request.form.get("binance_key")
-        binance_secret  = request.form.get("binance_secret")
-        openai_key      = request.form.get("openai_key")
 
-        # Criptografa e salva as chaves no sistema local
-        criptografar(binance_key, usuario)
-        criptografar(binance_secret, usuario)
-        criptografar(openai_key, usuario)
+    usuario    = session["usuario"]
+    configs    = load_configs()
+    user_conf  = configs.get(usuario, {})
+
+    if request.method == "POST":
+        bin_key    = request.form.get("binance_key", "").strip()
+        bin_secret = request.form.get("binance_secret", "").strip()
+        oaikey     = request.form.get("openai_key", "").strip()
+
+        if bin_key and bin_secret:
+            user_conf["binance_key"]    = criptografar(bin_key)
+            user_conf["binance_secret"] = criptografar(bin_secret)
+
+        if oaikey:
+            user_conf["openai_key"] = criptografar(oaikey)
+
+        configs[usuario] = user_conf
+        save_configs(configs)
 
         flash("Chaves salvas com sucesso!", "success")
-    return render_template("configurar.html")
+        return redirect(url_for("configurar"))
+
+    # No GET, apenas renderiza form (podemos mostrar placeholders se já configurado)
+    return render_template(
+        "configurar.html",
+        has_binance = "binance_key" in user_conf,
+        has_openai  = "openai_key" in user_conf
+    )
 
 @app.route("/painel")
 def painel_operacao():
