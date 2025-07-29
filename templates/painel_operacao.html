@@ -1,14 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Painel Operacional{% endblock %}
+{% block title %}Painel Operacional – Clarinha{% endblock %}
 
 {% block content %}
-  <section class="painel">
-    <h2>Painel de Sinais</h2>
-    <div id="sinais-container">
-      <!-- Sinais serão inseridos via JS -->
-    </div>
-    <div id="indicadores">
-      <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Gráficos">
-    </div>
-  </section>
+  <h2>Painel de Operações</h2>
+
+  <div class="dashboard-grid">
+    <!-- Sinais Dinâmicos -->
+    <section id="sinais-container" class="grid-sinais">
+      <!-- JS vai injetar aqui os cards de sinal -->
+    </section>
+
+    <!-- Menu de Ícones -->
+    <aside class="sidebar-icones">
+      <ul>
+        <li>
+          <a href="#" id="chart-icon">
+            <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Gráfico">
+            <span>Gráfico</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" id="target-icon">
+            <img src="{{ url_for('static', filename='icons/target.svg') }}" alt="Foco">
+            <span>Foco</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" id="wallet-icon">
+            <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Carteira">
+            <span>Carteira</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+  </div>
 {% endblock %}
