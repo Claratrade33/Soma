@@ -1,265 +1,37 @@
-import os
-import logging
-from datetime import timedelta
-from functools import wraps
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Clarinha</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Clarinha Oracular</h1>
+    <form method="post">
+      <label for="pergunta">Digite sua pergunta espiritual ou financeira:</label><br>
+      <textarea name="pergunta" required></textarea><br><br>
 
-from dotenv import load_dotenv
-from flask import (
-    Flask, render_template, request, redirect, url_for,
-    session, flash, jsonify
-)
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, PasswordField, DecimalField, SubmitField
-from wtforms.validators import DataRequired, Length, ValidationError
-from werkzeug.security import generate_password_hash, check_password_hash
-from binance.client import Client
-import openai
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_caching import Cache
+      <label for="simbolo">Símbolo (ex: BTCUSDT):</label><br>
+      <input type="text" name="simbolo" value="BTCUSDT"><br><br>
 
-# ===== Load .env =====
-load_dotenv()
+      <label><input type="checkbox" name="imagem"> Gerar imagem simbólica</label><br><br>
 
-# ===== Configuration =====
-class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'claraverse_secret_2025')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///claraverse.db')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
-    CACHE_TYPE = 'SimpleCache'
-    CACHE_DEFAULT_TIMEOUT = 300
+      <button type="submit">Consultar Clarinha 🌙</button>
+    </form>
 
-# ===== App & Extensions =====
-app = Flask(__name__)
-app.config.from_object(Config)
+    {% if resultado %}
+    <div class="resultado">
+      <h2>🪄 Sabedoria:</h2>
+      <p>{{ resultado['resposta_guardian'] }}</p>
 
-db    = SQLAlchemy(app)
-migrate = Migrate(app, db)
-csrf  = CSRFProtect(app)
-limiter = Limiter(app, key_func=get_remote_address)
-cache = Cache(app)
+      <h2>📈 Análise Técnica:</h2>
+      <pre>{{ resultado['analise_operacional'] | tojson(indent=2) }}</pre>
 
-# ===== Logging =====
-logging.basicConfig(
-    filename='app.log',
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s: %(message)s'
-)
-
-# ===== Models =====
-class User(db.Model):
-    id                = db.Column(db.Integer, primary_key=True)
-    username          = db.Column(db.String(150), nullable=False, unique=True)
-    password          = db.Column(db.String(200), nullable=False)
-    binance_api_key   = db.Column(db.String(255), default='')
-    binance_api_secret= db.Column(db.String(255), default='')
-    gpt_api_key       = db.Column(db.String(255), default='')
-
-# ===== Forms =====
-class LoginForm(FlaskForm):
-    username = StringField('Usuário', validators=[DataRequired(), Length(3, 150)])
-    password = PasswordField('Senha', validators=[DataRequired(), Length(6, 200)])
-    submit   = SubmitField('Entrar')
-
-class RegisterForm(FlaskForm):
-    username = StringField('Usuário', validators=[DataRequired(), Length(3, 150)])
-    password = PasswordField('Senha', validators=[DataRequired(), Length(6, 200)])
-    submit   = SubmitField('Registrar')
-
-    def validate_username(self, field):
-        if User.query.filter_by(username=field.data).first():
-            raise ValidationError('Usuário já existe.')
-
-class ConfigForm(FlaskForm):
-    binance_api_key    = StringField('Binance API Key', validators=[DataRequired()])
-    binance_api_secret = StringField('Binance API Secret', validators=[DataRequired()])
-    gpt_api_key        = StringField('OpenAI API Key', validators=[DataRequired()])
-    submit             = SubmitField('Salvar')
-
-class OrderForm(FlaskForm):
-    tipo_ordem = StringField('Tipo (compra/venda)', validators=[DataRequired()])
-    simbolo    = StringField('Símbolo', default='BTCUSDT', validators=[DataRequired()])
-    quantidade = DecimalField('Quantidade', places=8, rounding=None, validators=[DataRequired()])
-    submit     = SubmitField('Executar')
-
-# ===== Helpers =====
-def login_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return wrapper
-
-def get_user():
-    uid = session.get('user_id')
-    return User.query.get(uid) if uid else None
-
-# ===== Initial Data =====
-@app.before_first_request
-def create_initial_users():
-    db.create_all()
-    defaults = [
-        ("admin", "Bubi2025"),
-        ("Soma",  "123456"),
-        ("Clara", "verse")
-    ]
-    for uname, pwd in defaults:
-        if not User.query.filter_by(username=uname).first():
-            user = User(
-                username=uname,
-                password=generate_password_hash(pwd)
-            )
-            db.session.add(user)
-    db.session.commit()
-
-# ===== Routes =====
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/login', methods=['GET','POST'])
-@limiter.limit("10 per minute")
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data.strip()).first()
-        if user and check_password_hash(user.password, form.password.data):
-            session.permanent = True
-            session['user_id'] = user.id
-            return redirect(url_for('painel_operacao'))
-        flash('Usuário ou senha inválidos.', 'error')
-    return render_template('login.html', form=form)
-
-@app.route('/register', methods=['GET','POST'])
-@limiter.limit("5 per minute")
-def register():
-    form = RegisterForm()
-    if form.validate_on_submit():
-        hashed = generate_password_hash(form.password.data)
-        user = User(username=form.username.data.strip(), password=hashed)
-        db.session.add(user)
-        db.session.commit()
-        flash('Registro criado com sucesso! Faça login.', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html', form=form)
-
-@app.route('/logout')
-@login_required
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/configurar', methods=['GET','POST'])
-@login_required
-def configurar():
-    user = get_user()
-    form = ConfigForm(obj=user)
-    if form.validate_on_submit():
-        form.populate_obj(user)
-        db.session.commit()
-        flash('Chaves salvas com sucesso!', 'success')
-        return redirect(url_for('painel_operacao'))
-    return render_template('configurar.html', form=form)
-
-@app.route('/painel_operacao')
-@login_required
-def painel_operacao():
-    user = get_user()
-    if not all([user.binance_api_key, user.binance_api_secret, user.gpt_api_key]):
-        flash('Configure suas chaves antes de operar.', 'info')
-        return redirect(url_for('configurar'))
-
-    @cache.cached(timeout=60, key_prefix=f"balances_{user.id}")
-    def fetch_balances():
-        client = Client(user.binance_api_key, user.binance_api_secret)
-        acc = client.get_account()
-        bal = {b['asset']: b['free'] for b in acc.get('balances', [])}
-        return bal.get('BTC', '0'), bal.get('USDT', '0')
-
-    try:
-        saldo_btc, saldo_usdt = fetch_balances()
-    except Exception as e:
-        logging.error(f"Binance connect error: {e}")
-        saldo_btc = saldo_usdt = '0'
-        flash('Erro ao conectar na Binance.', 'error')
-
-    return render_template(
-        'painel_operacao.html',
-        user=user, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt
-    )
-
-@app.route('/executar_ordem', methods=['POST'])
-@login_required
-@limiter.limit("20 per minute")
-def executar_ordem():
-    user = get_user()
-    if not all([user.binance_api_key, user.binance_api_secret]):
-        return jsonify({'status':'erro','mensagem':'Chaves Binance não configuradas.'}),400
-
-    data = request.get_json(silent=True) or request.form
-    tipo = data.get('tipo_ordem','').lower()
-    symbol = data.get('simbolo','BTCUSDT').upper()
-    try:
-        qty = float(data.get('quantidade',0))
-    except (TypeError, ValueError):
-        return jsonify({'status':'erro','mensagem':'Quantidade inválida.'}),400
-
-    try:
-        client = Client(user.binance_api_key, user.binance_api_secret)
-        if tipo=='compra':
-            order = client.create_order(symbol=symbol, side='BUY', type='MARKET', quantity=qty)
-        elif tipo=='venda':
-            order = client.create_order(symbol=symbol, side='SELL', type='MARKET', quantity=qty)
-        else:
-            return jsonify({'status':'erro','mensagem':'Tipo de ordem inválido.'}),400
-
-        return jsonify({'status':'sucesso','mensagem':f'{tipo.upper()} {qty} {symbol}','ordem':order})
-
-    except Exception as e:
-        logging.error(f"Order execution error: {e}")
-        return jsonify({'status':'erro','mensagem':'Erro ao executar ordem.'}),400
-
-@app.route('/sugestao_gpt', methods=['POST'])
-@login_required
-@limiter.limit("10 per minute")
-def sugestao_gpt():
-    user = get_user()
-    if not user.gpt_api_key:
-        return jsonify({'erro':'Chave GPT não configurada.'}),400
-
-    prompt = request.json.get('prompt','Sugira operação BTCUSDT.')
-    openai.api_key = user.gpt_api_key
-
-    try:
-        resp = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role":"system","content":"Você é especialista em cripto, dê sinais claros."},
-                {"role":"user","content":prompt}
-            ],
-            max_tokens=200, temperature=0.3
-        )
-        text = resp.choices[0].message.content.strip()
-        return jsonify({'sugestao':text})
-
-    except Exception as e:
-        logging.error(f"GPT error: {e}")
-        return jsonify({'erro':'Erro no GPT.'}),400
-
-# ===== Error Handlers =====
-@app.errorhandler(404)
-def not_found(e):
-    return render_template('error.html', mensagem="Página não encontrada."),404
-
-@app.errorhandler(500)
-def internal_error(e):
-    logging.error(f"Server error: {e}")
-    return render_template('error.html', mensagem="Erro interno do servidor."),500
-
-# ===== Entry Point =====
-if __name__ == '__main__':
-    app.run()
+      <h2>🎨 Imagem Oracular:</h2>
+      <p><a href="{{ resultado['imagem_oracular'] }}" target="_blank">Ver Imagem</a></p>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
