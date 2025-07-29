@@ -1,30 +1,46 @@
-// static/dashboard.js
+document.addEventListener('DOMContentLoaded', () => {
+  const sinaisContainer = document.getElementById('sinais-container');
+  const chartIcon = document.querySelector('img[src*="chart.svg"]');
 
-function executarOrdem(tipo) {
-    const quantidade = prompt("Informe a quantidade de BTC para " + (tipo === 'compra' ? 'comprar' : 'vender') + ":", "0.001");
-    if (!quantidade || isNaN(parseFloat(quantidade))) return alert("Quantidade inválida!");
-    axios.post('/executar_ordem', {
-        tipo_ordem: tipo,
-        simbolo: 'BTCUSDT',
-        quantidade: quantidade
-    })
-    .then(resp => {
-        document.getElementById('mensagem-ordem').innerHTML = "<b>" + resp.data.mensagem + "</b>";
-    })
-    .catch(err => {
-        let msg = err.response && err.response.data && err.response.data.mensagem ? err.response.data.mensagem : "Erro na ordem.";
-        document.getElementById('mensagem-ordem').innerHTML = "<span class='error'>" + msg + "</span>";
+  // Sinais simulados recebidos da Clarinha
+  const sinais = [
+    { id: 1, tipo: 'RSI', valor: 72, intensidade: 'forte' },
+    { id: 2, tipo: 'Volume', valor: 3120, intensidade: 'moderado' },
+    { id: 3, tipo: 'Sinal Oracular', valor: 'Lua Cheia', intensidade: 'espiritual' }
+  ];
+
+  sinais.forEach(sinal => {
+    const div = document.createElement('div');
+    div.className = 'sinal-card';
+    div.innerHTML = `
+      <h3>${sinal.tipo}</h3>
+      <p>Valor: <strong>${sinal.valor}</strong></p>
+      <p>Intensidade: <em>${sinal.intensidade}</em></p>
+    `;
+    sinaisContainer.appendChild(div);
+  });
+
+  // Animação cósmica no ícone de gráficos
+  if (chartIcon) {
+    chartIcon.style.transition = 'transform 0.6s ease';
+    chartIcon.addEventListener('mouseenter', () => {
+      chartIcon.style.transform = 'rotate(10deg) scale(1.1)';
     });
-}
+    chartIcon.addEventListener('mouseleave', () => {
+      chartIcon.style.transform = 'rotate(0deg) scale(1)';
+    });
+  }
 
-function obterSugestaoGPT() {
-    document.getElementById('gpt-sugestao').innerHTML = "Consultando IA...";
-    axios.post('/sugestao_gpt', { prompt: "Análise para operação BTCUSDT agora." })
-        .then(resp => {
-            document.getElementById('gpt-sugestao').innerHTML = "<b>Sugestão IA:</b><br>" + resp.data.sugestao;
-        })
-        .catch(err => {
-            let msg = err.response && err.response.data && err.response.data.erro ? err.response.data.erro : "Erro na IA.";
-            document.getElementById('gpt-sugestao').innerHTML = "<span class='error'>" + msg + "</span>";
-        });
-}
+  // Atualização periódica dos sinais (simulado)
+  setInterval(() => {
+    const novo = document.createElement('div');
+    novo.className = 'sinal-card novo-sinal';
+    novo.innerHTML = `
+      <h3>Sinal Novo</h3>
+      <p>Clarinha sussurra: <strong>Foco em Saturno</strong></p>
+      <p>Intensidade: <em>celestial</em></p>
+    `;
+    sinaisContainer.insertBefore(novo, sinaisContainer.firstChild);
+    setTimeout(() => novo.classList.add('ativo'), 300);
+  }, 8000);
+});
