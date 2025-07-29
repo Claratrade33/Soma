@@ -13,41 +13,43 @@ import openai
 
 # ===== APP BASE =====
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'claraverse_secret_2025')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///claraverse.db')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'claraverse_secret_2025')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///claraverse.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
 db = SQLAlchemy(app)
+
 
 # ===== MODEL =====
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
-    binance_api_key = db.Column(db.String(255))
-    binance_api_secret = db.Column(db.String(255))
-    gpt_api_key = db.Column(db.String(255))
+    binance_api_key = db.Column(db.String(255), default='')
+    binance_api_secret = db.Column(db.String(255), default='')
+    gpt_api_key = db.Column(db.String(255), default='')
 
-# ===== USUÁRIOS INICIAIS =====
+
 def criar_usuarios_iniciais():
-    users = [
+    iniciais = [
         {"username": "admin", "password": "Bubi2025"},
-        {"username": "Soma", "password": "123456"},
+        {"username": "Soma",  "password": "123456"},
         {"username": "Clara", "password": "verse"},
     ]
-    for u in users:
-        if not User.query.filter_by(username=u['username']).first():
+    for u in iniciais:
+        if not User.query.filter_by(username=u["username"]).first():
             novo = User(
-                username=u['username'],
-                password=generate_password_hash(u['password'])
+                username=u["username"],
+                password=generate_password_hash(u["password"])
             )
             db.session.add(novo)
     db.session.commit()
 
-# ===== Inicialização universal =====
+
 with app.app_context():
     db.create_all()
     criar_usuarios_iniciais()
+
 
 # ===== AUTENTICAÇÃO =====
 def login_required(f):
@@ -58,16 +60,17 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 def get_user():
-    if 'user_id' in session:
-        return User.query.get(session['user_id'])
-    return None
+    user_id = session.get('user_id')
+    return User.query.get(user_id) if user_id else None
+
 
 # ===== ROTAS =====
-
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -75,37 +78,50 @@ def login():
         username = request.form['username'].strip()
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
+
         if user and check_password_hash(user.password, password):
             session.permanent = True
             session['user_id'] = user.id
             return redirect(url_for('painel_operacao'))
-        else:
-            flash('Usuário ou senha inválidos.', 'error')
+
+        flash('Usuário ou senha inválidos.', 'error')
+
     return render_template('login.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password']
+
         if not username or not password:
             flash('Preencha todos os campos.', 'error')
             return render_template('register.html')
+
         if User.query.filter_by(username=username).first():
             flash('Usuário já existe.', 'error')
             return render_template('register.html')
-        novo = User(username=username, password=generate_password_hash(password))
+
+        novo = User(
+            username=username,
+            password=generate_password_hash(password)
+        )
         db.session.add(novo)
         db.session.commit()
+
         flash('Registro criado com sucesso! Faça login.', 'success')
         return redirect(url_for('login'))
+
     return render_template('register.html')
+
 
 @app.route('/logout')
 @login_required
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
 
 @app.route('/configurar', methods=['GET', 'POST'])
 @login_required
@@ -116,9 +132,12 @@ def configurar():
         user.binance_api_secret = request.form['binance_api_secret'].strip()
         user.gpt_api_key = request.form['gpt_api_key'].strip()
         db.session.commit()
+
         flash('Chaves salvas com sucesso!', 'success')
         return redirect(url_for('painel_operacao'))
+
     return render_template('configurar.html', user=user)
+
 
 @app.route('/painel_operacao')
 @login_required
@@ -128,23 +147,24 @@ def painel_operacao():
         flash('Configure suas chaves para operar!', 'info')
         return redirect(url_for('configurar'))
 
-    # INTEGRAÇÃO BINANCE
     try:
         client = Client(user.binance_api_key, user.binance_api_secret)
         account = client.get_account()
-        balances = account['balances']
+        balances = account.get('balances', [])
         saldo_btc = next((b['free'] for b in balances if b['asset'] == 'BTC'), '0')
         saldo_usdt = next((b['free'] for b in balances if b['asset'] == 'USDT'), '0')
     except Exception as e:
         saldo_btc = saldo_usdt = '0'
-        flash(f'Erro ao conectar na Binance: {str(e)}', 'error')
+        flash(f'Erro ao conectar na Binance: {e}', 'error')
 
-    return render_template('painel_operacao.html',
-                           user=user,
-                           saldo_btc=saldo_btc,
-                           saldo_usdt=saldo_usdt)
+    return render_template(
+        'painel_operacao.html',
+        user=user,
+        saldo_btc=saldo_btc,
+        saldo_usdt=saldo_usdt
+    )
 
-# ===== EXECUTAR ORDEM BINANCE =====
+
 @app.route('/executar_ordem', methods=['POST'])
 @login_required
 def executar_ordem():
@@ -152,38 +172,62 @@ def executar_ordem():
     if not (user.binance_api_key and user.binance_api_secret):
         return jsonify({'status': 'erro', 'mensagem': 'Chaves Binance não configuradas.'}), 400
 
-    data = request.get_json() if request.is_json else request.form
-    tipo_ordem = data.get('tipo_ordem')
-    simbolo = data.get('simbolo', 'BTCUSDT')
-    quantidade = data.get('quantidade', '0.001')  # Valor padrão
+    data = request.get_json(silent=True) or request.form
+    tipo_ordem = data.get('tipo_ordem', '').lower()
+    simbolo = data.get('simbolo', 'BTCUSDT').upper()
+
+    try:
+        quantidade = float(data.get('quantidade', '0.001'))
+    except ValueError:
+        return jsonify({'status': 'erro', 'mensagem': 'Quantidade inválida.'}), 400
 
     try:
         client = Client(user.binance_api_key, user.binance_api_secret)
         if tipo_ordem == 'compra':
-            ordem = client.create_order(symbol=simbolo, side='BUY', type='MARKET', quantity=quantidade)
+            ordem = client.create_order(
+                symbol=simbolo, side='BUY', type='MARKET', quantity=quantidade
+            )
         elif tipo_ordem == 'venda':
-            ordem = client.create_order(symbol=simbolo, side='SELL', type='MARKET', quantity=quantidade)
+            ordem = client.create_order(
+                symbol=simbolo, side='SELL', type='MARKET', quantity=quantidade
+            )
         else:
             return jsonify({'status': 'erro', 'mensagem': 'Tipo de ordem inválido.'}), 400
 
-        return jsonify({'status': 'sucesso', 'mensagem': f'Ordem executada: {tipo_ordem.upper()} {quantidade} {simbolo}', 'ordem': ordem})
-    except Exception as e:
-        return jsonify({'status': 'erro', 'mensagem': f'Erro ao executar ordem: {str(e)}'}), 400
+        return jsonify({
+            'status': 'sucesso',
+            'mensagem': f'Ordem executada: {tipo_ordem.upper()} {quantidade} {simbolo}',
+            'ordem': ordem
+        })
 
-# ===== SUGESTÃO GPT (AI) =====
+    except Exception as e:
+        return jsonify({'status': 'erro', 'mensagem': f'Erro ao executar ordem: {e}'}), 400
+
+
 @app.route('/sugestao_gpt', methods=['POST'])
 @login_required
 def sugestao_gpt():
     user = get_user()
     if not user.gpt_api_key:
         return jsonify({'erro': 'Chave GPT não configurada.'}), 400
-    prompt = request.json.get('prompt', 'Faça uma sugestão de operação para BTCUSDT com análise técnica.')
+
+    prompt = request.json.get(
+        'prompt',
+        'Faça uma sugestão de operação para BTCUSDT com análise técnica.'
+    )
     openai.api_key = user.gpt_api_key
+
     try:
         resposta = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4",
             messages=[
-                {"role": "system", "content": "Você é uma IA especialista em operações de criptomoedas, foque em sinais claros de compra/venda, alvo, stop e explicação breve."},
+                {
+                    "role": "system",
+                    "content": (
+                        "Você é uma IA especialista em operações de criptomoedas, "
+                        "foco em sinais claros, alvo, stop e explicação breve."
+                    )
+                },
                 {"role": "user", "content": prompt}
             ],
             max_tokens=200,
@@ -191,18 +235,26 @@ def sugestao_gpt():
         )
         texto = resposta.choices[0].message.content.strip()
         return jsonify({'sugestao': texto})
+
     except Exception as e:
-        return jsonify({'erro': f'Erro GPT: {str(e)}'}), 400
+        return jsonify({'erro': f'Erro GPT: {e}'}), 400
+
 
 # ===== ERROS =====
 @app.errorhandler(404)
 def not_found(e):
     return render_template("error.html", mensagem="Página não encontrada."), 404
 
+
 @app.errorhandler(500)
 def erro_interno(e):
-    return render_template("error.html", mensagem="Erro interno do servidor. Tente novamente mais tarde."), 500
+    return render_template(
+        "error.html",
+        mensagem="Erro interno do servidor. Tente novamente mais tarde."
+    ), 500
+
 
 # ===== EXECUTAR =====
 if __name__ == '__main__':
     app.run(debug=True)
+```
