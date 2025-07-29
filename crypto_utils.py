@@ -23,14 +23,16 @@ def carregar_chave(usuario):
     else:
         return gerar_chave(usuario)
 
-def criptografar(mensagem, usuario):
-    """Criptografa mensagem usando chave do usuário"""
+def criptografar(texto, usuario):
+    """Criptografa uma string com base na chave do usuário"""
     chave = carregar_chave(usuario)
     f = Fernet(chave)
-    return f.encrypt(mensagem.encode()).decode()
+    token = f.encrypt(texto.encode())
+    return token.decode()
 
-def descriptografar(mensagem_encriptada, usuario):
-    """Descriptografa mensagem usando chave do usuário"""
+def descriptografar(token, usuario):
+    """Descriptografa uma string com base na chave do usuário"""
     chave = carregar_chave(usuario)
     f = Fernet(chave)
-    return f.decrypt(mensagem_encriptada.encode()).decode()
+    texto = f.decrypt(token.encode())
+    return texto.decode()
