@@ -7,29 +7,45 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-dark">
-    <div class="container center">
-        <h1 class="logo-title">Entrar no ClaraVerse</h1>
-        <form method="POST" class="form">
+    <main class="container center" role="main" aria-labelledby="login-title">
+        <h1 id="login-title" class="logo-title">Entrar no ClaraVerse</h1>
+
+        <form method="POST" class="form" novalidate>
+            {{ form.hidden_tag() }}
+            
             <div class="form-group">
                 <label for="username">Usuário</label>
-                <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+                <input 
+                    type="text" id="username" name="username"
+                    value="{{ request.form.username or '' }}"
+                    required autocomplete="username" autofocus
+                >
             </div>
+
             <div class="form-group">
                 <label for="password">Senha</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <input 
+                    type="password" id="password" name="password"
+                    required autocomplete="current-password"
+                >
             </div>
+
             <button type="submit" class="btn btn-main" style="width:100%;">Entrar</button>
         </form>
-        <a href="{{ url_for('register') }}" class="link">Não tem conta? Cadastre-se</a>
+
+        <p>
+            <a href="{{ url_for('register') }}" class="link">Não tem conta? Cadastre-se</a>
+        </p>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <ul class="flash-messages">
-            {% for category, message in messages %}
-              <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
+            <ul class="flash-messages" role="alert">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
             </ul>
           {% endif %}
         {% endwith %}
-    </div>
+    </main>
 </body>
 </html>
