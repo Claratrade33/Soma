@@ -1,37 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Clarinha</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="container">
-    <h1>Clarinha Oracular</h1>
-    <form method="post">
-      <label for="pergunta">Digite sua pergunta espiritual ou financeira:</label><br>
-      <textarea name="pergunta" required></textarea><br><br>
+{% extends "base.html" %}
+{% block title %}Início – Clarinha{% endblock %}
 
-      <label for="simbolo">Símbolo (ex: BTCUSDT):</label><br>
-      <input type="text" name="simbolo" value="BTCUSDT"><br><br>
+{% block content %}
+  <h2>Converse com a Clarinha</h2>
+  <form method="post">
+    <label>Pergunta espiritual ou financeira:</label><br>
+    <textarea name="pergunta" required></textarea><br><br>
 
-      <label><input type="checkbox" name="imagem"> Gerar imagem simbólica</label><br><br>
+    <label>Símbolo (ex: BTCUSDT):</label><br>
+    <input type="text" name="simbolo" value="BTCUSDT"><br><br>
 
-      <button type="submit">Consultar Clarinha 🌙</button>
-    </form>
+    <label>
+      <input type="checkbox" name="imagem"> Gerar imagem simbólica
+    </label><br><br>
 
-    {% if resultado %}
-    <div class="resultado">
-      <h2>🪄 Sabedoria:</h2>
+    <button type="submit">Consultar 🌌</button>
+  </form>
+
+  {% if resultado %}
+    <section class="resultado">
+      <h3>🪄 Sabedoria</h3>
       <p>{{ resultado['resposta_guardian'] }}</p>
 
-      <h2>📈 Análise Técnica:</h2>
+      <h3>📈 Análise Técnica</h3>
       <pre>{{ resultado['analise_operacional'] | tojson(indent=2) }}</pre>
 
-      <h2>🎨 Imagem Oracular:</h2>
-      <p><a href="{{ resultado['imagem_oracular'] }}" target="_blank">Ver Imagem</a></p>
-    </div>
-    {% endif %}
-  </div>
-</body>
-</html>
+      <h3>🎨 Imagem Oracular</h3>
+      {% if resultado['imagem_oracular'].startswith('http') %}
+        <a href="{{ resultado['imagem_oracular'] }}" target="_blank">Ver imagem</a>
+      {% else %}
+        <p>{{ resultado['imagem_oracular'] }}</p>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}
