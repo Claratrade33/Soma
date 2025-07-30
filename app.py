@@ -1,33 +1,18 @@
 import os
 import json
-import logging
 import secrets
 from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash,
+    Flask, render_template, request, redirect,
+    url_for, session, flash
 )
 from cryptography.fernet import Fernet
 
-# -------- Logger --------
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-logger.info("Iniciando ClaraVerse app.py")
-
-# -------- App & Configs --------
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "chave_super_secreta_local")
+app.secret_key = os.getenv("SECRET_KEY", "claraverse_super_secret_key_2025")
 
-BASE_DIR    = os.path.dirname(__file__)
-USERS_FILE  = os.path.join(BASE_DIR, "users.json")
-KEY_FILE    = os.path.join(BASE_DIR, "fernet.key")
+BASE_DIR = os.path.dirname(__file__)
+USERS_FILE = os.path.join(BASE_DIR, "users.json")
+KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
 
 # Gera ou carrega chave Fernet
 if os.path.exists(KEY_FILE):
@@ -42,7 +27,10 @@ def encrypt(text: str) -> str:
     return fernet.encrypt(text.encode()).decode()
 
 def decrypt(text: str) -> str:
-    return fernet.decrypt(text.encode()).decode()
+    try:
+        return fernet.decrypt(text.encode()).decode()
+    except Exception:
+        return ""
 
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -61,15 +49,6 @@ def find_user(username):
             return u
     return None
 
-def update_user(user):
-    users = load_users()
-    for idx, u in enumerate(users):
-        if decrypt(u["usuario"]) == decrypt(user["usuario"]):
-            users[idx] = user
-            break
-    save_users(users)
-
-# -------- Criação automática do admin --------
 def criar_admin_default():
     users = load_users()
     for u in users:
@@ -78,7 +57,7 @@ def criar_admin_default():
     admin_user = {
         "usuario": encrypt("admin"),
         "senha": encrypt("Bubi"),
-        "email": encrypt("admin@clara.verse"),
+        "email": encrypt("admin@claraverse.com"),
         "binance_key": "",
         "binance_secret": "",
         "openai_key": "",
@@ -87,9 +66,6 @@ def criar_admin_default():
     users.append(admin_user)
     save_users(users)
 criar_admin_default()
-
-def generate_api_key():
-    return secrets.token_urlsafe(32)
 
 @app.route("/", methods=["GET"])
 def index():
@@ -157,30 +133,40 @@ def configurar():
         return redirect(url_for("login"))
     username = session["usuario"]
     user = find_user(username)
+    if not user:
+        return redirect(url_for("logout"))
     if request.method == "POST":
         bin_key    = request.form.get("binance_api_key", "").strip()
         bin_secret = request.form.get("binance_api_secret", "").strip()
         oaikey     = request.form.get("gpt_api_key", "").strip()
         updated = False
-        if bin_key and bin_secret:
-            user["binance_key"]    = encrypt(bin_key)
+        if bin_key:
+            user["binance_key"] = encrypt(bin_key)
+            updated = True
+        if bin_secret:
             user["binance_secret"] = encrypt(bin_secret)
             updated = True
         if oaikey:
             user["openai_key"] = encrypt(oaikey)
             updated = True
         if updated:
-            update_user(user)
+            users = load_users()
+            for idx, u in enumerate(users):
+                if decrypt(u["usuario"]) == username:
+                    users[idx] = user
+            save_users(users)
             flash("Chaves salvas com sucesso!", "success")
             return redirect(url_for("configurar"))
         else:
             flash("Preencha todos os campos de chave!", "danger")
-    return render_template("configurar.html", user={
-        "binance_api_key": decrypt(user["binance_key"]) if user.get("binance_key") else "",
-        "binance_api_secret": decrypt(user["binance_secret"]) if user.get("binance_secret") else "",
-        "gpt_api_key": decrypt(user["openai_key"]) if user.get("openai_key") else "",
+    # Preparar dados para template
+    context = {
+        "binance_api_key": decrypt(user.get("binance_key", "")),
+        "binance_api_secret": decrypt(user.get("binance_secret", "")),
+        "gpt_api_key": decrypt(user.get("openai_key", "")),
         "claraverse_api_key": user.get("claraverse_api_key", "")
-    })
+    }
+    return render_template("configurar.html", user=context)
 
 @app.route("/gerar_api_key", methods=["POST"])
 def gerar_api_key():
@@ -188,9 +174,14 @@ def gerar_api_key():
         return redirect(url_for("login"))
     username = session["usuario"]
     user = find_user(username)
-    new_key = generate_api_key()
+    # Gera/regenera a API Key ClaraVerse (segura, 64 caracteres)
+    new_key = secrets.token_urlsafe(48)
     user["claraverse_api_key"] = new_key
-    update_user(user)
+    users = load_users()
+    for idx, u in enumerate(users):
+        if decrypt(u["usuario"]) == username:
+            users[idx] = user
+    save_users(users)
     flash("API Key ClaraVerse gerada com sucesso!", "success")
     return redirect(url_for("configurar"))
 
@@ -202,6 +193,7 @@ def painel_operacao():
     user = find_user(username)
     saldo_btc = "0"
     saldo_usdt = "0"
+    # Só consulta a Binance se o usuário tiver chave salva!
     if user.get("binance_key") and user.get("binance_secret"):
         try:
             from binance.client import Client
@@ -219,13 +211,8 @@ def painel_operacao():
             flash(f"Erro ao consultar saldo Binance: {e}", "danger")
     return render_template("painel_operacao.html", user={
         "username": username,
-        "email": decrypt(user["email"]) if user.get("email") else "",
-        "claraverse_api_key": user.get("claraverse_api_key", "")
+        "email": decrypt(user["email"]) if user.get("email") else ""
     }, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt)
-
-@app.route("/icons")
-def icons():
-    return render_template("icons.html")
 
 @app.errorhandler(404)
 def pagina_nao_encontrada(error):
@@ -234,5 +221,4 @@ def pagina_nao_encontrada(error):
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 5000))
-    logger.info(f"Iniciando servidor dev em {host}:{port}")
     app.run(debug=True, host=host, port=port)
