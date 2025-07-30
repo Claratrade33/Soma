@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(__file__)
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
 FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
 
+# === Criptografia ===
 if os.path.exists(FERNET_KEY_FILE):
     key = open(FERNET_KEY_FILE, "rb").read()
 else:
@@ -36,6 +37,7 @@ def find_user(username):
             return u
     return None
 
+# Cria sempre o usuário admin fixo ao iniciar (não precisa registrar)
 def criar_admin_default():
     users = load_users()
     for u in users:
