@@ -1,33 +1,118 @@
-.api-section {
-    background: rgba(30,30,50,0.9);
+body {
+    font-family: 'Montserrat', Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(120deg, #a065e6, #3a265e 90%);
+}
+header {
+    text-align: center;
+    padding: 2rem 0 1rem 0;
+}
+h1 {
+    color: #ffd600;
+    font-weight: 900;
+    font-size: 2.2rem;
+    letter-spacing: 1.5px;
+}
+nav a {
+    margin: 0 1rem;
+    color: #31e9ff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.aviso {
+    margin: 0 auto 1rem auto;
+    background: #fff7c6;
+    color: #cf7b00;
+    text-align: center;
     border-radius: 8px;
-    padding: 1.2rem 1.5rem;
-    margin-bottom: 1.2rem;
-    box-shadow: 0 0 18px #0002;
+    max-width: 600px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
 }
-.api-section h3 {
-    margin-top: 0;
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
-.api-section input[type="text"] {
-    width: 100%;
-    margin-top: .4rem;
-    margin-bottom: .5rem;
-    padding: .5rem;
-    font-size: 1.1em;
-    background: #151522;
-    border: 1px solid #262652;
-    color: #ddd;
-    border-radius: 4px;
-}
-.api-section button.btn-main {
-    width: 100%;
-}
-.api-box {
-    margin: 1rem 0;
-    padding: .7rem;
-    background: #181830;
-    border-radius: 5px;
-    border: 1px solid #353556;
+.painel {
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #1a1422;
     color: #fff;
-    font-size: 0.95em;
+    border-radius: 2rem;
+    box-shadow: 0 8px 30px 0 rgba(0,0,0,.25);
+    width: 350px;
+    max-width: 96vw;
+    text-align: center;
+}
+.painel h2 {
+    color: #ffd600;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+input[type="number"], input[type="text"] {
+    padding: 0.8rem;
+    width: 90%;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: none;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px #0001;
+    outline: none;
+}
+button {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.9rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+    letter-spacing: 1px;
+}
+.btn-compra { background: #2cffb3; color: #184c29;}
+.btn-venda  { background: #ff4c5a; color: #fff;}
+.btn-ia     { background: #09e5ff; color: #122549;}
+.btn-auto   { background: #b966ff; color: #fff;}
+button:hover { filter: brightness(1.08);}
+.flash.success { background: #36e75f; color: #fff; padding: 0.7rem; border-radius: 6px; margin-top: 1rem;}
+.flash.danger  { background: #ff8585; color: #222; padding: 0.7rem; border-radius: 6px; margin-top: 1rem;}
+.error { background: #fa8a8a; color: #222; padding: 0.6rem; border-radius: 6px; margin-top: 1.2rem; }
+@media (max-width: 500px) {
+    .painel { width: 98vw; border-radius: 1.2rem; padding: 1rem; }
+    input, button { font-size: 1rem; }
+}
+.config-form {
+    margin: 2rem auto;
+    background: #21183a;
+    padding: 2rem;
+    border-radius: 2rem;
+    color: #fff;
+    width: 350px;
+    max-width: 96vw;
+    box-shadow: 0 8px 30px 0 rgba(0,0,0,.15);
+}
+.config-form label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+    color: #ffd600;
+    font-weight: 700;
+}
+.config-form input[type="text"] {
+    background: #19172a;
+    color: #fff;
+    margin-bottom: 1.2rem;
+    width: 97%;
+}
+.config-form button {
+    background: #29b6f6;
+    color: #fff;
+    margin-bottom: 0;
 }
