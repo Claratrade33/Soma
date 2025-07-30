@@ -3,6 +3,7 @@ import json
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from cryptography.fernet import Fernet
 
+# === Config ===
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
 
@@ -10,7 +11,6 @@ BASE_DIR = os.path.dirname(__file__)
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
 FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
 
-# Geração/Carregamento da chave Fernet
 if os.path.exists(FERNET_KEY_FILE):
     key = open(FERNET_KEY_FILE, "rb").read()
 else:
@@ -36,7 +36,6 @@ def find_user(username):
             return u
     return None
 
-# Cria admin fixo
 def criar_admin_default():
     users = load_users()
     for u in users:
@@ -52,9 +51,9 @@ def criar_admin_default():
     save_users(users)
 criar_admin_default()
 
+# === Rotas ===
 @app.route("/")
-def index():
-    return render_template("index.html")
+def index(): return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -72,6 +71,40 @@ def login():
 def logout():
     session.pop("usuario", None)
     return redirect(url_for("login"))
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email    = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        confirm  = request.form.get("confirm_password", "")
+        if not username or not password or not email or not confirm:
+            flash("Preencha todos os campos.", "danger")
+            return render_template("register.html")
+        if password != confirm:
+            flash("As senhas não coincidem.", "danger")
+            return render_template("register.html")
+        if find_user(username):
+            flash("Usuário já existe.", "danger")
+            return render_template("register.html")
+        users = load_users()
+        for u in users:
+            if "email" in u and decrypt(u["email"]) == email:
+                flash("Este email já está cadastrado.", "danger")
+                return render_template("register.html")
+        users.append({
+            "usuario": encrypt(username),
+            "senha": encrypt(password),
+            "email": encrypt(email),
+            "binance_key": "",
+            "binance_secret": "",
+            "openai_key": ""
+        })
+        save_users(users)
+        flash("Cadastro realizado! Faça login.", "success")
+        return redirect(url_for("login"))
+    return render_template("register.html")
 
 @app.route("/configurar", methods=["GET", "POST"])
 def configurar():
@@ -136,7 +169,7 @@ def painel_operacao():
         saldo_btc=saldo_btc, saldo_usdt=saldo_usdt, error_msg=error_msg
     )
 
-# Executa ordem (buy/sell) real via API
+# ========== EXECUÇÃO DE ORDENS ==========
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
     if not session.get("usuario"):
