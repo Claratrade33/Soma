@@ -1,51 +1,52 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <title>Painel de Operações | ClaraVerse</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- TradingView Widget -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script defer src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </head>
-<body class="bg-dark">
-    <div class="topbar">
-        <span class="user-info">Usuário: <b>{{ user.username }}</b></span>
-        <a href="{{ url_for('configurar') }}" class="btn btn-secondary">Configurar Chaves</a>
-        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Sair</a>
-    </div>
-    <div class="container painel-container">
-        <h1 class="logo-title">Painel de Operações</h1>
-        <div class="saldo-info">
-            <span><b>Saldo BTC:</b> {{ saldo_btc }}</span>
-            <span><b>Saldo USDT:</b> {{ saldo_usdt }}</span>
-        </div>
-        <div class="tradingview-widget-container" style="height: 400px; margin-bottom: 1rem;">
-            <div id="tv_chart"></div>
-        </div>
-        <div class="op-buttons">
-            <button class="btn btn-buy" onclick="confirmarOrdem('compra')">Comprar</button>
-            <button class="btn btn-sell" onclick="confirmarOrdem('venda')">Vender</button>
-            <button class="btn btn-main" onclick="obterSugestaoGPT()">Sugestão IA</button>
-            <button class="btn btn-auto" onclick="toggleAutomatico()">Automático</button>
-        </div>
-        <div id="mensagem-ordem" style="margin-top: 1rem;"></div>
-        <div id="gpt-sugestao" class="gpt-box"></div>
+<body>
+    <header>
+        <h1 class="titulo-clara">🌙 ClaraVerse Finance 🌙</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Início</a>
+            <a href="{{ url_for('painel_operacao') }}">Painel</a>
+            <a href="{{ url_for('configurar') }}">Configurar</a>
+            <a href="{{ url_for('logout') }}">Sair</a>
+        </nav>
+    </header>
 
-        <h3 class="historico-title">Histórico de Ordens</h3>
-        <div id="historico" class="historico-box"></div>
+    {% if not user.binance_api_key or not user.binance_api_secret %}
+        <div class="alerta-erro">
+            <b>⚠️ Atenção:</b> Cadastre suas chaves API em <a href="{{ url_for('configurar') }}">Configurar</a> para liberar todas as funções!
+        </div>
+    {% endif %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flash-messages">
-            {% for category, message in messages %}
-              <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-    </div>
-    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+    {% if erro_binance %}
+        <div class="alerta-erro">
+            Erro ao consultar saldo Binance: {{ erro_binance }}
+        </div>
+    {% endif %}
+
+    <main class="painel-wrap">
+        <section class="painel-card">
+            <div class="saldos">
+                <h2>Carteira</h2>
+                <p>BTC: <b>{{ saldo_btc }}</b></p>
+                <p>USDT: <b>{{ saldo_usdt }}</b></p>
+            </div>
+            <div class="botoes-operacao">
+                <button class="btn-compra" onclick="confirmarOrdem('buy')">Comprar</button>
+                <button class="btn-venda" onclick="confirmarOrdem('sell')">Vender</button>
+                <button class="btn-ia" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
+                <button class="btn-auto" onclick="confirmarOrdem('auto')">Automático</button>
+            </div>
+            <div id="historico-ordens">
+                <h3>Histórico de Ordens</h3>
+                <ul id="ordens-list"></ul>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
