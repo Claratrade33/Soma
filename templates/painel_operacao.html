@@ -2,27 +2,41 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Operações | ClaraVerse</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClaraVerse Finance • Painel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </head>
-<body class="bg-dark">
-    <div class="topbar">
-        <span class="user-info">Usuário: <b>{{ user.username }}</b></span>
-        <a href="{{ url_for('configurar') }}" class="btn btn-secondary">Configurar Chaves</a>
-        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Sair</a>
+<body>
+    <header>
+        <h1>🌙 ClaraVerse Finance 🌙</h1>
+        <nav>
+            <a href="/">Início</a>
+            <a href="/painel_operacao">Painel</a>
+            <a href="/configurar">Configurar</a>
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+    <div class="aviso">
+        <span>⚠️ Atenção: Cadastre suas chaves API em <a href="/configurar">Configurar</a> para liberar todas as funções!</span>
     </div>
-    <div class="container painel-container">
-        <h1 class="logo-title">Painel de Operações - ClaraVerse</h1>
-        <div class="saldo-info">
-            <span><b>Saldo BTC:</b> {{ saldo_btc }}</span>
-            <span><b>Saldo USDT:</b> {{ saldo_usdt }}</span>
-        </div>
-        <div class="api-box">
-            <label>API Key ClaraVerse:</label>
-            <input type="text" value="{{ user.claraverse_api_key or '' }}" readonly>
-        </div>
-        <!-- Seu restante do painel -->
-    </div>
+    <main>
+        <section class="painel">
+            <h2>Carteira</h2>
+            <div>BTC: {{ saldo_btc }}<br>USDT: {{ saldo_usdt }}</div>
+            <form id="operarForm">
+                <input type="number" name="quantidade" step="0.00001" min="0" placeholder="Quantidade" required>
+                <button class="btn-compra" type="button" onclick="executarOrdem('compra')">Comprar</button>
+                <button class="btn-venda" type="button" onclick="executarOrdem('venda')">Vender</button>
+                <button class="btn-ia" type="button" onclick="alert('Em breve: Sugestão IA!')">Sugestão IA</button>
+                <button class="btn-auto" type="button" onclick="alert('Em breve: Modo Automático!')">Automático</button>
+            </form>
+            <div id="mensagem-ordem"></div>
+            <h3>Histórico de Ordens</h3>
+            <!-- Histórico pode ser carregado com dashboard.js futuramente -->
+        </section>
+        {% if error_msg %}
+            <div class="error">{{ error_msg }}</div>
+        {% endif %}
+    </main>
 </body>
 </html>
