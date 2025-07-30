@@ -1,164 +1,95 @@
-body.bg-dark {
-    background: #171925;
-    color: #ececec;
+body {
+    background: linear-gradient(120deg, #a259c5 0%, #3d2349 100%);
     font-family: 'Inter', Arial, sans-serif;
     min-height: 100vh;
     margin: 0;
+    color: #fafafa;
 }
-
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #23243a;
-    padding: 1rem 2rem;
-    border-bottom: 2px solid #282a41;
-}
-.user-info {
-    font-size: 1rem;
-    font-weight: 500;
-}
-.topbar .btn {
-    margin-left: 1rem;
-}
-
-.container.painel-container {
-    max-width: 540px;
-    margin: 2.5rem auto;
-    background: #23243a;
-    border-radius: 22px;
-    box-shadow: 0 2px 14px #12121799;
-    padding: 2.5rem 2rem 2rem 2rem;
+header {
+    padding: 18px 4vw 0 4vw;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
-
-.logo-title {
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-    color: #8ffcff;
-    margin-bottom: 1.2rem;
-    text-shadow: 0 2px 12px #00f7ff44;
-    font-family: 'Poppins', Arial, sans-serif;
+.titulo-clara {
+    color: #ffd700;
+    margin: 0 0 10px 0;
+    font-size: 2.2rem;
+    text-align: center;
+    letter-spacing: 1.2px;
 }
-
-.saldo-info {
-    display: flex;
-    gap: 2.2rem;
-    font-size: 1.1rem;
-    background: #252839;
-    padding: 0.7rem 1.2rem;
-    border-radius: 12px;
-    margin-bottom: 1.1rem;
-    box-shadow: 0 0 6px #00e2ee22;
+nav {
+    text-align: center;
+    margin-bottom: 24px;
 }
-
-.tradingview-widget-container {
-    width: 100%;
-    max-width: 100%;
-    background: #191b29;
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 6px #00b7ff22;
-}
-
-.op-buttons {
-    display: flex;
-    gap: 1.1rem;
-    margin: 1.1rem 0 1.4rem 0;
-}
-
-.btn {
-    padding: 0.6rem 1.5rem;
-    border-radius: 14px;
-    border: none;
-    font-size: 1.09rem;
+nav a {
+    color: #00f7ff;
+    text-decoration: none;
+    margin: 0 22px;
     font-weight: 600;
-    transition: background 0.2s, transform 0.18s;
-    cursor: pointer;
-    box-shadow: 0 2px 12px #00000013;
+    font-size: 1.06rem;
+    transition: color .2s;
 }
-
-.btn-buy { background: #20e56b; color: #1a201b; }
-.btn-buy:hover { background: #16c55c; }
-.btn-sell { background: #f74f4f; color: #fff; }
-.btn-sell:hover { background: #e02626; }
-.btn-main { background: #00e2ee; color: #111; }
-.btn-main:hover { background: #00b7ff; }
-.btn-auto { background: #a760fa; color: #fff; }
-.btn-auto:hover { background: #7c2cf7; }
-.btn-secondary { background: #35376a; color: #aee7ff; }
-.btn-secondary:hover { background: #2e2e47; }
-
-.gpt-box {
-    background: #26274a;
-    border-left: 6px solid #00e2ee;
-    padding: 1.1rem;
-    margin: 1.1rem 0 1.6rem 0;
-    border-radius: 12px;
-    color: #99fcf7;
-    font-size: 1.1rem;
-    min-height: 42px;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
+nav a:hover {
+    color: #b847ff;
 }
-
-.historico-title {
-    margin-top: 2rem;
-    color: #91fff5;
-    font-weight: 500;
-    font-size: 1.05rem;
-    letter-spacing: 1px;
+.config-container, .painel-card {
+    max-width: 420px;
+    margin: 46px auto;
+    background: #22182b;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px #0003;
+    padding: 36px 32px 28px 32px;
 }
-
-.historico-box {
-    width: 100%;
-    background: #23243a;
-    border-radius: 12px;
-    padding: 0.8rem 1rem;
-    margin: 0.7rem 0 0.3rem 0;
-    min-height: 52px;
-    box-shadow: 0 2px 6px #3dfff311;
+.config-container h2, .painel-card h2 {
+    margin-bottom: 12px;
+    color: #ffd700;
+    text-align: center;
+    letter-spacing: 0.01em;
 }
-
-.hist-card {
-    border-left: 4px solid #00e2ee;
-    padding: 0.6rem 1rem;
-    background: #212235;
-    margin-bottom: 0.7rem;
-    border-radius: 7px;
-    font-size: 1rem;
-    box-shadow: 0 0 7px #00e2ee11;
-}
-
-.hist-card .msg {
+label {
     display: block;
-    color: #eee;
-    margin-top: 2px;
-    font-size: 0.96rem;
-    opacity: 0.87;
-}
-
-.flash-messages {
-    margin-top: 1.2rem;
-    list-style: none;
-    padding: 0;
-}
-.flash-messages li {
-    padding: 0.6rem 1.2rem;
-    margin-bottom: 0.7rem;
-    border-radius: 11px;
+    margin: 18px 0 4px 2px;
     font-weight: 500;
+    color: #dedede;
 }
-.flash-messages .success { background: #16c55c44; color: #13f374; }
-.flash-messages .danger { background: #ff535344; color: #ff7373; }
-
-@media (max-width: 650px) {
-    .container.painel-container { padding: 1.1rem 0.6rem; }
-    .op-buttons { flex-direction: column; gap: 0.7rem; width: 100%; }
-    .gpt-box, .historico-box, .saldo-info { font-size: 1.01rem; }
-    .historico-title { margin-top: 1.2rem; }
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px 10px;
+    border: none;
+    border-radius: 8px;
+    background: #18112a;
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    box-shadow: 0 1px 4px #0002 inset;
 }
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: 2px solid #b847ff;
+}
+.btn-salvar, .btn-compra, .btn-venda, .btn-ia, .btn-auto {
+    width: 100%;
+    padding: 14px 0;
+    margin: 18px 0 10px 0;
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1.10rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px #0002;
+    transition: 0.18s;
+}
+.btn-compra { background: linear-gradient(90deg,#00ff88,#2edead 60%); }
+.btn-venda { background: linear-gradient(90deg,#ff5252,#ff616f 60%); }
+.btn-ia    { background: linear-gradient(90deg,#00f7ff,#0abdc6 60%); }
+.btn-auto  { background: linear-gradient(90deg,#b847ff,#9154d8 60%); }
+.btn-compra:hover, .btn-venda:hover, .btn-ia:hover, .btn-auto:hover {
+    filter: brightness(1.08);
+}
+.saldos {
+    text-align: left;
+    margin-bottom: 16px;
+}
+.saldos p { margin: 2px 0; }
+#historico-ordens { margin-top: 24px; }
+#historico-ordens h3 { font-size: 1.09rem; color: #fff; margin-bottom: 10
