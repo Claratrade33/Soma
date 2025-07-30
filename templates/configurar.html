@@ -2,49 +2,190 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Configurar Chaves | ClaraVerse</title>
+    <title>Configurar Chaves | ClaraVerse Finance</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #a864fd 0%, #49188c 100%);
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            margin: 0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 2rem 1.5rem;
+            background: rgba(20, 15, 35, 0.94);
+            border-radius: 24px;
+            box-shadow: 0 4px 32px #0004;
+            color: #fff;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 1.8rem;
+            color: #ffe76a;
+            letter-spacing: 1px;
+        }
+        label {
+            display: block;
+            margin: 1.1rem 0 0.35rem 0.1rem;
+            color: #eee;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+            background: #261a34;
+            color: #ffe76a;
+        }
+        .btn-main, .btn-copy {
+            background: #009fff;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 1.2rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-main:hover {
+            background: #21c8f6;
+        }
+        .btn-copy {
+            background: #b847ff;
+            margin-left: 0.6rem;
+            padding: 0.7rem 1rem;
+            font-size: 0.97rem;
+        }
+        .btn-copy:hover {
+            background: #8005ad;
+        }
+        .api-section {
+            margin-top: 2.4rem;
+            padding: 1.5rem 1rem 1.2rem 1rem;
+            background: rgba(40, 22, 66, 0.93);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px #0005;
+        }
+        .api-section h3 {
+            color: #ffe76a;
+            margin-bottom: 0.5rem;
+            font-size: 1.18rem;
+        }
+        .api-key-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .api-key-row input {
+            flex: 1;
+            color: #fff;
+            background: #1c1630;
+            border: 1px solid #b847ff;
+            font-size: 1rem;
+            padding: 0.7rem;
+        }
+        .success, .error {
+            margin-top: 1.2rem;
+            padding: 1rem 0.8rem;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .success {
+            background: #15d83c22;
+            color: #1be583;
+            border: 1px solid #1be58388;
+        }
+        .error {
+            background: #ff084422;
+            color: #ffb6b6;
+            border: 1px solid #ff084488;
+        }
+        @media (max-width: 600px) {
+            .container { max-width: 98vw; }
+        }
+    </style>
 </head>
-<body class="bg-dark">
-    <div class="container center painel-container">
-        <h1 class="logo-title">Configurar Chaves</h1>
-        <form method="POST" class="form">
-            <div class="form-group">
-                <label for="binance_api_key">Binance API Key</label>
-                <input type="text" id="binance_api_key" name="binance_api_key" value="{{ user.binance_api_key or '' }}">
-            </div>
-            <div class="form-group">
-                <label for="binance_api_secret">Binance API Secret</label>
-                <input type="password" id="binance_api_secret" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}">
-            </div>
-            <div class="form-group">
-                <label for="gpt_api_key">OpenAI API Key</label>
-                <input type="text" id="gpt_api_key" name="gpt_api_key" value="{{ user.gpt_api_key or '' }}">
-            </div>
-            <button type="submit" class="btn btn-main">Salvar Chaves</button>
+<body>
+    <div class="container">
+        <h2>🔑 Configurar Chaves</h2>
+        <form method="POST" action="{{ url_for('configurar') }}">
+            <label for="binance_api_key">Binance API Key</label>
+            <input type="text" id="binance_api_key" name="binance_api_key"
+                value="{{ user.binance_api_key if user and user.binance_api_key else '' }}"
+                autocomplete="off" placeholder="Cole sua chave API Binance" />
+
+            <label for="binance_api_secret">Binance API Secret</label>
+            <input type="text" id="binance_api_secret" name="binance_api_secret"
+                value="{{ user.binance_api_secret if user and user.binance_api_secret else '' }}"
+                autocomplete="off" placeholder="Cole sua chave secreta Binance" />
+
+            <label for="gpt_api_key">OpenAI API Key <span style="color:#ccc; font-size:0.95em;">(opcional)</span></label>
+            <input type="text" id="gpt_api_key" name="gpt_api_key"
+                value="{{ user.gpt_api_key if user and user.gpt_api_key else '' }}"
+                autocomplete="off" placeholder="sk-..." />
+
+            <button type="submit" class="btn-main" style="width:100%;">Salvar Chaves</button>
         </form>
-        <div class="api-section" style="margin-top: 2rem;">
+
+        <!-- Mensagem de feedback -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="{{ category }}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="api-section">
             <h3>API Key ClaraVerse</h3>
-            <p>
+            <p style="font-size:0.97em;">
                 Use esta chave para integrações, automação, webhooks e autenticação de suas requisições internas.<br>
                 <b>Restrinja sua API na Binance</b> para o IP do servidor ClaraVerse e mantenha sua segurança.
             </p>
-            <input type="text" value="{{ user.claraverse_api_key or '' }}" readonly>
+            <div class="api-key-row">
+                <input id="claraverseKey" type="text" value="{{ user.claraverse_api_key or '' }}" readonly>
+                <button class="btn-copy" type="button" onclick="copiarAPIKey()">Copiar</button>
+            </div>
             <form method="POST" action="{{ url_for('gerar_api_key') }}">
-                <button type="submit" class="btn btn-main" style="margin-top: 0.5rem;">Gerar/Regerar API Key</button>
+                <button type="submit" class="btn-main" style="margin-top: 0.8rem; width: 100%;">Gerar/Regerar API Key</button>
             </form>
         </div>
-        <a href="{{ url_for('painel_operacao') }}" class="link">Voltar ao Painel</a>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flash-messages">
-            {% for category, message in messages %}
-              <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
+        <div style="margin-top:1.4rem; text-align:center;">
+            <a href="{{ url_for('painel_operacao') }}" style="color:#ffe76a;text-decoration:underline;">Voltar ao Painel</a>
+        </div>
     </div>
+    <script>
+        function copiarAPIKey() {
+            const input = document.getElementById('claraverseKey');
+            input.select();
+            input.setSelectionRange(0, 99999); // mobile
+            document.execCommand('copy');
+            // Alerta temporário bonito!
+            let alerta = document.createElement("div");
+            alerta.innerText = "API Key copiada!";
+            alerta.style.position = "fixed";
+            alerta.style.top = "25px";
+            alerta.style.left = "50%";
+            alerta.style.transform = "translateX(-50%)";
+            alerta.style.background = "#1be583";
+            alerta.style.color = "#221B33";
+            alerta.style.padding = "14px 38px";
+            alerta.style.borderRadius = "22px";
+            alerta.style.fontWeight = "bold";
+            alerta.style.boxShadow = "0 2px 10px #0004";
+            alerta.style.zIndex = "99999";
+            document.body.appendChild(alerta);
+            setTimeout(() => alerta.remove(), 1500);
+        }
+    </script>
 </body>
 </html>
