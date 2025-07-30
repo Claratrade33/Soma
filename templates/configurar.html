@@ -1,19 +1,50 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Configurar API | ClaraVerse</title>
+    <title>Configurar Chaves | ClaraVerse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <div class="config-container">
-        <h2>🔑 Configurar API Binance</h2>
-        <form method="POST">
-            <label>Chave API Binance</label>
-            <input type="text" name="binance_api_key" value="{{ user.binance_api_key or '' }}" required autocomplete="off">
-
-            <label>Chave Secreta Binance</label>
-            <input type="text" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}" required autocomplete="off">
-
-            <label>Chave OpenAI (opcional)</label>
-            <input type
+<body class="bg-dark">
+    <div class="container center painel-container">
+        <h1 class="logo-title">Configurar Chaves</h1>
+        <form method="POST" class="form">
+            <div class="form-group">
+                <label for="binance_api_key">Binance API Key</label>
+                <input type="text" id="binance_api_key" name="binance_api_key" value="{{ user.binance_api_key or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="binance_api_secret">Binance API Secret</label>
+                <input type="password" id="binance_api_secret" name="binance_api_secret" value="{{ user.binance_api_secret or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="gpt_api_key">OpenAI API Key</label>
+                <input type="text" id="gpt_api_key" name="gpt_api_key" value="{{ user.gpt_api_key or '' }}">
+            </div>
+            <button type="submit" class="btn btn-main">Salvar Chaves</button>
+        </form>
+        <div class="api-section" style="margin-top: 2rem;">
+            <h3>API Key ClaraVerse</h3>
+            <p>
+                Use esta chave para integrações, automação, webhooks e autenticação de suas requisições internas.<br>
+                <b>Restrinja sua API na Binance</b> para o IP do servidor ClaraVerse e mantenha sua segurança.
+            </p>
+            <input type="text" value="{{ user.claraverse_api_key or '' }}" readonly>
+            <form method="POST" action="{{ url_for('gerar_api_key') }}">
+                <button type="submit" class="btn btn-main" style="margin-top: 0.5rem;">Gerar/Regerar API Key</button>
+            </form>
+        </div>
+        <a href="{{ url_for('painel_operacao') }}" class="link">Voltar ao Painel</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>
