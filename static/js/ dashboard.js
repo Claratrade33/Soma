@@ -1,13 +1,20 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Histórico simulado só pra exibir UI (troque por Ajax depois)
-  const ordensList = document.getElementById('ordens-list');
-  let historico = [
-    { tipo: "Compra", ativo: "BTCUSDT", valor: "0.001", preco: "67600", hora: "10:12" },
-    { tipo: "Venda", ativo: "BTCUSDT", valor: "0.001", preco: "67590", hora: "10:08" }
-  ];
-  renderHistorico();
+// static/dashboard.js
 
-  // Função para inserir nova ordem no histórico
+document.addEventListener('DOMContentLoaded', () => {
+  const ordensList = document.getElementById('ordens-list');
+  let historico = [];
+
+  // Carregar histórico real via Ajax (Flask) ao carregar a página
+  fetch('/historico_ordens')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        historico = data;
+        renderHistorico();
+      }
+    });
+
+  // Função global para confirmar e executar ordens reais
   window.confirmarOrdem = function(tipo) {
     let msg = "Tem certeza que deseja executar essa ordem?";
     if (tipo === "buy") msg = "Confirmar compra?";
@@ -15,16 +22,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tipo === "suggest") msg = "Pedir sugestão para a IA?";
     if (tipo === "auto") msg = "Ativar modo automático?";
     if (confirm(msg)) {
-      // Simulação, depois chama endpoint Flask
-      historico.unshift({
-        tipo: tipo === "buy" ? "Compra" : tipo === "sell" ? "Venda" : (tipo === "suggest" ? "Sugestão IA" : "Automático"),
-        ativo: "BTCUSDT",
-        valor: "0.001",
-        preco: "67700",
-        hora: new Date().toLocaleTimeString().slice(0,5)
+      // Chama endpoint Flask para executar ordem real
+      fetch('/executar_ordem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo })
+      })
+      .then(res => res.json())
+      .then(resp => {
+        if (resp.status === "ok") {
+          historico.unshift({
+            tipo: resp.tipo || tipo,
+            ativo: resp.ativo || "BTCUSDT",
+            valor: resp.valor || resp.quantidade || "0.001",
+            preco: resp.preco || resp.price || "-",
+            hora: new Date().toLocaleTimeString().slice(0, 5)
+          });
+          renderHistorico();
+          alert("Ordem executada!");
+        } else {
+          alert("Erro: " + (resp.erro || resp.message || "Erro ao executar ordem!"));
+        }
       });
-      renderHistorico();
-      alert("Ordem executada!");
     }
   }
 
