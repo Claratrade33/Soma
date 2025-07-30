@@ -1,37 +1,147 @@
-{% extends "base.html" %}
-{% block title %}Painel Operacional – Clarinha{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Operações | ClaraVerse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- TradingView Widget -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body class="bg-dark">
+    <div class="topbar">
+        <span class="logo-title">ClaraVerse</span>
+        <div class="saldo-box">
+            <span>BTC: <b>{{ saldo_btc }}</b></span>
+            <span>USDT: <b>{{ saldo_usdt }}</b></span>
+        </div>
+        <div class="user-menu">
+            <span class="user-info">Olá, <b>{{ user.username }}</b></span>
+            <a href="{{ url_for('configurar') }}" class="btn btn-config">Configurar Chaves</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-logout">Sair</a>
+        </div>
+    </div>
+    <div class="main-panel">
+        <!-- Esquerda: Menu e histórico -->
+        <aside class="sidebar">
+            <nav class="menu-vertical">
+                <button class="menu-btn" onclick="scrollToBlock('grafico')">Gráfico</button>
+                <button class="menu-btn" onclick="scrollToBlock('operacoes')">Operar</button>
+                <button class="menu-btn" onclick="scrollToBlock('historico')">Histórico</button>
+                <button class="menu-btn" onclick="scrollToBlock('ia')">IA Clarinha</button>
+            </nav>
+            <div class="historico-box" id="historico">
+                <h3>Histórico de Ordens</h3>
+                <ul id="historico-list">
+                    <!-- Histórico dinâmico -->
+                </ul>
+            </div>
+        </aside>
 
-{% block content %}
-  <h2>Painel de Operações</h2>
+        <!-- Centro: Gráfico + Operação -->
+        <section class="center-content">
+            <div class="grafico-box" id="grafico">
+                <h2>Gráfico BTC/USDT</h2>
+                <div id="tv_chart" style="height: 350px; margin-bottom: 1rem;"></div>
+            </div>
+            <div class="operacao-box" id="operacoes">
+                <h2>Operar</h2>
+                <div class="op-btns">
+                    <button class="btn-buy" onclick="confirmarOrdem('compra')">Comprar</button>
+                    <button class="btn-sell" onclick="confirmarOrdem('venda')">Vender</button>
+                    <button class="btn-main" onclick="executarOrdem('executar')">Executar Ordem</button>
+                    <button class="btn-auto" onclick="executarOrdem('automatico')">Automático</button>
+                    <button class="btn-gpt" onclick="obterSugestaoGPT()">Sugestão IA</button>
+                </div>
+                <div id="mensagem-ordem"></div>
+            </div>
+        </section>
 
-  <div class="dashboard-grid">
-    <!-- Sinais Dinâmicos -->
-    <section id="sinais-container" class="grid-sinais">
-      <!-- JS vai injetar aqui os cards de sinal -->
-    </section>
+        <!-- Direita: IA Clarinha -->
+        <aside class="rightbar">
+            <div class="ia-box" id="ia">
+                <h3>IA Clarinha</h3>
+                <div id="gpt-sugestao" class="gpt-box">Clique em "Sugestão IA" para analisar</div>
+            </div>
+        </aside>
+    </div>
+    <!-- Mensagens Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <script>
+        // TradingView Widget
+        new TradingView.widget({
+            "container_id": "tv_chart",
+            "width": "100%",
+            "height": 350,
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "30",
+            "timezone": "America/Sao_Paulo",
+            "theme": "dark",
+            "style": "1",
+            "locale": "br",
+            "toolbar_bg": "#222",
+            "hide_side_toolbar": false,
+            "allow_symbol_change": false,
+            "save_image": false
+        });
 
-    <!-- Menu de Ícones -->
-    <aside class="sidebar-icones">
-      <ul>
-        <li>
-          <a href="#" id="chart-icon">
-            <img src="{{ url_for('static', filename='icons/chart.svg') }}" alt="Gráfico">
-            <span>Gráfico</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" id="target-icon">
-            <img src="{{ url_for('static', filename='icons/target.svg') }}" alt="Foco">
-            <span>Foco</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" id="wallet-icon">
-            <img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Carteira">
-            <span>Carteira</span>
-          </a>
-        </li>
-      </ul>
-    </aside>
-  </div>
-{% endblock %}
+        function confirmarOrdem(tipo) {
+            if (!confirm("Confirma a ordem de " + (tipo === 'compra' ? "COMPRA" : "VENDA") + "?")) return;
+            executarOrdem(tipo);
+        }
+
+        function executarOrdem(tipo) {
+            let quantidade = prompt("Informe a quantidade de BTC para operar:", "0.001");
+            if (!quantidade || isNaN(parseFloat(quantidade))) return alert("Quantidade inválida!");
+            axios.post('/executar_ordem', {
+                tipo_ordem: tipo,
+                simbolo: 'BTCUSDT',
+                quantidade: quantidade
+            })
+            .then(resp => {
+                document.getElementById('mensagem-ordem').innerHTML = "<b>" + resp.data.mensagem + "</b>";
+                adicionarHistorico(resp.data);
+            })
+            .catch(err => {
+                let msg = err.response && err.response.data && err.response.data.mensagem ? err.response.data.mensagem : "Erro na ordem.";
+                document.getElementById('mensagem-ordem').innerHTML = "<span class='error'>" + msg + "</span>";
+            });
+        }
+
+        function obterSugestaoGPT() {
+            document.getElementById('gpt-sugestao').innerHTML = "Consultando IA...";
+            axios.post('/sugestao_gpt', { prompt: "Análise para operação BTCUSDT agora." })
+                .then(resp => {
+                    document.getElementById('gpt-sugestao').innerHTML = "<b>Sugestão IA:</b><br>" + resp.data.sugestao;
+                })
+                .catch(err => {
+                    let msg = err.response && err.response.data && err.response.data.erro ? err.response.data.erro : "Erro na IA.";
+                    document.getElementById('gpt-sugestao').innerHTML = "<span class='error'>" + msg + "</span>";
+                });
+        }
+
+        function adicionarHistorico(dados) {
+            if (!dados || !dados.mensagem) return;
+            const list = document.getElementById('historico-list');
+            const li = document.createElement('li');
+            li.textContent = `${new Date().toLocaleTimeString()} - ${dados.mensagem}`;
+            list.prepend(li);
+        }
+
+        // Atalhos para rolar até o bloco
+        function scrollToBlock(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
