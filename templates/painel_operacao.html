@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse Finance • Painel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script defer src="{{ url_for('static', filename='dashboard.js') }}"></script>
+  <meta charset="UTF-8">
+  <title>ClaraVerse Finance 🌙</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>🌙 ClaraVerse Finance 🌙</h1>
-        <nav>
-            <a href="/">Início</a>
-            <a href="/painel_operacao">Painel</a>
-            <a href="/configurar">Configurar</a>
-            <a href="/logout">Sair</a>
-        </nav>
-    </header>
-    <div class="aviso">
-        <span>⚠️ Atenção: Cadastre suas chaves API em <a href="/configurar">Configurar</a> para liberar todas as funções!</span>
+  <div class="header">
+    <span class="titulo">🌙 <span class="brand">ClaraVerse Finance</span> 🌙</span>
+    <nav>
+      <a href="/">Início</a>
+      <a href="/painel_operacao">Painel</a>
+      <a href="/configurar">Configurar</a>
+      <a href="/logout">Sair</a>
+    </nav>
+  </div>
+  <div class="msg-top">
+    <span>⚠️ Atenção: Cadastre suas chaves API em <a href="/configurar">Configurar</a> para liberar todas as funções!</span>
+  </div>
+  <div class="painel-centro">
+    <div class="painel-box">
+      <div class="painel-title">Carteira</div>
+      <div style="margin-bottom:10px">BTC: {{ saldo_btc }}<br>USDT: {{ saldo_usdt }}</div>
+      <form id="form-ordem" method="POST" action="/executar_ordem" onsubmit="return confirmarOrdem();">
+        <input type="number" step="0.00001" min="0" name="quantidade" placeholder="Quantidade" required>
+        <button type="button" class="btn comprar" onclick="confirmarOrdem('compra')">Comprar</button>
+        <button type="button" class="btn vender" onclick="confirmarOrdem('venda')">Vender</button>
+        <button type="button" class="btn ia" onclick="confirmarOrdem('sugestao')">Sugestão IA</button>
+        <button type="button" class="btn auto" onclick="confirmarOrdem('auto')">Automático</button>
+      </form>
+      <div class="historico-titulo">Histórico de Ordens</div>
+      <ul id="ordens-list"></ul>
+      {% if error_msg %}
+      <div class="alerta erro">{{ error_msg }}</div>
+      {% endif %}
     </div>
-    <main>
-        <section class="painel">
-            <h2>Carteira</h2>
-            <div>BTC: {{ saldo_btc }}<br>USDT: {{ saldo_usdt }}</div>
-            <form id="operarForm">
-                <input type="number" name="quantidade" step="0.00001" min="0" placeholder="Quantidade" required>
-                <button class="btn-compra" type="button" onclick="executarOrdem('compra')">Comprar</button>
-                <button class="btn-venda" type="button" onclick="executarOrdem('venda')">Vender</button>
-                <button class="btn-ia" type="button" onclick="alert('Em breve: Sugestão IA!')">Sugestão IA</button>
-                <button class="btn-auto" type="button" onclick="alert('Em breve: Modo Automático!')">Automático</button>
-            </form>
-            <div id="mensagem-ordem"></div>
-            <h3>Histórico de Ordens</h3>
-            <!-- Histórico pode ser carregado com dashboard.js futuramente -->
-        </section>
-        {% if error_msg %}
-            <div class="error">{{ error_msg }}</div>
-        {% endif %}
-    </main>
+  </div>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>
