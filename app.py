@@ -9,6 +9,7 @@ from flask import (
     url_for,
     session,
     flash,
+    jsonify,
 )
 from cryptography.fernet import Fernet
 
@@ -100,7 +101,7 @@ def login():
 def logout():
     session.pop("usuario", None)
     flash("Você saiu da sua conta", "success")
-    return render_template("logout.html")
+    return redirect(url_for("login"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -149,8 +150,10 @@ def configurar():
         bin_secret = request.form.get("binance_api_secret", "").strip()
         oaikey     = request.form.get("gpt_api_key", "").strip()
         updated = False
-        if bin_key and bin_secret:
-            user["binance_key"]    = encrypt(bin_key)
+        if bin_key:
+            user["binance_key"] = encrypt(bin_key)
+            updated = True
+        if bin_secret:
             user["binance_secret"] = encrypt(bin_secret)
             updated = True
         if oaikey:
@@ -196,11 +199,70 @@ def painel_operacao():
                     saldo_usdt = b["free"]
         except Exception as e:
             flash(f"Erro ao consultar saldo Binance: {e}", "danger")
-    # Só exibe dados, nunca consulta API se não tiver chave!
     return render_template("painel_operacao.html", user={
         "username": username,
         "email": decrypt(user["email"]) if user.get("email") else ""
     }, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt)
+
+@app.route('/executar_ordem', methods=['POST'])
+def executar_ordem():
+    if not session.get("usuario"):
+        return jsonify({"mensagem": "Não autenticado"}), 403
+    user = find_user(session["usuario"])
+    if not (user and user.get("binance_key") and user.get("binance_secret")):
+        return jsonify({"mensagem": "Chaves Binance não configuradas!"}), 400
+
+    data = request.json
+    tipo_ordem = data.get('tipo_ordem')  # 'compra' ou 'venda'
+    simbolo = data.get('simbolo', 'BTCUSDT')
+    quantidade = data.get('quantidade', '0.001')
+    try:
+        from binance.client import Client
+        client = Client(decrypt(user["binance_key"]), decrypt(user["binance_secret"]))
+        if tipo_ordem == 'compra':
+            order = client.create_order(
+                symbol=simbolo,
+                side='BUY',
+                type='MARKET',
+                quantity=float(quantidade)
+            )
+            return jsonify({"mensagem": f"Compra executada com sucesso! Ordem: {order['orderId']}"})
+        elif tipo_ordem == 'venda':
+            order = client.create_order(
+                symbol=simbolo,
+                side='SELL',
+                type='MARKET',
+                quantity=float(quantidade)
+            )
+            return jsonify({"mensagem": f"Venda executada com sucesso! Ordem: {order['orderId']}"})
+        else:
+            return jsonify({"mensagem": "Tipo de ordem inválido"}), 400
+    except Exception as e:
+        return jsonify({"mensagem": f"Erro na execução: {str(e)}"}), 500
+
+@app.route('/sugestao_gpt', methods=['POST'])
+def sugestao_gpt():
+    if not session.get("usuario"):
+        return jsonify({"erro": "Não autenticado"}), 403
+    user = find_user(session["usuario"])
+    if not user.get("openai_key"):
+        return jsonify({"erro": "Chave OpenAI não configurada!"}), 400
+
+    data = request.json
+    prompt = data.get("prompt", "Dê uma sugestão de operação para BTC/USDT.")
+    try:
+        import openai
+        openai.api_key = decrypt(user["openai_key"])
+        completion = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=100
+        )
+        sugestao = completion.choices[0].message.content
+        return jsonify({"sugestao": sugestao})
+    except Exception as e:
+        return jsonify({"erro": f"Erro na IA: {str(e)}"}), 500
 
 @app.route("/icons")
 def icons():
