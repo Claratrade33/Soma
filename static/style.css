@@ -1,95 +1,33 @@
-body {
-    background: linear-gradient(120deg, #a259c5 0%, #3d2349 100%);
-    font-family: 'Inter', Arial, sans-serif;
-    min-height: 100vh;
-    margin: 0;
-    color: #fafafa;
-}
-header {
-    padding: 18px 4vw 0 4vw;
-    display: flex;
-    flex-direction: column;
-}
-.titulo-clara {
-    color: #ffd700;
-    margin: 0 0 10px 0;
-    font-size: 2.2rem;
-    text-align: center;
-    letter-spacing: 1.2px;
-}
-nav {
-    text-align: center;
-    margin-bottom: 24px;
-}
-nav a {
-    color: #00f7ff;
-    text-decoration: none;
-    margin: 0 22px;
-    font-weight: 600;
-    font-size: 1.06rem;
-    transition: color .2s;
-}
-nav a:hover {
-    color: #b847ff;
-}
-.config-container, .painel-card {
-    max-width: 420px;
-    margin: 46px auto;
-    background: #22182b;
-    border-radius: 24px;
-    box-shadow: 0 8px 32px #0003;
-    padding: 36px 32px 28px 32px;
-}
-.config-container h2, .painel-card h2 {
-    margin-bottom: 12px;
-    color: #ffd700;
-    text-align: center;
-    letter-spacing: 0.01em;
-}
-label {
-    display: block;
-    margin: 18px 0 4px 2px;
-    font-weight: 500;
-    color: #dedede;
-}
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 10px 10px;
-    border: none;
+.api-section {
+    background: rgba(30,30,50,0.9);
     border-radius: 8px;
-    background: #18112a;
-    color: #fff;
-    margin-bottom: 8px;
-    font-size: 1rem;
-    box-shadow: 0 1px 4px #0002 inset;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 0 18px #0002;
 }
-input[type="text"]:focus, input[type="password"]:focus {
-    outline: 2px solid #b847ff;
+.api-section h3 {
+    margin-top: 0;
 }
-.btn-salvar, .btn-compra, .btn-venda, .btn-ia, .btn-auto {
+.api-section input[type="text"] {
     width: 100%;
-    padding: 14px 0;
-    margin: 18px 0 10px 0;
-    border: none;
-    border-radius: 12px;
+    margin-top: .4rem;
+    margin-bottom: .5rem;
+    padding: .5rem;
+    font-size: 1.1em;
+    background: #151522;
+    border: 1px solid #262652;
+    color: #ddd;
+    border-radius: 4px;
+}
+.api-section button.btn-main {
+    width: 100%;
+}
+.api-box {
+    margin: 1rem 0;
+    padding: .7rem;
+    background: #181830;
+    border-radius: 5px;
+    border: 1px solid #353556;
     color: #fff;
-    font-size: 1.10rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 2px 8px #0002;
-    transition: 0.18s;
+    font-size: 0.95em;
 }
-.btn-compra { background: linear-gradient(90deg,#00ff88,#2edead 60%); }
-.btn-venda { background: linear-gradient(90deg,#ff5252,#ff616f 60%); }
-.btn-ia    { background: linear-gradient(90deg,#00f7ff,#0abdc6 60%); }
-.btn-auto  { background: linear-gradient(90deg,#b847ff,#9154d8 60%); }
-.btn-compra:hover, .btn-venda:hover, .btn-ia:hover, .btn-auto:hover {
-    filter: brightness(1.08);
-}
-.saldos {
-    text-align: left;
-    margin-bottom: 16px;
-}
-.saldos p { margin: 2px 0; }
-#historico-ordens { margin-top: 24px; }
-#historico-ordens h3 { font-size: 1.09rem; color: #fff; margin-bottom: 10
