@@ -1,8 +1,15 @@
 import os
 import json
 import logging
+import secrets
 from flask import (
-    Flask, render_template, request, redirect, url_for, session, flash
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
 )
 from cryptography.fernet import Fernet
 
@@ -54,6 +61,14 @@ def find_user(username):
             return u
     return None
 
+def update_user(user):
+    users = load_users()
+    for idx, u in enumerate(users):
+        if decrypt(u["usuario"]) == decrypt(user["usuario"]):
+            users[idx] = user
+            break
+    save_users(users)
+
 # -------- Criação automática do admin --------
 def criar_admin_default():
     users = load_users()
@@ -66,13 +81,16 @@ def criar_admin_default():
         "email": encrypt("admin@clara.verse"),
         "binance_key": "",
         "binance_secret": "",
-        "openai_key": ""
+        "openai_key": "",
+        "claraverse_api_key": ""
     }
     users.append(admin_user)
     save_users(users)
 criar_admin_default()
 
-# -------- Rotas --------
+def generate_api_key():
+    return secrets.token_urlsafe(32)
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -94,7 +112,7 @@ def login():
 def logout():
     session.pop("usuario", None)
     flash("Você saiu da sua conta", "success")
-    return redirect(url_for("login"))
+    return render_template("logout.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -112,6 +130,7 @@ def register():
         if find_user(username):
             flash("Usuário já existe.", "danger")
             return render_template("register.html")
+        # Checa se o e-mail já existe
         users = load_users()
         for u in users:
             if "email" in u and decrypt(u["email"]) == email:
@@ -123,7 +142,8 @@ def register():
             "email": encrypt(email),
             "binance_key": "",
             "binance_secret": "",
-            "openai_key": ""
+            "openai_key": "",
+            "claraverse_api_key": ""
         }
         users.append(new_user)
         save_users(users)
@@ -150,20 +170,29 @@ def configurar():
             user["openai_key"] = encrypt(oaikey)
             updated = True
         if updated:
-            users = load_users()
-            for idx, u in enumerate(users):
-                if decrypt(u["usuario"]) == username:
-                    users[idx] = user
-            save_users(users)
+            update_user(user)
             flash("Chaves salvas com sucesso!", "success")
-            return redirect(url_for("painel_operacao"))
+            return redirect(url_for("configurar"))
         else:
             flash("Preencha todos os campos de chave!", "danger")
     return render_template("configurar.html", user={
         "binance_api_key": decrypt(user["binance_key"]) if user.get("binance_key") else "",
         "binance_api_secret": decrypt(user["binance_secret"]) if user.get("binance_secret") else "",
         "gpt_api_key": decrypt(user["openai_key"]) if user.get("openai_key") else "",
+        "claraverse_api_key": user.get("claraverse_api_key", "")
     })
+
+@app.route("/gerar_api_key", methods=["POST"])
+def gerar_api_key():
+    if not session.get("usuario"):
+        return redirect(url_for("login"))
+    username = session["usuario"]
+    user = find_user(username)
+    new_key = generate_api_key()
+    user["claraverse_api_key"] = new_key
+    update_user(user)
+    flash("API Key ClaraVerse gerada com sucesso!", "success")
+    return redirect(url_for("configurar"))
 
 @app.route("/painel_operacao")
 def painel_operacao():
@@ -173,8 +202,6 @@ def painel_operacao():
     user = find_user(username)
     saldo_btc = "0"
     saldo_usdt = "0"
-    erro_binance = None
-    # Só consulta a Binance se o usuário tiver chave salva!
     if user.get("binance_key") and user.get("binance_secret"):
         try:
             from binance.client import Client
@@ -189,13 +216,12 @@ def painel_operacao():
                 if b["asset"] == "USDT":
                     saldo_usdt = b["free"]
         except Exception as e:
-            erro_binance = str(e)
+            flash(f"Erro ao consultar saldo Binance: {e}", "danger")
     return render_template("painel_operacao.html", user={
         "username": username,
         "email": decrypt(user["email"]) if user.get("email") else "",
-        "binance_api_key": user.get("binance_key"),
-        "binance_api_secret": user.get("binance_secret")
-    }, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt, erro_binance=erro_binance)
+        "claraverse_api_key": user.get("claraverse_api_key", "")
+    }, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt)
 
 @app.route("/icons")
 def icons():
