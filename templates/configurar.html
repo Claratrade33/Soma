@@ -1,18 +1,45 @@
-{% extends "base.html" %}
-{% block title %}Configurar – Clarinha{% endblock %}
-
-{% block content %}
-  <h2>Configurações de API</h2>
-  <form method="post">
-    <label>Binance API Key:</label><br>
-    <input type="text" name="binance_key" required><br><br>
-
-    <label>Binance Secret:</label><br>
-    <input type="text" name="binance_secret" required><br><br>
-
-    <label>OpenAI GPT Key:</label><br>
-    <input type="text" name="openai_key" required><br><br>
-
-    <button type="submit">Salvar Chaves</button>
-  </form>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurar Chaves | ClaraVerse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark">
+    <div class="container painel-container">
+        <h1 class="logo-title">Configurar APIs</h1>
+        <form method="POST" class="form" autocomplete="off" style="width:100%;">
+            <div class="form-group">
+                <label for="binance_api_key">Binance API Key</label>
+                <input type="text" id="binance_api_key" name="binance_api_key" 
+                       value="{{ user.binance_api_key or '' }}" 
+                       placeholder="Insira sua chave API Binance" required>
+            </div>
+            <div class="form-group">
+                <label for="binance_api_secret">Binance API Secret</label>
+                <input type="password" id="binance_api_secret" name="binance_api_secret" 
+                       value="{{ user.binance_api_secret or '' }}" 
+                       placeholder="Insira seu segredo Binance" required>
+            </div>
+            <div class="form-group">
+                <label for="gpt_api_key">OpenAI API Key</label>
+                <input type="text" id="gpt_api_key" name="gpt_api_key" 
+                       value="{{ user.gpt_api_key or '' }}" 
+                       placeholder="Insira sua chave da OpenAI" required>
+            </div>
+            <button type="submit" class="btn btn-main" style="margin-top:1.4rem; width:100%;">Salvar Chaves</button>
+        </form>
+        <a href="{{ url_for('painel_operacao') }}" class="btn btn-secondary" style="margin-top:1.7rem;">Voltar ao Painel</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>
