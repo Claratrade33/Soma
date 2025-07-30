@@ -6,79 +6,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- TradingView Widget -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body class="bg-dark">
-    <div class="painel-flex">
-        <!-- COLUNA LATERAL -->
-        <aside class="painel-sidebar">
-            <div class="painel-logo">
-                <span>ClaraVerse</span>
-            </div>
-            <div class="user-box">
-                <b>Usuário:</b> {{ user.username }}<br>
-                <b>E-mail:</b> {{ user.email }}
-            </div>
-            <div class="saldo-card">
-                <div><b>BTC:</b> <span>{{ saldo_btc }}</span></div>
-                <div><b>USDT:</b> <span>{{ saldo_usdt }}</span></div>
-            </div>
-            <div class="btns-operacoes">
-                <button class="btn btn-buy" onclick="confirmarOrdem('compra')">Comprar</button>
-                <button class="btn btn-sell" onclick="confirmarOrdem('venda')">Vender</button>
-                <button class="btn btn-main" onclick="obterSugestaoGPT()">Sugestão IA</button>
-                <button class="btn btn-auto" onclick="executarOrdemAutomatico()">Automático</button>
-                <a href="{{ url_for('configurar') }}" class="btn btn-sec">Configurar</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-sec">Sair</a>
-            </div>
-            <div id="gpt-sugestao" class="gpt-box painel-card"></div>
-        </aside>
-
-        <!-- ÁREA PRINCIPAL -->
-        <main class="painel-main">
-            <div class="painel-card" style="padding:0;">
-                <div id="tv_chart" style="height:350px;"></div>
-            </div>
-            <div class="painel-ops">
-                <div class="painel-card historico">
-                    <h3>Histórico de Operações</h3>
-                    <ul id="historico-list"></ul>
-                </div>
-                <div class="painel-card status">
-                    <h3>Status & Mensagens</h3>
-                    <div id="mensagem-ordem"></div>
-                </div>
-            </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                <ul class="flash-messages">
-                {% for category, message in messages %}
-                  <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-                </ul>
-              {% endif %}
-            {% endwith %}
-        </main>
+    <div class="topbar">
+        <span class="user-info">Usuário: <b>{{ user.username }}</b></span>
+        <a href="{{ url_for('configurar') }}" class="btn btn-secondary">Configurar Chaves</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Sair</a>
     </div>
+    <div class="container painel-container">
+        <h1 class="logo-title">Painel de Operações</h1>
+        <div class="saldo-info">
+            <span><b>Saldo BTC:</b> {{ saldo_btc }}</span>
+            <span><b>Saldo USDT:</b> {{ saldo_usdt }}</span>
+        </div>
+        <div class="tradingview-widget-container" style="height: 400px; margin-bottom: 1rem;">
+            <div id="tv_chart"></div>
+        </div>
+        <div class="op-buttons">
+            <button class="btn btn-buy" onclick="confirmarOrdem('compra')">Comprar</button>
+            <button class="btn btn-sell" onclick="confirmarOrdem('venda')">Vender</button>
+            <button class="btn btn-main" onclick="obterSugestaoGPT()">Sugestão IA</button>
+            <button class="btn btn-auto" onclick="toggleAutomatico()">Automático</button>
+        </div>
+        <div id="mensagem-ordem" style="margin-top: 1rem;"></div>
+        <div id="gpt-sugestao" class="gpt-box"></div>
 
-    <script>
-        // TradingView Widget
-        new TradingView.widget({
-            "container_id": "tv_chart",
-            "width": "100%",
-            "height": 350,
-            "symbol": "BINANCE:BTCUSDT",
-            "interval": "30",
-            "timezone": "America/Sao_Paulo",
-            "theme": "dark",
-            "style": "1",
-            "locale": "br",
-            "toolbar_bg": "#222",
-            "hide_side_toolbar": false,
-            "allow_symbol_change": false,
-            "save_image": false
-        });
-    </script>
+        <h3 class="historico-title">Histórico de Ordens</h3>
+        <div id="historico" class="historico-box"></div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
     <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>
