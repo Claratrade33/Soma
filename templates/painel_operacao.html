@@ -1,78 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>ClaraVerse Finance 🌙 | Painel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>ClaraVerse Finance 🌙 | Painel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
-  <nav class="navbar">
-    <span class="logo">🌙 ClaraVerse Finance</span>
-    <ul>
-      <li><a href="{{ url_for('index') }}">Início</a></li>
-      <li><a href="{{ url_for('painel_operacao') }}">Painel</a></li>
-      <li><a href="{{ url_for('configurar') }}">Configurar</a></li>
-      <li><a href="{{ url_for('logout') }}">Sair</a></li>
-    </ul>
-  </nav>
+    <header>
+        <nav>
+            <span class="logo">🌙 ClaraVerse Finance</span>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Início</a></li>
+                <li><a href="{{ url_for('painel_operacao') }}">Painel</a></li>
+                <li><a href="{{ url_for('configurar') }}">Configurar</a></li>
+                <li><a href="{{ url_for('logout') }}">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+    {% if error_msg %}
+    <div class="alert danger">{{ error_msg }}</div>
+    {% endif %}
+    <div class="painel-container">
+        <!-- Gráfico TradingView -->
+        <section class="grafico-section">
+            <div id="tv-chart" style="width:100%;height:340px;background:#18182c;border-radius:24px;margin-bottom:12px;"></div>
+            <script type="text/javascript">
+                new TradingView.widget({
+                  "container_id": "tv-chart",
+                  "width": "100%",
+                  "height": 340,
+                  "symbol": "BINANCE:BTCUSDT",
+                  "interval": "15",
+                  "timezone": "America/Sao_Paulo",
+                  "theme": "dark",
+                  "style": "1",
+                  "locale": "br",
+                  "toolbar_bg": "#16112b",
+                  "enable_publishing": false,
+                  "allow_symbol_change": true,
+                  "hide_top_toolbar": false,
+                  "withdateranges": true,
+                  "details": true,
+                  "studies": [
+                    "STD;Moving Average",
+                    "STD;RSI"
+                  ],
+                });
+            </script>
+            <div class="info-row">
+                <span>Par: <b>BTC/USDT</b></span>
+                <span style="margin-left:16px;">Mercado em tempo real</span>
+            </div>
+        </section>
 
-  <div class="painel-container">
-    <div class="candle-area">
-      <!-- Gráfico TradingView -->
-      <div id="tv-chart" style="height:400px;width:100%;border-radius:14px;overflow:hidden;"></div>
-      <script src="https://s3.tradingview.com/tv.js"></script>
-      <script type="text/javascript">
-        new TradingView.widget({
-          "container_id": "tv-chart",
-          "width": "100%",
-          "height": 400,
-          "symbol": "BINANCE:BTCUSDT",
-          "interval": "15",
-          "timezone": "America/Sao_Paulo",
-          "theme": "dark",
-          "style": "1",
-          "locale": "br",
-          "toolbar_bg": "#16112b",
-          "enable_publishing": false,
-          "allow_symbol_change": true,
-          "hide_top_toolbar": false,
-          "withdateranges": true,
-          "details": true,
-          "studies": [
-            "STD;Moving Average",
-            "STD;RSI"
-          ],
-        });
-      </script>
-      <div class="info-row">
-        <span>Par: <b>BTC/USDT</b></span>
-        <span>Preço: <span id="preco-ativo">-</span></span>
-        <span>RSI: <span id="rsi-ativo">-</span></span>
-        <span>Volume: <span id="volume-ativo">-</span></span>
-      </div>
+        <!-- Carteira e Painel de Ordens -->
+        <aside class="carteira-section">
+            <h2 class="carteira-title">Carteira</h2>
+            <div class="carteira-saldo">
+                <div>BTC Spot: <span id="saldo-btc">{{ saldo_btc }}</span></div>
+                <div>USDT Spot: <span id="saldo-usdt">{{ saldo_usdt }}</span></div>
+                <div>USDT Futuros: <span id="saldo-futures-usdt">{{ saldo_futures_usdt }}</span></div>
+            </div>
+            <input type="number" step="any" min="0" id="qtd_input" placeholder="Quantidade">
+            <button class="btn buy" onclick="confirmarOrdem('buy')">Comprar</button>
+            <button class="btn sell" onclick="confirmarOrdem('sell')">Vender</button>
+            <button class="btn suggest" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
+            <button class="btn auto" onclick="confirmarOrdem('auto')">Automático</button>
+            <h3 class="historico-title">Histórico de Ordens</h3>
+            <ul id="ordens-list"></ul>
+        </aside>
     </div>
-
-    <aside class="painel-lateral">
-      <div>
-        <div class="carteira-title">Carteira</div>
-        <div class="carteira-saldo">
-          BTC: <span id="saldo-btc">{{ saldo_btc }}</span> <br>
-          USDT: <span id="saldo-usdt">{{ saldo_usdt }}</span>
-        </div>
-        <input id="qtd_input" type="number" placeholder="Quantidade" step="any" min="0">
-        <button class="btn-op" onclick="confirmarOrdem('buy')">Comprar</button>
-        <button class="btn-op sell" onclick="confirmarOrdem('sell')">Vender</button>
-        <button class="btn-op ia" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
-        <button class="btn-op auto" onclick="confirmarOrdem('auto')">Automático</button>
-      </div>
-      <div style="margin-top:2rem;">
-        <div class="historico-title">Histórico de Ordens</div>
-        <ul id="ordens-list" style="list-style:none;padding:0;font-size:0.97rem;color:#eee;"></ul>
-      </div>
-    </aside>
-  </div>
-
-  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>
