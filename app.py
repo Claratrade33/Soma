@@ -53,8 +53,7 @@ criar_admin_default()
 
 # === Rotas ===
 @app.route("/")
-def index():
-    return render_template("index.html")
+def index(): return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -149,28 +148,42 @@ def painel_operacao():
     user = find_user(username)
     saldo_btc = "0"
     saldo_usdt = "0"
+    saldo_futures_usdt = "0"
     error_msg = ""
-    if user.get("binance_key") and user.get("binance_secret"):
-        try:
+    try:
+        if user.get("binance_key") and user.get("binance_secret"):
             from binance.client import Client
             client = Client(
                 decrypt(user["binance_key"]),
                 decrypt(user["binance_secret"])
             )
+            # Saldo SPOT
             account = client.get_account()
             for b in account["balances"]:
                 if b["asset"] == "BTC":
                     saldo_btc = b["free"]
                 if b["asset"] == "USDT":
                     saldo_usdt = b["free"]
-        except Exception as e:
-            error_msg = f"Erro ao consultar saldo Binance: {e}"
-    return render_template("painel_operacao.html",
+            # Saldo FUTUROS (USD-M Futures)
+            try:
+                futures_balances = client.futures_account_balance()
+                for f in futures_balances:
+                    if f['asset'] == 'USDT':
+                        saldo_futures_usdt = f['balance']
+            except Exception as ef:
+                saldo_futures_usdt = "N/A"
+    except Exception as e:
+        error_msg = f"Erro ao consultar saldo Binance: {e}"
+
+    return render_template(
+        "painel_operacao.html",
         user={"username": username},
-        saldo_btc=saldo_btc, saldo_usdt=saldo_usdt, error_msg=error_msg
+        saldo_btc=saldo_btc,
+        saldo_usdt=saldo_usdt,
+        saldo_futures_usdt=saldo_futures_usdt,
+        error_msg=error_msg
     )
 
-# ========== EXECUÇÃO DE ORDENS ==========
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
     if not session.get("usuario"):
