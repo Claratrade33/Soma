@@ -62,33 +62,9 @@ nav a:hover {
   box-shadow: 0 0 16px 0 #0002;
 }
 
-.btn-op {
-  width: 100%;
-  padding: 18px 0;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  font-weight: 700;
-  transition: all 0.12s;
-  cursor: pointer;
-  letter-spacing: 1px;
-  color: #fff;
-  background: linear-gradient(90deg,#19e09e,#6f6ffc);
-  box-shadow: 0 0 8px #19e09e70;
-}
-.btn-op.sell {
-  background: linear-gradient(90deg,#ff3c6e,#f49727);
-  box-shadow: 0 0 8px #ff3c6e70;
-}
-.btn-op.ia {
-  background: linear-gradient(90deg,#42e9f5,#9a35ff);
-  box-shadow: 0 0 8px #42e9f570;
-}
-.btn-op.auto {
-  background: linear-gradient(90deg,#f3c742,#fc7ea2);
-  color: #222;
-  box-shadow: 0 0 8px #f3c74280;
+.painel-lateral h2 {
+  color: #ffdf55;
+  margin-bottom: 1rem;
 }
 
 .saldo {
@@ -108,10 +84,41 @@ input[type="number"], input[type="text"], input[type="password"] {
   margin-bottom: 14px;
 }
 
+.btn-op {
+  width: 100%;
+  padding: 18px 0;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 15px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  background: linear-gradient(90deg,#37f6d7,#4a7aff);
+  box-shadow: 0 0 8px #19e09e70;
+  transition: filter 0.15s, transform 0.12s;
+  cursor: pointer;
+}
+.btn-op.sell {
+  background: linear-gradient(90deg,#ff9e45,#f65858);
+}
+.btn-op.ia {
+  background: linear-gradient(90deg,#1bc6ff,#a88bfe);
+}
+.btn-op.auto {
+  background: linear-gradient(90deg,#ffcd62,#f09fd8);
+  color: #321d1d;
+}
+
+.btn-op:hover {
+  filter: brightness(1.12) contrast(1.1) saturate(1.5);
+  transform: translateY(-2px) scale(1.03);
+}
+
 ul#ordens-list {
   list-style: none;
   padding: 0;
-  font-size: 0.97rem;
+  font-size: 1.05rem;
   color: #eee;
 }
 
