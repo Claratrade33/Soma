@@ -1,41 +1,61 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>ClaraVerse Finance 🌙</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>ClaraVerse Finance - Painel de Operações</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-  <div class="header">
-    <span class="titulo">🌙 <span class="brand">ClaraVerse Finance</span> 🌙</span>
-    <nav>
-      <a href="/">Início</a>
-      <a href="/painel_operacao">Painel</a>
-      <a href="/configurar">Configurar</a>
-      <a href="/logout">Sair</a>
-    </nav>
-  </div>
-  <div class="msg-top">
-    <span>⚠️ Atenção: Cadastre suas chaves API em <a href="/configurar">Configurar</a> para liberar todas as funções!</span>
-  </div>
-  <div class="painel-centro">
-    <div class="painel-box">
-      <div class="painel-title">Carteira</div>
-      <div style="margin-bottom:10px">BTC: {{ saldo_btc }}<br>USDT: {{ saldo_usdt }}</div>
-      <form id="form-ordem" method="POST" action="/executar_ordem" onsubmit="return confirmarOrdem();">
-        <input type="number" step="0.00001" min="0" name="quantidade" placeholder="Quantidade" required>
-        <button type="button" class="btn comprar" onclick="confirmarOrdem('compra')">Comprar</button>
-        <button type="button" class="btn vender" onclick="confirmarOrdem('venda')">Vender</button>
-        <button type="button" class="btn ia" onclick="confirmarOrdem('sugestao')">Sugestão IA</button>
-        <button type="button" class="btn auto" onclick="confirmarOrdem('auto')">Automático</button>
-      </form>
-      <div class="historico-titulo">Histórico de Ordens</div>
-      <ul id="ordens-list"></ul>
-      {% if error_msg %}
-      <div class="alerta erro">{{ error_msg }}</div>
-      {% endif %}
+    <header class="cv-header">
+        <div class="cv-logo">🌙 ClaraVerse Finance 🌙</div>
+        <nav>
+            <a href="/">Início</a>
+            <a href="/painel_operacao" class="active">Painel</a>
+            <a href="/configurar">Configurar</a>
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+    <div class="cv-main">
+        <div class="cv-left">
+            <div class="cv-card cv-chart-card">
+                <div id="cv-chart"></div>
+                <div class="cv-ticker-row">
+                    <span class="cv-ticker-label">Par:</span> <b>BTC/USDT</b>
+                    <span class="cv-ticker-label">Preço:</span> <span id="cv-preco">-</span>
+                    <span class="cv-ticker-label">RSI:</span> <span id="cv-rsi">-</span>
+                    <span class="cv-ticker-label">Volume:</span> <span id="cv-volume">-</span>
+                </div>
+            </div>
+        </div>
+        <div class="cv-right">
+            <div class="cv-card cv-saldo-card">
+                <div class="cv-card-title">Carteira</div>
+                <div>BTC: <span id="cv-saldo-btc">{{ saldo_btc or 0 }}</span></div>
+                <div>USDT: <span id="cv-saldo-usdt">{{ saldo_usdt or 0 }}</span></div>
+                <div style="margin-top:10px">
+                    <input id="cv-qtd" type="number" placeholder="Quantidade" min="0" step="any" />
+                </div>
+                <div class="cv-btn-group">
+                    <button class="cv-btn cv-buy" onclick="confirmarOrdem('buy')">Comprar</button>
+                    <button class="cv-btn cv-sell" onclick="confirmarOrdem('sell')">Vender</button>
+                    <button class="cv-btn cv-ia" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
+                    <button class="cv-btn cv-auto" onclick="confirmarOrdem('auto')">Automático</button>
+                </div>
+            </div>
+            <div class="cv-card cv-ia-card">
+                <div class="cv-card-title">🤖 IA Clarinha</div>
+                <div id="cv-ia-output">Clique em "Sugestão IA" para receber uma análise inteligente em tempo real.</div>
+            </div>
+            <div class="cv-card cv-orders-card">
+                <div class="cv-card-title">Histórico de Ordens</div>
+                <ul id="ordens-list"></ul>
+            </div>
+            {% if error_msg %}
+            <div class="cv-error">{{ error_msg }}</div>
+            {% endif %}
+        </div>
     </div>
-  </div>
-  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+    <script src="/static/dashboard.js"></script>
 </body>
 </html>
