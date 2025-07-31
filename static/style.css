@@ -1,260 +1,169 @@
-/* ClaraVerse Finance - Painel Premium */
-:root {
-  --roxo: #6638f0;
-  --roxo-dark: #2a2151;
-  --roxo-soft: #3d2d6d;
-  --fundo: #130f1c;
-  --painel: #19162c;
-  --painel-dark: #16112b;
-  --amarelo: #ffe15a;
-  --neon: #10ffe4;
-  --verde: #19e09e;
-  --azul: #0ff7ff;
-  --rosa: #ff3c6e;
-  --laranja: #f49727;
-  --roxo-btn: #9a35ff;
-  --roxo-ia: #42e9f5;
-  --roxo-borda: #b27aff;
-  --cinza: #dadada;
-}
-
-/* Reset básico */
-body, html {
+body {
+  background: linear-gradient(120deg, #3a2052 0%, #8344d6 100%);
+  font-family: 'Montserrat', Arial, sans-serif;
   margin: 0;
-  padding: 0;
-  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(120deg, var(--roxo-dark) 0%, #4932b8 100%);
   min-height: 100vh;
   color: #fff;
 }
 
-/* Cabeçalho */
 header nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 32px 6vw 18px 6vw;
   background: transparent;
-  padding: 32px 7vw 12px 7vw;
 }
+
 .logo {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: var(--amarelo);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #FFC300;
   letter-spacing: 1px;
-  text-shadow: 0 2px 12px #0008;
+  text-shadow: 0 1px 8px #9c43ef80;
 }
-header ul {
+
+nav ul {
   display: flex;
-  gap: 34px;
   list-style: none;
   margin: 0;
   padding: 0;
-}
-header ul li a {
-  color: var(--azul);
-  text-decoration: none;
-  font-size: 1.12rem;
-  font-weight: 500;
-  transition: color 0.12s;
-}
-header ul li a:hover {
-  color: var(--amarelo);
+  gap: 32px;
 }
 
-/* Painel container principal */
+nav ul li a {
+  color: #0ff7ff;
+  font-size: 1.16rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.16s;
+}
+
+nav ul li a:hover {
+  color: #ffe76c;
+  text-shadow: 0 1px 10px #ffe76c80;
+}
+
 .painel-container {
-  max-width: 1320px;
-  margin: 2.5rem auto;
+  max-width: 1280px;
+  margin: 2.4rem auto 1.5rem auto;
   padding: 2.2rem;
-  border-radius: 26px;
-  background: var(--painel);
-  box-shadow: 0 8px 48px 0 #0005, 0 1px 0 #4932b825;
+  border-radius: 30px;
+  background: #16112b;
+  box-shadow: 0 8px 48px 0 #0006;
   display: flex;
-  gap: 2.8rem;
+  gap: 2.5rem;
+  min-height: 480px;
 }
 
 .grafico-section {
   flex: 2.2;
-  background: var(--painel-dark);
-  border-radius: 18px;
-  padding: 2rem 2rem 1rem 2rem;
+  border-radius: 24px;
+  background: #22184a;
+  padding: 1.8rem 1.3rem;
+  min-width: 340px;
   display: flex;
   flex-direction: column;
-  min-width: 360px;
+  justify-content: flex-start;
 }
-#grafico-candles {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 2.5px solid var(--roxo-borda);
-  box-shadow: 0 0 20px 0 #0005;
-  background: #1d1532;
-}
+
 .info-row {
-  margin-top: 16px;
-  color: var(--cinza);
-  font-size: 1.09rem;
+  margin-top: 18px;
+  font-size: 1.1rem;
+  color: #9bf6ff;
+}
+
+.carteira-section {
+  flex: 1.2;
+  min-width: 320px;
+  background: #1a1336;
+  border-radius: 22px;
+  padding: 2rem 1.2rem 1.4rem 1.2rem;
   display: flex;
-  gap: 32px;
+  flex-direction: column;
+  gap: 1.1rem;
+  box-shadow: 0 0 18px 0 #0003;
+  align-items: stretch;
+}
+
+.carteira-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #ffe200;
+  margin-bottom: 12px;
   letter-spacing: 0.5px;
 }
-.info-row span {
-  color: var(--azul);
-  font-weight: 500;
-}
-.info-row b { color: var(--amarelo); }
 
-/* Painel lateral (Carteira) */
-.carteira-section {
-  flex: 1.3;
-  min-width: 320px;
-  background: var(--roxo-soft);
-  border-radius: 18px;
-  padding: 2rem 2rem 2rem 2rem;
-  box-shadow: 0 0 32px #19192c40;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1.8rem;
-}
-.carteira-title {
-  font-size: 1.38rem;
-  font-weight: 700;
-  color: var(--amarelo);
-  margin-bottom: 0.9rem;
-  letter-spacing: 1px;
-}
 .carteira-saldo {
-  margin-bottom: 0.8rem;
-  font-size: 1.1rem;
-  color: #b4ffe9;
-  background: #241b42;
-  border-radius: 8px;
-  padding: 10px 15px;
-  letter-spacing: 0.2px;
-}
-.carteira-saldo span {
-  font-family: 'Roboto Mono', monospace;
-  color: var(--neon);
-}
-#qtd_input {
-  width: 100%;
-  margin-bottom: 20px;
-  padding: 14px;
-  font-size: 1.13rem;
-  border-radius: 8px;
-  border: 2px solid var(--painel-dark);
-  background: #231c39;
-  color: #fff;
-  font-family: inherit;
-  transition: border .2s;
-}
-#qtd_input:focus {
-  border: 2px solid var(--azul);
-  outline: none;
-}
-
-.btn {
-  width: 100%;
-  padding: 22px 0;
-  border-radius: 12px;
-  border: none;
-  margin-bottom: 15px;
-  font-size: 1.22rem;
-  font-weight: 700;
-  transition: all 0.12s, box-shadow .2s;
-  cursor: pointer;
-  letter-spacing: 1px;
-  color: #fff;
-  background: linear-gradient(90deg,var(--neon),var(--roxo-btn));
-  box-shadow: 0 0 12px #19e09e75;
-}
-.btn.buy {
-  background: linear-gradient(90deg,var(--azul),#29dfb2 80%);
-  color: #202c2b;
-  box-shadow: 0 0 14px #19e09e35;
-}
-.btn.sell {
-  background: linear-gradient(90deg,var(--rosa),var(--laranja) 70%);
-  box-shadow: 0 0 12px #ff3c6e30;
-  color: #fff;
-}
-.btn.suggest {
-  background: linear-gradient(90deg,var(--roxo-ia),var(--roxo-btn) 80%);
-  color: #fff;
-  box-shadow: 0 0 12px #42e9f570;
-}
-.btn.auto {
-  background: linear-gradient(90deg,#ffe15a,#fc7ea2 70%);
-  color: #222;
-  box-shadow: 0 0 12px #f3c74255;
-}
-
-/* Histórico de ordens */
-.historico-title {
-  color: var(--azul);
-  font-size: 1.09rem;
-  margin-bottom: 7px;
+  font-size: 1.06rem;
+  color: #bbfdff;
+  margin-bottom: 1.25rem;
   font-weight: 600;
 }
+
+input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 1.13rem;
+  border-radius: 9px;
+  border: none;
+  margin-bottom: 15px;
+  background: #231c39;
+  color: #fff;
+  outline: none;
+  font-weight: 600;
+  transition: background 0.16s;
+}
+input:focus { background: #292047; }
+
+.btn, .btn.buy, .btn.sell, .btn.suggest, .btn.auto {
+  width: 100%;
+  padding: 18px 0;
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 13px;
+  font-size: 1.17rem;
+  font-weight: 700;
+  transition: all 0.12s;
+  cursor: pointer;
+  letter-spacing: 1.2px;
+  color: #fff;
+  background: linear-gradient(90deg,#19e09e,#6f6ffc);
+  box-shadow: 0 0 8px #19e09e80;
+}
+.btn.buy { background: linear-gradient(90deg,#00ffd6,#52aaff); }
+.btn.sell { background: linear-gradient(90deg,#ff3c6e,#f49727); box-shadow: 0 0 8px #ff3c6e70; }
+.btn.suggest { background: linear-gradient(90deg,#42e9f5,#9a35ff); box-shadow: 0 0 8px #42e9f570; }
+.btn.auto { background: linear-gradient(90deg,#f3c742,#fc7ea2); color: #222; box-shadow: 0 0 8px #f3c74270; }
+.btn:active { transform: scale(0.98); filter: brightness(0.97); }
+
+.historico-title {
+  font-size: 1.11rem;
+  margin: 20px 0 8px 0;
+  color: #12e3ff;
+  letter-spacing: 0.6px;
+}
+
 #ordens-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  color: #f5f5f5;
-  font-size: 1rem;
-  letter-spacing: 0.2px;
-  max-height: 185px;
-  overflow-y: auto;
+  font-size: 0.99rem;
+  color: #eee;
 }
-#ordens-list li {
-  background: #251a32bb;
-  border-radius: 7px;
-  margin-bottom: 6px;
-  padding: 7px 14px;
-  border-left: 4px solid var(--neon);
-  box-shadow: 0 2px 8px #0ff7ff15;
-}
-#ordens-list li b {
-  color: var(--amarelo);
-}
+#ordens-list li { margin-bottom: 6px; }
 
-.alert {
-  width: fit-content;
-  margin: 24px auto;
-  padding: 14px 32px;
-  border-radius: 14px;
-  font-size: 1.09rem;
-  font-weight: 500;
-  background: #19192c;
-  color: #fff;
-  border: 2px solid var(--azul);
-  box-shadow: 0 2px 12px #0ff7ff20;
-}
 .alert.danger {
+  background: #ff3c3c;
   color: #fff;
-  background: #3e0f27;
-  border: 2px solid #ff3c6e;
-}
-
-/* Responsivo */
-@media (max-width:1000px) {
-  .painel-container { flex-direction: column; padding: 1.1rem;}
-  .grafico-section, .carteira-section { min-width:0; padding: 1.2rem;}
-}
-@media (max-width:680px) {
-  header nav { flex-direction: column; gap:16px; padding: 24px 2vw 10px 2vw;}
-  .logo { font-size: 1.4rem;}
-  .painel-container {padding:6vw;}
-  .carteira-section { padding: 1.3rem;}
-  .grafico-section { padding: 1.1rem;}
-}
-
-::-webkit-scrollbar {
-  width: 7px;
-  background: #231c39;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--roxo-borda);
   border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  margin: 20px 18vw 0 18vw;
+  font-size: 1.13rem;
+}
+
+@media (max-width:950px) {
+  .painel-container { flex-direction: column; padding: 1.2rem; gap: 1.1rem; }
+  .grafico-section, .carteira-section { min-width: 0; padding: 1.2rem; }
+  header nav { flex-direction: column; gap: 18px; padding: 26px 3vw 12px 3vw; }
 }
