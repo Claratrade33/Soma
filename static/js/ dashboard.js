@@ -1,58 +1,98 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse Finance 🌙</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Estilo principal -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <header>
-        <nav>
-            <span class="logo">🌙 ClaraVerse Finance</span>
-            <ul>
-                <li><a href="{{ url_for('index') }}">Início</a></li>
-                <li><a href="{{ url_for('painel_operacao') }}">Painel</a></li>
-                <li><a href="{{ url_for('configurar') }}">Configurar</a></li>
-                <li><a href="{{ url_for('logout') }}">Sair</a></li>
-            </ul>
-        </nav>
-    </header>
+document.addEventListener('DOMContentLoaded', () => {
+  let historico = [];
 
-    {% if error_msg %}
-    <div class="alert danger">{{ error_msg }}</div>
-    {% endif %}
-    <div class="painel-container">
-        <!-- Área para o gráfico (TradingView pode ser embutido aqui depois) -->
-        <section class="grafico-section">
-            <div id="grafico-candles" style="width:100%;height:340px;background:#18182c;border-radius:24px;margin-bottom:12px;"></div>
-            <div class="info-row">
-                <span>Par: <b>BTC/USDT</b></span>
-                <span>Preço: <span id="preco-ativo">-</span></span>
-                <span>RSI: <span id="rsi-ativo">-</span></span>
-                <span>Volume: <span id="volume-ativo">-</span></span>
-            </div>
-        </section>
+  // ===== ATUALIZAR SALDO DA CARTEIRA =====
+  function atualizarSaldo() {
+    fetch('/api/saldo')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('saldo-btc').textContent = data.saldo_btc || "0";
+        document.getElementById('saldo-usdt').textContent = data.saldo_usdt || "0";
+      });
+  }
+  atualizarSaldo();
 
-        <!-- Carteira/Painel de Ordens -->
-        <aside class="carteira-section">
-            <h2 class="carteira-title">Carteira</h2>
-            <div class="carteira-saldo">
-                <div>BTC: <span id="saldo-btc">{{ saldo_btc }}</span></div>
-                <div>USDT: <span id="saldo-usdt">{{ saldo_usdt }}</span></div>
-            </div>
-            <input type="number" step="any" min="0" id="qtd_input" placeholder="Quantidade">
-            <button class="btn buy" onclick="confirmarOrdem('buy')">Comprar</button>
-            <button class="btn sell" onclick="confirmarOrdem('sell')">Vender</button>
-            <button class="btn suggest" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
-            <button class="btn auto" onclick="confirmarOrdem('auto')">Automático</button>
-            <h3 class="historico-title">Histórico de Ordens</h3>
-            <ul id="ordens-list"></ul>
-        </aside>
-    </div>
+  // ===== ATUALIZAR DADOS DO ATIVO (PREÇO/RSI/VOLUME) =====
+  function atualizarInfos() {
+    fetch('/api/info_ativo?symbol=BTCUSDT')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('preco-ativo').textContent = data.preco || "-";
+        document.getElementById('rsi-ativo').textContent = data.rsi || "-";
+        document.getElementById('volume-ativo').textContent = data.volume || "-";
+      });
+  }
+  atualizarInfos();
+  setInterval(atualizarInfos, 10000);
 
-    <!-- Inclua o JS do painel -->
-    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
-</body>
-</html>
+  // ===== HISTÓRICO =====
+  function renderHistorico() {
+    const ordensList = document.getElementById('ordens-list');
+    ordensList.innerHTML = "";
+    for (let o of historico) {
+      let li = document.createElement('li');
+      li.innerHTML = `<b>${o.tipo}</b> ${o.ativo} - ${o.valor} @ ${o.preco} <span style="color:#aaa">${o.hora}</span>`;
+      ordensList.appendChild(li);
+    }
+  }
+
+  // ===== BOTÕES PRINCIPAIS =====
+  window.confirmarOrdem = function(tipo) {
+    let msg = "Tem certeza que deseja executar essa ordem?";
+    let tipoApi = "";
+    if (tipo === "buy") { msg = "Confirmar compra?"; tipoApi = "compra"; }
+    if (tipo === "sell") { msg = "Confirmar venda?"; tipoApi = "venda"; }
+    if (tipo === "suggest") { msg = "Pedir sugestão para a IA?"; tipoApi = "sugestao"; }
+    if (tipo === "auto") { msg = "Ativar modo automático?"; tipoApi = "auto"; }
+
+    if (tipoApi === "auto") {
+      alert("Modo automático em breve! Aguarde atualização.");
+      return;
+    }
+    if (tipoApi === "sugestao") {
+      fetch('/api/sugestao_ia', { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          alert("Sugestão da IA:\n" + (data.sugestao || "Nada retornado"));
+        });
+      return;
+    }
+
+    const quantidade = document.getElementById('qtd_input').value || "";
+    if (!quantidade || Number(quantidade) <= 0) {
+      alert("Informe a quantidade para operar.");
+      return;
+    }
+    const symbol = "BTCUSDT";
+    if (!confirm(msg)) return;
+
+    fetch('/executar_ordem', {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `tipo=${encodeURIComponent(tipoApi)}&quantidade=${encodeURIComponent(quantidade)}&symbol=${symbol}`
+    })
+    .then(res => res.json().catch(() => null))
+    .then(data => {
+      if (!data || data.status !== "ok") {
+        alert("Erro ao executar ordem!\n" + (data && data.order ? data.order : ''));
+        return;
+      }
+      const agora = new Date();
+      historico.unshift({
+        tipo: tipoApi === "compra" ? "Compra" : "Venda",
+        ativo: symbol,
+        valor: quantidade,
+        preco: data.order && data.order.fills && data.order.fills[0] ? data.order.fills[0].price : "enviado",
+        hora: agora.toLocaleTimeString().slice(0,5)
+      });
+      renderHistorico();
+      atualizarSaldo();
+      alert("Ordem executada!");
+    })
+    .catch(e => {
+      alert("Erro ao executar ordem!\n" + e);
+    });
+  };
+
+  renderHistorico();
+});
