@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}Clarinha Oracular{% endblock %}</title>
+  <title>{% block title %}Painel Financeiro{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header class="header">
-    <h1>✨ Clarinha Oracular ✨</h1>
+    <h1>Painel Financeiro</h1>
     <nav class="nav">
       <a href="{{ url_for('index') }}">Início</a>
       {% if session.get('usuario') %}
