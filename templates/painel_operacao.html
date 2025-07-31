@@ -81,6 +81,8 @@
       .candle-area, .painel-lateral { min-width: 0; }
     }
   </style>
+  <!-- TradingView script deve ser carregado no HEAD -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
   <nav style="display:flex;justify-content:space-between;align-items:center;padding:20px 8vw;">
@@ -96,30 +98,6 @@
     <div class="candle-area">
       <!-- TRADINGVIEW CANDLESTICK CHART -->
       <div id="tv-chart" style="height:420px;width:100%;border-radius:14px;overflow:hidden;"></div>
-      <script type="text/javascript">
-        new TradingView.widget({
-          "container_id": "tv-chart",
-          "width": "100%",
-          "height": 420,
-          "symbol": "BINANCE:BTCUSDT",
-          "interval": "15",
-          "timezone": "America/Sao_Paulo",
-          "theme": "dark",
-          "style": "1",
-          "locale": "br",
-          "toolbar_bg": "#16112b",
-          "enable_publishing": false,
-          "allow_symbol_change": true,
-          "hide_top_toolbar": false,
-          "withdateranges": true,
-          "details": true,
-          "studies": [
-            "STD;Moving Average",
-            "STD;RSI"
-          ],
-        });
-      </script>
-      <script src="https://s3.tradingview.com/tv.js"></script>
       <div style="margin-top:1rem;">
         <span style="color:#aaf;">Par: BTC/USDT</span> &nbsp;
         <span style="color:#aaf;">RSI/MA ativos • Mercado em tempo real</span>
@@ -142,7 +120,32 @@
     </div>
   </div>
   <script>
-    // Você pode trocar por Ajax: Exemplo UI do histórico
+    // Carrega o gráfico TradingView ao renderizar
+    document.addEventListener('DOMContentLoaded', function() {
+      new TradingView.widget({
+        "container_id": "tv-chart",
+        "width": "100%",
+        "height": 420,
+        "symbol": "BINANCE:BTCUSDT",
+        "interval": "15",
+        "timezone": "America/Sao_Paulo",
+        "theme": "dark",
+        "style": "1",
+        "locale": "br",
+        "toolbar_bg": "#16112b",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "hide_top_toolbar": false,
+        "withdateranges": true,
+        "details": true,
+        "studies": [
+          "STD;Moving Average",
+          "STD;RSI"
+        ]
+      });
+    });
+
+    // Histórico fake só para UI, troque para AJAX depois
     let historico = [];
     function renderHistorico() {
       const ordensList = document.getElementById('ordens-list');
