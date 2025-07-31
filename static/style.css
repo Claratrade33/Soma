@@ -1,32 +1,28 @@
+/* ClaraVerse Finance — Style.css */
+
 body {
   background: linear-gradient(120deg, #3a2052 0%, #8344d6 100%);
   font-family: 'Montserrat', Arial, sans-serif;
-  color: #fff;
   margin: 0;
   min-height: 100vh;
+  color: #fff;
+}
+
+a {
+  color: #0ff7ff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: #ffb300;
+  text-decoration: underline;
 }
 
 nav {
-  background: transparent;
-  box-shadow: none;
-  margin-bottom: 30px;
-}
-
-nav span {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #FFC300;
-}
-
-nav a {
-  color: #0ff7ff;
-  text-decoration: none;
-  margin: 0 16px;
-  font-size: 1.2rem;
-  transition: color 0.2s;
-}
-nav a:hover {
-  color: #fff86c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 8vw;
 }
 
 .painel-container {
@@ -62,9 +58,36 @@ nav a:hover {
   box-shadow: 0 0 16px 0 #0002;
 }
 
-.painel-lateral h2 {
-  color: #ffdf55;
-  margin-bottom: 1rem;
+.btn-op {
+  width: 100%;
+  padding: 18px 0;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: all 0.14s cubic-bezier(.4,0,.2,1);
+  cursor: pointer;
+  letter-spacing: 1px;
+  color: #fff;
+  background: linear-gradient(90deg,#19e09e,#6f6ffc);
+  box-shadow: 0 0 8px #19e09e70;
+  outline: none;
+}
+.btn-op:hover { transform: scale(1.04) translateY(-2px); filter: brightness(1.12); }
+
+.btn-op.sell {
+  background: linear-gradient(90deg,#ff3c6e,#f49727);
+  box-shadow: 0 0 8px #ff3c6e70;
+}
+.btn-op.ia {
+  background: linear-gradient(90deg,#42e9f5,#9a35ff);
+  box-shadow: 0 0 8px #42e9f570;
+}
+.btn-op.auto {
+  background: linear-gradient(90deg,#f3c742,#fc7ea2);
+  color: #222;
+  box-shadow: 0 0 8px #f3c74280;
 }
 
 .saldo {
@@ -75,54 +98,50 @@ nav a:hover {
 
 input[type="number"], input[type="text"], input[type="password"] {
   width: 100%;
+  margin-bottom: 14px;
   padding: 12px;
   font-size: 1.1rem;
   border-radius: 8px;
   border: none;
   background: #231c39;
   color: #fff;
-  margin-bottom: 14px;
+  box-shadow: 0 0 4px #0002;
+  outline: none;
+  transition: border 0.2s;
 }
-
-.btn-op {
-  width: 100%;
-  padding: 18px 0;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 15px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #fff;
-  background: linear-gradient(90deg,#37f6d7,#4a7aff);
-  box-shadow: 0 0 8px #19e09e70;
-  transition: filter 0.15s, transform 0.12s;
-  cursor: pointer;
-}
-.btn-op.sell {
-  background: linear-gradient(90deg,#ff9e45,#f65858);
-}
-.btn-op.ia {
-  background: linear-gradient(90deg,#1bc6ff,#a88bfe);
-}
-.btn-op.auto {
-  background: linear-gradient(90deg,#ffcd62,#f09fd8);
-  color: #321d1d;
-}
-
-.btn-op:hover {
-  filter: brightness(1.12) contrast(1.1) saturate(1.5);
-  transform: translateY(-2px) scale(1.03);
+input:focus {
+  border: 1.5px solid #0ff7ff;
+  background: #231c39;
 }
 
 ul#ordens-list {
   list-style: none;
   padding: 0;
-  font-size: 1.05rem;
+  font-size: 0.97rem;
   color: #eee;
+  margin-top: 0;
+}
+#ordens-list li {
+  margin-bottom: 6px;
+  border-bottom: 1px dashed #4443;
+  padding-bottom: 3px;
+  font-size: 0.99rem;
 }
 
 @media (max-width:900px) {
   .painel-container { flex-direction: column; }
   .candle-area, .painel-lateral { min-width: 0; }
+  nav { padding: 20px 4vw; }
+}
+
+@media (max-width:650px) {
+  .painel-container {
+    padding: 8px;
+    gap: 1rem;
+  }
+  .candle-area, .painel-lateral {
+    padding: 0.8rem;
+    border-radius: 12px;
+  }
+  nav span { font-size: 1.3rem; }
 }
