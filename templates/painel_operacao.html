@@ -68,9 +68,20 @@
             <button class="btn suggest" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
             <button class="btn auto" onclick="confirmarOrdem('auto')">Automático</button>
             <h3 class="historico-title">Histórico de Ordens</h3>
-            <ul id="ordens-list"></ul>
+            <table id="ordens-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Ativo</th>
+                        <th>Qtd.</th>
+                        <th>Preço</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </aside>
     </div>
-    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
