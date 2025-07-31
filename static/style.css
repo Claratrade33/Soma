@@ -143,14 +143,26 @@ input:focus { background: #292047; }
   letter-spacing: 0.6px;
 }
 
-#ordens-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+#ordens-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.99rem;
   color: #eee;
 }
-#ordens-list li { margin-bottom: 6px; }
+#ordens-table th,
+#ordens-table td {
+  padding: 6px 8px;
+  text-align: left;
+}
+#ordens-table thead th {
+  color: #12e3ff;
+  border-bottom: 1px solid #3c2a5d;
+  font-weight: 700;
+}
+#ordens-table tbody tr:nth-child(odd) { background: #211742; }
+#ordens-table tbody tr:nth-child(even) { background: #1a1336; }
+#ordens-table td.tipo-compra { color: #19e09e; font-weight: 700; }
+#ordens-table td.tipo-venda { color: #ff3c6e; font-weight: 700; }
 
 .alert.danger {
   background: #ff3c3c;
