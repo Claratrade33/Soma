@@ -1,10 +1,10 @@
-import openai
+# clarinha_ia.py
+from openai import OpenAI
 import requests
 import json
 import os
 
-# Chave da API da OpenAI será carregada do ambiente
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:
@@ -17,7 +17,6 @@ def obter_dados_mercado(simbolo="BTCUSDT"):
         variacao = float(dados["priceChangePercent"])
         volume = float(dados["volume"])
 
-        # RSI estimado (simples, ajustável futuramente)
         rsi = 50 + (variacao * 0.5)
         rsi = min(max(rsi, 0), 100)
 
@@ -61,13 +60,13 @@ Responda exclusivamente em JSON estruturado:
 """
 
     try:
-        resposta = openai.ChatCompletion.create(
-            model="gpt-4",
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
-            max_tokens=300
+            max_tokens=300,
         )
-        conteudo = resposta.choices[0].message.content.strip()
+        conteudo = resp.choices[0].message.content.strip()
         return json.loads(conteudo)
     except Exception as e:
         return {
