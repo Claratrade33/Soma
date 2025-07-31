@@ -4,177 +4,75 @@
   <meta charset="UTF-8">
   <title>ClaraVerse Finance 🌙 | Painel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="/static/style.css" rel="stylesheet">
-  <style>
-    body {
-      background: linear-gradient(120deg, #3a2052 0%, #8344d6 100%);
-      font-family: 'Montserrat', Arial, sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      color: #fff;
-    }
-    .painel-container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 2rem;
-      border-radius: 24px;
-      background: #16112b;
-      box-shadow: 0 4px 24px 0 #0003;
-      display: flex;
-      gap: 2rem;
-    }
-    .candle-area {
-      flex: 2;
-      border-radius: 20px;
-      background: #22184a;
-      padding: 1.5rem;
-      min-width: 340px;
-      display: flex;
-      flex-direction: column;
-    }
-    .painel-lateral {
-      flex: 1;
-      min-width: 300px;
-      background: #1a1336;
-      border-radius: 18px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      box-shadow: 0 0 16px 0 #0002;
-    }
-    .btn-op {
-      width: 100%;
-      padding: 18px 0;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-      font-weight: 700;
-      transition: all 0.12s;
-      cursor: pointer;
-      letter-spacing: 1px;
-      color: #fff;
-      background: linear-gradient(90deg,#19e09e,#6f6ffc);
-      box-shadow: 0 0 8px #19e09e70;
-    }
-    .btn-op.sell {
-      background: linear-gradient(90deg,#ff3c6e,#f49727);
-      box-shadow: 0 0 8px #ff3c6e70;
-    }
-    .btn-op.ia {
-      background: linear-gradient(90deg,#42e9f5,#9a35ff);
-      box-shadow: 0 0 8px #42e9f570;
-    }
-    .btn-op.auto {
-      background: linear-gradient(90deg,#f3c742,#fc7ea2);
-      color: #222;
-      box-shadow: 0 0 8px #f3c74280;
-    }
-    .saldo {
-      font-size: 1.1rem;
-      margin-bottom: 1.3rem;
-      color: #c5fdff;
-    }
-    @media (max-width:900px) {
-      .painel-container { flex-direction: column; }
-      .candle-area, .painel-lateral { min-width: 0; }
-    }
-  </style>
-  <!-- TradingView script deve ser carregado no HEAD -->
-  <script src="https://s3.tradingview.com/tv.js"></script>
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
-  <nav style="display:flex;justify-content:space-between;align-items:center;padding:20px 8vw;">
-    <span style="font-size:2rem;font-weight:700;color:#FFC300;">🌙 ClaraVerse Finance</span>
-    <div>
-      <a href="/" style="color:#0ff7ff;text-decoration:none;margin:0 16px;">Início</a>
-      <a href="/painel_operacao" style="color:#0ff7ff;text-decoration:none;margin:0 16px;">Painel</a>
-      <a href="/configurar" style="color:#0ff7ff;text-decoration:none;margin:0 16px;">Configurar</a>
-      <a href="/logout" style="color:#0ff7ff;text-decoration:none;margin:0 16px;">Sair</a>
-    </div>
+  <nav class="navbar">
+    <span class="logo">🌙 ClaraVerse Finance</span>
+    <ul>
+      <li><a href="{{ url_for('index') }}">Início</a></li>
+      <li><a href="{{ url_for('painel_operacao') }}">Painel</a></li>
+      <li><a href="{{ url_for('configurar') }}">Configurar</a></li>
+      <li><a href="{{ url_for('logout') }}">Sair</a></li>
+    </ul>
   </nav>
+
   <div class="painel-container">
     <div class="candle-area">
-      <!-- TRADINGVIEW CANDLESTICK CHART -->
-      <div id="tv-chart" style="height:420px;width:100%;border-radius:14px;overflow:hidden;"></div>
-      <div style="margin-top:1rem;">
-        <span style="color:#aaf;">Par: BTC/USDT</span> &nbsp;
-        <span style="color:#aaf;">RSI/MA ativos • Mercado em tempo real</span>
+      <!-- Gráfico TradingView -->
+      <div id="tv-chart" style="height:400px;width:100%;border-radius:14px;overflow:hidden;"></div>
+      <script src="https://s3.tradingview.com/tv.js"></script>
+      <script type="text/javascript">
+        new TradingView.widget({
+          "container_id": "tv-chart",
+          "width": "100%",
+          "height": 400,
+          "symbol": "BINANCE:BTCUSDT",
+          "interval": "15",
+          "timezone": "America/Sao_Paulo",
+          "theme": "dark",
+          "style": "1",
+          "locale": "br",
+          "toolbar_bg": "#16112b",
+          "enable_publishing": false,
+          "allow_symbol_change": true,
+          "hide_top_toolbar": false,
+          "withdateranges": true,
+          "details": true,
+          "studies": [
+            "STD;Moving Average",
+            "STD;RSI"
+          ],
+        });
+      </script>
+      <div class="info-row">
+        <span>Par: <b>BTC/USDT</b></span>
+        <span>Preço: <span id="preco-ativo">-</span></span>
+        <span>RSI: <span id="rsi-ativo">-</span></span>
+        <span>Volume: <span id="volume-ativo">-</span></span>
       </div>
     </div>
-    <div class="painel-lateral">
+
+    <aside class="painel-lateral">
       <div>
-        <div style="font-size:1.3rem;font-weight:700;color:#ffed00;margin-bottom:8px;">Carteira</div>
-        <div class="saldo">BTC: <span id="saldo_btc">0</span> <br>USDT: <span id="saldo_usdt">0</span></div>
-        <input id="qtd_input" type="number" placeholder="Quantidade" style="width:100%;margin-bottom:14px;padding:12px;font-size:1.1rem;border-radius:8px;border:none;background:#231c39;color:#fff;">
+        <div class="carteira-title">Carteira</div>
+        <div class="carteira-saldo">
+          BTC: <span id="saldo-btc">{{ saldo_btc }}</span> <br>
+          USDT: <span id="saldo-usdt">{{ saldo_usdt }}</span>
+        </div>
+        <input id="qtd_input" type="number" placeholder="Quantidade" step="any" min="0">
         <button class="btn-op" onclick="confirmarOrdem('buy')">Comprar</button>
         <button class="btn-op sell" onclick="confirmarOrdem('sell')">Vender</button>
-        <button class="btn-op ia" onclick="confirmarOrdem('ia')">Sugestão IA</button>
+        <button class="btn-op ia" onclick="confirmarOrdem('suggest')">Sugestão IA</button>
         <button class="btn-op auto" onclick="confirmarOrdem('auto')">Automático</button>
       </div>
       <div style="margin-top:2rem;">
-        <div style="font-size:1.1rem;color:#0ff7ff;margin-bottom:4px;">Histórico de Ordens</div>
+        <div class="historico-title">Histórico de Ordens</div>
         <ul id="ordens-list" style="list-style:none;padding:0;font-size:0.97rem;color:#eee;"></ul>
       </div>
-    </div>
+    </aside>
   </div>
-  <script>
-    // Carrega o gráfico TradingView ao renderizar
-    document.addEventListener('DOMContentLoaded', function() {
-      new TradingView.widget({
-        "container_id": "tv-chart",
-        "width": "100%",
-        "height": 420,
-        "symbol": "BINANCE:BTCUSDT",
-        "interval": "15",
-        "timezone": "America/Sao_Paulo",
-        "theme": "dark",
-        "style": "1",
-        "locale": "br",
-        "toolbar_bg": "#16112b",
-        "enable_publishing": false,
-        "allow_symbol_change": true,
-        "hide_top_toolbar": false,
-        "withdateranges": true,
-        "details": true,
-        "studies": [
-          "STD;Moving Average",
-          "STD;RSI"
-        ]
-      });
-    });
 
-    // Histórico fake só para UI, troque para AJAX depois
-    let historico = [];
-    function renderHistorico() {
-      const ordensList = document.getElementById('ordens-list');
-      ordensList.innerHTML = "";
-      for (let o of historico) {
-        let li = document.createElement('li');
-        li.innerHTML = `<b>${o.tipo}</b> ${o.ativo} - ${o.valor} @ ${o.preco} <span style="color:#aaa">${o.hora}</span>`;
-        ordensList.appendChild(li);
-      }
-    }
-    function confirmarOrdem(tipo) {
-      let msg = "Tem certeza que deseja executar essa ordem?";
-      if (tipo === "buy") msg = "Confirmar compra?";
-      if (tipo === "sell") msg = "Confirmar venda?";
-      if (tipo === "ia") msg = "Pedir sugestão para a IA?";
-      if (tipo === "auto") msg = "Ativar modo automático?";
-      if (confirm(msg)) {
-        historico.unshift({
-          tipo: tipo === "buy" ? "Compra" : tipo === "sell" ? "Venda" : (tipo === "ia" ? "Sugestão IA" : "Automático"),
-          ativo: "BTCUSDT",
-          valor: document.getElementById("qtd_input").value || "0.001",
-          preco: "ao vivo",
-          hora: new Date().toLocaleTimeString().slice(0,5)
-        });
-        renderHistorico();
-        alert("Ordem executada!");
-      }
-    }
-    renderHistorico();
-  </script>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>
