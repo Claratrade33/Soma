@@ -1,152 +1,55 @@
-body {
-    background: linear-gradient(120deg, #652f8b 0%, #412684 100%);
-    margin: 0;
-    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-    color: #fff;
-}
+// dashboard.js
 
-.cv-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #221a38;
-    padding: 18px 28px;
-    font-size: 1.15rem;
-    box-shadow: 0 3px 20px #1e143060;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const saldo_btc = document.getElementById('saldo_btc');
+  const saldo_usdt = document.getElementById('saldo_usdt');
+  const qtd_input = document.getElementById('qtd_input');
+  const ordensList = document.getElementById('ordens-list');
+  let historico = [];
 
-.cv-logo {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #ffb600;
-    letter-spacing: 2px;
-}
+  // Simulação de saldo (troque por chamada AJAX se quiser saldo real)
+  if (saldo_btc && saldo_usdt) {
+    fetch('/api/saldo')
+      .then(resp => resp.json())
+      .then(data => {
+        saldo_btc.textContent = data.btc || "0";
+        saldo_usdt.textContent = data.usdt || "0";
+      })
+      .catch(() => {
+        saldo_btc.textContent = "0";
+        saldo_usdt.textContent = "0";
+      });
+  }
 
-.cv-header nav a {
-    color: #42e8ff;
-    text-decoration: none;
-    margin: 0 15px;
-    transition: color .2s;
-    font-weight: 600;
-    border-bottom: 2px solid transparent;
-}
-.cv-header nav a.active, .cv-header nav a:hover {
-    color: #b847ff;
-    border-bottom: 2px solid #b847ff;
-}
+  // Função para inserir nova ordem no histórico
+  window.confirmarOrdem = function(tipo) {
+    let msg = "Tem certeza que deseja executar essa ordem?";
+    if (tipo === "buy") msg = "Confirmar compra?";
+    if (tipo === "sell") msg = "Confirmar venda?";
+    if (tipo === "ia") msg = "Pedir sugestão para a IA?";
+    if (tipo === "auto") msg = "Ativar modo automático?";
+    if (confirm(msg)) {
+      // Aqui você pode chamar AJAX real para enviar ordem pro Flask
+      historico.unshift({
+        tipo: tipo === "buy" ? "Compra" : tipo === "sell" ? "Venda" : (tipo === "ia" ? "Sugestão IA" : "Automático"),
+        ativo: "BTCUSDT",
+        valor: qtd_input.value || "0.001",
+        preco: "ao vivo",
+        hora: new Date().toLocaleTimeString().slice(0,5)
+      });
+      renderHistorico();
+      alert("Ordem executada!");
+    }
+  }
 
-.cv-main {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 38px;
-    margin: 45px auto 0;
-    max-width: 1350px;
-    flex-wrap: wrap;
-}
-.cv-left, .cv-right { flex: 1 1 360px; min-width: 340px; }
+  function renderHistorico() {
+    ordensList.innerHTML = "";
+    for (let o of historico) {
+      let li = document.createElement('li');
+      li.innerHTML = `<b>${o.tipo}</b> ${o.ativo} - ${o.valor} @ ${o.preco} <span style="color:#aaa">${o.hora}</span>`;
+      ordensList.appendChild(li);
+    }
+  }
 
-.cv-card {
-    background: #181427;
-    border-radius: 24px;
-    box-shadow: 0 5px 32px #0002;
-    padding: 28px 30px 18px 30px;
-    margin-bottom: 32px;
-}
-.cv-card-title {
-    font-weight: bold;
-    color: #ffb600;
-    font-size: 1.18rem;
-    margin-bottom: 10px;
-}
-
-.cv-chart-card { min-height: 330px; }
-#cv-chart { width: 100%; height: 240px; }
-
-.cv-ticker-row {
-    margin-top: 18px;
-    font-size: 1.02rem;
-    color: #b6b2da;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: center;
-}
-.cv-ticker-label { color: #42e8ff; margin-right: 4px; font-weight: 600; }
-
-.cv-saldo-card input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    background: #261e37;
-    color: #fff;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    margin-top: 8px;
-    outline: none;
-}
-
-.cv-btn-group {
-    display: flex;
-    flex-direction: column;
-    gap: 13px;
-    margin-top: 15px;
-}
-.cv-btn {
-    padding: 13px 0;
-    border: none;
-    border-radius: 16px;
-    font-size: 1.13rem;
-    font-weight: bold;
-    margin-bottom: 3px;
-    transition: background 0.17s, transform 0.14s;
-    cursor: pointer;
-    box-shadow: 0 2px 12px #0003;
-    letter-spacing: 1px;
-}
-.cv-buy { background: linear-gradient(90deg, #00ff8a 60%, #0ec5d2 100%); color: #252435; }
-.cv-buy:hover { background: linear-gradient(90deg, #00e372 60%, #0ec5d2 100%); }
-.cv-sell { background: linear-gradient(90deg, #ff5252 60%, #ff00b6 100%); color: #fff; }
-.cv-sell:hover { background: linear-gradient(90deg, #e63b3b 60%, #ff00b6 100%); }
-.cv-ia { background: linear-gradient(90deg, #17d0ff 60%, #ab60e4 100%); color: #252435;}
-.cv-ia:hover { background: linear-gradient(90deg, #11bff5 60%, #b847ff 100%);}
-.cv-auto { background: linear-gradient(90deg, #b847ff 60%, #ffb600 100%); color: #252435;}
-.cv-auto:hover { background: linear-gradient(90deg, #9a37d6 60%, #ffc634 100%); }
-
-.cv-btn:active { transform: scale(.96); }
-
-.cv-ia-card { min-height: 60px; background: #222043; }
-.cv-orders-card ul {
-    list-style: none;
-    padding: 0;
-    color: #fff;
-    font-size: .98rem;
-}
-.cv-orders-card li {
-    padding: 4px 0;
-    border-bottom: 1px solid #2e2a47;
-}
-.cv-orders-card li:last-child { border-bottom: none; }
-
-.cv-error {
-    background: #c63040;
-    color: #fff;
-    border-radius: 8px;
-    padding: 15px 18px;
-    font-size: 1.04rem;
-    margin-top: 15px;
-    margin-bottom: 6px;
-    text-align: center;
-    box-shadow: 0 1px 8px #0003;
-}
-
-@media (max-width: 1000px) {
-    .cv-main { flex-direction: column; align-items: center; }
-    .cv-left, .cv-right { max-width: 540px; }
-}
-@media (max-width: 620px) {
-    .cv-header { flex-direction: column; gap: 6px; padding: 12px 7px; font-size: 1rem;}
-    .cv-main { gap: 15px; margin-top: 22px;}
-    .cv-card { padding: 18px 9px 11px 9px;}
-}
+  renderHistorico();
+});
