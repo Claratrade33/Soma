@@ -1,5 +1,4 @@
-/* ClaraVerse Finance — Style.css */
-
+/* ClaraVerse Finance - Painel Style */
 body {
   background: linear-gradient(120deg, #3a2052 0%, #8344d6 100%);
   font-family: 'Montserrat', Arial, sans-serif;
@@ -7,23 +6,52 @@ body {
   min-height: 100vh;
   color: #fff;
 }
-
-a {
-  color: #0ff7ff;
-  text-decoration: none;
-  transition: color 0.2s;
+header {
+  padding: 0;
+  margin-bottom: 24px;
 }
-a:hover {
-  color: #ffb300;
-  text-decoration: underline;
-}
-
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 8vw;
+  background: transparent;
 }
+.logo {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FFC300;
+  letter-spacing: 1px;
+}
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 26px;
+  margin: 0;
+  padding: 0;
+}
+nav ul li a {
+  color: #0ff7ff;
+  text-decoration: none;
+  font-size: 1.13rem;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+nav ul li a:hover {
+  color: #fff16e;
+  text-shadow: 0 0 10px #0ff7ff77;
+}
+
+.alert {
+  max-width: 600px;
+  margin: 16px auto;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+.alert.danger { background: #ff2058ee; color: #fff; }
+.alert.success { background: #23e0a5ee; color: #16112b; }
 
 .painel-container {
   max-width: 1200px;
@@ -36,7 +64,7 @@ nav {
   gap: 2rem;
 }
 
-.candle-area {
+.grafico-section {
   flex: 2;
   border-radius: 20px;
   background: #22184a;
@@ -44,21 +72,61 @@ nav {
   min-width: 340px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+}
+.info-row {
+  display: flex;
+  gap: 28px;
+  margin: 14px 0 0 4px;
+  font-size: 1.04rem;
+  color: #b8ebff;
 }
 
-.painel-lateral {
+.carteira-section {
   flex: 1;
-  min-width: 300px;
+  min-width: 310px;
   background: #1a1336;
   border-radius: 18px;
-  padding: 1.5rem;
+  padding: 1.5rem 1.2rem 2.5rem 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  align-items: stretch;
+  gap: 1.2rem;
   box-shadow: 0 0 16px 0 #0002;
 }
-
-.btn-op {
+.carteira-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffed00;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.carteira-saldo {
+  font-size: 1.1rem;
+  margin-bottom: 1.3rem;
+  color: #c5fdff;
+}
+.carteira-saldo span {
+  font-weight: 600;
+  color: #55ffe0;
+}
+input[type="number"], input[type="text"], input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: none;
+  background: #231c39;
+  color: #fff;
+  margin-bottom: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus {
+  background: #271c3b;
+  border: 1.5px solid #5ff2ff80;
+}
+.btn, .btn-op {
   width: 100%;
   padding: 18px 0;
   border-radius: 10px;
@@ -66,82 +134,65 @@ nav {
   margin-bottom: 10px;
   font-size: 1.2rem;
   font-weight: 700;
-  transition: all 0.14s cubic-bezier(.4,0,.2,1);
+  transition: all 0.12s;
   cursor: pointer;
   letter-spacing: 1px;
   color: #fff;
+  box-shadow: 0 0 8px #19e09e70;
+}
+.btn.buy, .btn-op.buy {
   background: linear-gradient(90deg,#19e09e,#6f6ffc);
   box-shadow: 0 0 8px #19e09e70;
-  outline: none;
 }
-.btn-op:hover { transform: scale(1.04) translateY(-2px); filter: brightness(1.12); }
-
-.btn-op.sell {
+.btn.sell, .btn-op.sell {
   background: linear-gradient(90deg,#ff3c6e,#f49727);
   box-shadow: 0 0 8px #ff3c6e70;
 }
-.btn-op.ia {
+.btn.suggest, .btn-op.ia {
   background: linear-gradient(90deg,#42e9f5,#9a35ff);
   box-shadow: 0 0 8px #42e9f570;
 }
-.btn-op.auto {
+.btn.auto, .btn-op.auto {
   background: linear-gradient(90deg,#f3c742,#fc7ea2);
   color: #222;
   box-shadow: 0 0 8px #f3c74280;
 }
-
-.saldo {
-  font-size: 1.1rem;
-  margin-bottom: 1.3rem;
-  color: #c5fdff;
+.btn:hover, .btn-op:hover {
+  filter: brightness(1.08) saturate(1.25);
+  transform: scale(1.025);
+  box-shadow: 0 0 18px 0 #00ffe677, 0 0 6px 0 #0001 inset;
 }
 
-input[type="number"], input[type="text"], input[type="password"] {
-  width: 100%;
-  margin-bottom: 14px;
-  padding: 12px;
-  font-size: 1.1rem;
-  border-radius: 8px;
-  border: none;
-  background: #231c39;
-  color: #fff;
-  box-shadow: 0 0 4px #0002;
-  outline: none;
-  transition: border 0.2s;
+.historico-title {
+  font-size: 1.07rem;
+  color: #0ff7ff;
+  font-weight: 600;
+  margin: 20px 0 8px 0;
 }
-input:focus {
-  border: 1.5px solid #0ff7ff;
-  background: #231c39;
-}
-
-ul#ordens-list {
+#ordens-list {
   list-style: none;
   padding: 0;
-  font-size: 0.97rem;
-  color: #eee;
-  margin-top: 0;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 0;
+  word-break: break-all;
 }
 #ordens-list li {
-  margin-bottom: 6px;
-  border-bottom: 1px dashed #4443;
-  padding-bottom: 3px;
-  font-size: 0.99rem;
+  background: #231c3966;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  color: #fff;
 }
 
 @media (max-width:900px) {
-  .painel-container { flex-direction: column; }
-  .candle-area, .painel-lateral { min-width: 0; }
-  nav { padding: 20px 4vw; }
+  .painel-container { flex-direction: column; padding: 1.5rem; }
+  .grafico-section, .carteira-section { min-width: 0; }
+  nav { flex-direction: column; gap: 16px; padding: 16px 0; }
 }
-
-@media (max-width:650px) {
-  .painel-container {
-    padding: 8px;
-    gap: 1rem;
-  }
-  .candle-area, .painel-lateral {
-    padding: 0.8rem;
-    border-radius: 12px;
-  }
-  nav span { font-size: 1.3rem; }
+@media (max-width:600px) {
+  .painel-container { padding: 0.3rem; }
+  .grafico-section, .carteira-section { padding: 1rem; }
+  nav { padding: 13px 0; }
+  .logo { font-size: 1.33rem; }
 }
