@@ -1,9 +1,8 @@
 from clarinha_core import clarinha_responder
 
-# Exemplo de pergunta intuitiva do usuário
 pergunta = "O mercado está favorável para entrar em Ethereum hoje?"
 simbolo = "ETHUSDT"
-gerar_imagem = True  # Gera uma imagem simbólica junto
+gerar_imagem = True
 
 resposta = clarinha_responder(pergunta, simbolo, gerar_imagem)
 
