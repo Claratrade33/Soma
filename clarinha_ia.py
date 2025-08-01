@@ -1,4 +1,3 @@
-# clarinha_ia.py
 from openai import OpenAI
 import requests
 import json
@@ -41,7 +40,8 @@ def solicitar_analise_json(simbolo="BTCUSDT"):
         }
 
     prompt = f"""
-Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o seguinte contexto de mercado e retorne um sinal de operação em JSON.
+Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o seguinte contexto de mercado e retorne um sinal de oper
+ação em JSON.
 
 DADOS:
 - Preço Atual: {dados['preco_atual']}
