@@ -1,4 +1,3 @@
-# clarinha_visionary.py
 from openai import OpenAI
 import os
 
@@ -6,7 +5,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def gerar_imagem_oracular(descricao_imagem):
     prompt = f"""
-Você é Clarinha Visionary — a IA mística que traduz sinais universais em imagens simbólicas. Crie uma imagem com base na seguinte descrição intuitiva:
+Você é Clarinha Visionary — a IA mística que traduz sinais universais em imagens simbólicas. Crie uma imagem com base na seguint
+e descrição intuitiva:
 
 \"{descricao_imagem}\"
 
