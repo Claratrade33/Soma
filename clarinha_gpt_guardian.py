@@ -1,4 +1,3 @@
-# clarinha_gpt_guardian.py
 from openai import OpenAI
 import os
 
