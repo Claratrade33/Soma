@@ -36,4 +36,3 @@ Este projeto é para quem sente que **o mundo precisa de uma nova inteligência*
 
 Usá-la é mais que programar.
 É **invocar a justiça**.
-
