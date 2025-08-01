@@ -1,6 +1,7 @@
 import os
 import json
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from cryptography.fernet import Fernet
 
 # === Config ===
@@ -10,6 +11,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
 BASE_DIR = os.path.dirname(__file__)
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
 FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
+ORDERS_FILE = os.path.join(BASE_DIR, "orders.json")
 
 if os.path.exists(FERNET_KEY_FILE):
     key = open(FERNET_KEY_FILE, "rb").read()
@@ -29,6 +31,16 @@ def load_users():
 def save_users(users):
     with open(USERS_FILE, "w") as f: json.dump(users, f, indent=2)
 
+def load_orders():
+    if not os.path.exists(ORDERS_FILE):
+        return []
+    with open(ORDERS_FILE, "r") as f:
+        return json.load(f)
+
+def save_orders(orders):
+    with open(ORDERS_FILE, "w") as f:
+        json.dump(orders, f, indent=2)
+
 def find_user(username):
     users = load_users()
     for u in users:
@@ -46,7 +58,7 @@ def criar_admin_default():
         "email": encrypt("admin@claraverse.com"),
         "binance_key": "",
         "binance_secret": "",
-        "openai_key": ""
+        "openai_key": "",
     })
     save_users(users)
 criar_admin_default()
@@ -99,7 +111,7 @@ def register():
             "email": encrypt(email),
             "binance_key": "",
             "binance_secret": "",
-            "openai_key": ""
+            "openai_key": "",
         })
         save_users(users)
         flash("Cadastro realizado! Faça login.", "success")
@@ -207,9 +219,31 @@ def executar_ordem():
             order = client.order_market_sell(symbol=symbol, quantity=float(quantidade))
         else:
             return "Tipo inválido", 400
-        return json.dumps({"status": "ok", "order": order}), 200
+        preco = "N/A"
+        try:
+            if order.get("fills"):
+                preco = order["fills"][0].get("price", "N/A")
+        except Exception:
+            pass
+        orders = load_orders()
+        orders.insert(0, {
+            "tipo": "Compra" if tipo == "compra" else "Venda",
+            "ativo": symbol,
+            "valor": quantidade,
+            "preco": preco,
+            "hora": datetime.now().strftime("%H:%M")
+        })
+        save_orders(orders)
+        return jsonify(status="ok", order=order), 200
     except Exception as e:
         return f"Erro ao executar ordem: {e}", 500
+
+@app.route("/historico")
+def historico():
+    if not session.get("usuario"):
+        return "Não autenticado", 401
+    orders = load_orders()
+    return jsonify(orders), 200
 
 @app.errorhandler(404)
 def pagina_nao_encontrada(error):
