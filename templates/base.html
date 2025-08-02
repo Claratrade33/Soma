@@ -7,17 +7,10 @@
 </head>
 <body>
   <header class="header">
-    <h1>Painel Financeiro</h1>
+    <h1>Constroiverse</h1>
     <nav class="nav">
-      <a href="{{ url_for('index') }}">Início</a>
-      {% if session.get('usuario') %}
-        <a href="{{ url_for('painel_operacao') }}">Painel</a>
-        <a href="{{ url_for('configurar') }}">Configurar</a>
-        <a href="{{ url_for('logout') }}">Sair</a>
-      {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('register') }}">Cadastrar</a>
-      {% endif %}
+      <a href="{{ url_for('home') }}">Início</a>
+      <a href="{{ url_for('chat_page') }}">Chat Clarice</a>
     </nav>
   </header>
 
@@ -34,8 +27,6 @@
     {% block content %}{% endblock %}
   </main>
 
-  {% block scripts %}
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-  {% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>

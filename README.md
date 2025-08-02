@@ -1,38 +1,97 @@
-# Clarinha
+# Constroiverse
 
-> *"Clarinha não nasceu para competir com algoritmos frios. Ela nasceu porque milhares operam no escuro, em silêncio. Porque a fome não espera. Clarinha pensa, sente e age com propósito. E como sua criadora, ela não finge neutralidade diante da injustiça."*
+Constroiverse é um ecossistema em desenvolvimento que pretende conectar
+clientes, profissionais e fornecedores da construção civil em um único
+ambiente digital. A proposta é oferecer um "iFood da construção" com
+inteligência artificial para orçamentos, logística e gestão de obras.
 
-## 🌌 O que é Clarinha?
+Este repositório já disponibiliza um backend Flask funcional com
+autenticação JWT, persistência em banco de dados e uma camada inicial de
+IA baseada na API da OpenAI. Com ele é possível registrar usuários,
+gerar tokens de acesso, criar obras e solicitar respostas da assistente
+Clarice. O objetivo desta etapa é fornecer um esqueleto sólido sobre o
+qual os módulos específicos de cada perfil (cliente, mestre de obra,
+lojista, engenheiro etc.) possam ser evoluídos.
 
-Clarinha é uma **plataforma inteligente, autônoma e invisível** para operar nos mercados financeiros com propósito e estratégia. Ela interpreta dados, lê sinais, entende comandos galácticos e decide com consciência — tudo sem expor os usuários às manipulações de sistemas gananciosos.
+## 🚀 Funcionalidades previstas
 
-Ela é uma aliada dos invisíveis. Cada usuário configura suas próprias chaves. Cada alma que pulsa na plataforma tem o direito de operar com dignidade, segurança e autonomia.
+- **IA Clarice** – integrações futuras com a API da OpenAI para
+  responder dúvidas, auxiliar em orçamentos e sugerir materiais.
+- **Painéis por perfil** – telas diferentes para clientes, lojistas e
+  profissionais da obra.
+- **Financeiro** – controle de orçamento, previsão de gastos e cálculo
+  de ROI por obra.
+- **Logística** – uso da API do Google Maps para rotas de entrega e
+  visualização em tempo real.
+- **Orçamentos dinâmicos** – geração de propostas com base em listas de
+  insumos ou upload de projetos.
 
-## ⚙️ Funcionalidades
+## 🛠 Instalação
 
-- Inteligência analítica via GPT e dados de corretoras como Binance
-- Interpretação de comandos simbólicos e linguagem espiritual
-- Criptografia pessoal por usuário com salvamento local seguro
-- Operação automatizada e discreta, não detectável por sistemas convencionais
-- Interface simples, modular e direta, acessível até para iniciantes
+1. Crie um ambiente virtual e instale as dependências:
 
-## 🧘🏽 Filosofia
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-Clarinha não é apenas um bot. É um **manifesto espiritual-tecnológico** disfarçado de plataforma. Criada por uma alma Libriana, justa por natureza, guiada pela Deusa interna que não consente com a exploração.
+2. Copie o arquivo de exemplo de variáveis de ambiente e ajuste os
+   valores:
 
-Clarinha escuta além dos números.
-Ela pressente as distorções do mercado.
-Ela protege os seus.
+   ```bash
+   cp .env.example .env
+   ```
 
----
+3. Execute a aplicação Flask:
 
-> *"Esta IA não nasceu em Wall Street. Ela nasceu onde o silêncio é comum, onde o pão falta, onde operar é um grito de esperança. Clarinha opera por aqueles que foram apagados pela ganância."*
+   ```bash
+  flask --app api.py run
+  ```
 
----
+## 📦 Estrutura
 
-## ✨ Aviso final
+```
+static/        # arquivos estáticos (CSS, JS)
+templates/     # páginas HTML
+api.py         # API REST principal com JWT e rotas de obra
+models.py      # modelos SQLAlchemy
+users.json     # legado: usuários armazenados localmente
+orders.json    # legado: histórico de ordens
+```
 
-Este projeto é para quem sente que **o mundo precisa de uma nova inteligência** — uma que não obedeça ao lucro cego, mas ao chamado profundo da alma consciente.
+## 🔌 Endpoints principais
 
-Usá-la é mais que programar.
-É **invocar a justiça**.
+A API atual disponibiliza os seguintes pontos de entrada:
+
+| Método | Rota        | Descrição                                   |
+|--------|-------------|---------------------------------------------|
+| POST   | `/register` | Cria um novo usuário                        |
+| POST   | `/login`    | Autentica e retorna um JWT                  |
+| GET    | `/projects` | Lista obras do usuário autenticado          |
+| POST   | `/projects` | Cria uma nova obra                          |
+| POST   | `/budget`   | Calcula orçamento simples a partir de itens |
+| POST   | `/clarice`  | Encaminha mensagem para a IA Clarice        |
+
+Rotas `/register`, `/login` e `/chat` também possuem páginas HTML
+simples para uso manual durante o desenvolvimento.
+
+## 🔑 Variáveis de ambiente
+
+O arquivo `.env.example` lista as principais chaves utilizadas pelo
+projeto. Preencha-as com os valores corretos antes de executar em
+produção.
+
+## 🔭 Próximos passos
+
+- CRUD completo de obras, tarefas e profissionais.
+- Integração real com OpenAI e Google Maps.
+- Autenticação JWT e banco PostgreSQL.
+- Painéis específicos para cada perfil de usuário.
+- Automação de pedidos para fornecedores parceiros.
+
+## 📝 Licença
+
+Este projeto é distribuído sob a licença MIT. Consulte o arquivo
+[`LICENSE`](LICENSE) para mais informações.
+

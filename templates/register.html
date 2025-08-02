@@ -1,40 +1,23 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Registro de Novo Usuário</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="bg-dark">
-    <div class="container center">
-        <h1 class="logo-title">📝 Registro de Novo Usuário</h1>
-        <p>Preencha os dados abaixo para criar sua conta.</p>
-        <form method="POST" class="form">
-            <div class="form-group">
-                <label for="username">Nome Completo:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="email">E-mail:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required>
-                <label for="confirm_password">Confirmar Senha:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit" class="btn btn-main" style="width:100%;">Cadastrar ✨</button>
-        </form>
-        <a href="{{ url_for('login') }}" class="link">Já tem conta? Entrar</a>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flash-messages">
-            {% for category, message in messages %}
-              <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Registrar</h2>
+<form onsubmit="event.preventDefault(); registrar();">
+  <input id="username" placeholder="Usuário"><br>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Senha"><br>
+  <button type="submit">Criar</button>
+</form>
+<script>
+async function registrar(){
+  const data={
+    username:document.getElementById('username').value,
+    email:document.getElementById('email').value,
+    password:document.getElementById('password').value
+  };
+  const resp=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const r=await resp.json();
+  if(resp.status===201){alert('Usuário criado!');window.location='/login';}
+  else{alert(r.msg||'Erro no cadastro');}
+}
+</script>
+{% endblock %}
