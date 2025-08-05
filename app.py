@@ -2,27 +2,14 @@ import os
 import json
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from cryptography.fernet import Fernet
+from crypto_utils import criptografar, descriptografar
 
-# === Config ===
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(__file__)
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
-FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
 ORDERS_FILE = os.path.join(BASE_DIR, "orders.json")
-
-if os.path.exists(FERNET_KEY_FILE):
-    key = open(FERNET_KEY_FILE, "rb").read()
-else:
-    key = Fernet.generate_key()
-    with open(FERNET_KEY_FILE, "wb") as f:
-        f.write(key)
-fernet = Fernet(key)
-
-def encrypt(text): return fernet.encrypt(text.encode()).decode()
-def decrypt(text): return fernet.decrypt(text.encode()).decode()
 
 def load_users():
     if not os.path.exists(USERS_FILE): return []
@@ -41,48 +28,35 @@ def save_orders(orders):
 def find_user(username):
     users = load_users()
     for u in users:
-        if "usuario" in u and decrypt(u["usuario"]) == username:
-            return u
+        try:
+            if "usuario" in u and descriptografar(u["usuario"], "admin") == username:
+                return u
+        except:
+            continue
     return None
 
 def criar_admin_default():
     users = load_users()
     for u in users:
-        if decrypt(u["usuario"]) == "admin": return
+        try:
+            if descriptografar(u["usuario"], "admin") == "admin":
+                return
+        except:
+            continue
     users.append({
-        "usuario": encrypt("admin"),
-        "senha": encrypt("claraverse2025"),
-        "email": encrypt("admin@claraverse.com"),
+        "usuario": criptografar("admin", "admin"),
+        "senha": criptografar("claraverse2025", "admin"),
+        "email": criptografar("admin@claraverse.com", "admin"),
         "binance_key": "",
         "binance_secret": "",
-        "openai_key": "",
+        "openai_key": ""
     })
     save_users(users)
 criar_admin_default()
 
-def get_binance_keys(user):
-    try:
-        key = decrypt(user["binance_key"]) if user.get("binance_key") else None
-        secret = decrypt(user["binance_secret"]) if user.get("binance_secret") else None
-    except:
-        key = secret = None
-
-    if not key:
-        fernet_env = Fernet(b'Po6C6A0nVSFQRPYWkxmJwFkaJO3DhjhQfcn6dMvJPbs=')
-        key = fernet_env.decrypt(os.getenv("BINANCE_API_KEY_ENCRYPTED").encode()).decode()
-        secret = fernet_env.decrypt(os.getenv("BINANCE_API_SECRET_ENCRYPTED").encode()).decode()
-
-    return key, secret
-
-def get_openai_key(user):
-    try:
-        k = decrypt(user["openai_key"]) if user.get("openai_key") else None
-    except:
-        k = None
-    return k or os.getenv("OPENAI_API_KEY")
-
 @app.route("/")
-def index(): return render_template("index.html")
+def index():
+    return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -90,9 +64,13 @@ def login():
         usuario = request.form.get("usuario")
         senha = request.form.get("senha")
         user = find_user(usuario)
-        if user and decrypt(user["senha"]) == senha:
-            session["usuario"] = usuario
-            return redirect(url_for("painel_operacao"))
+        if user:
+            try:
+                if descriptografar(user["senha"], usuario) == senha:
+                    session["usuario"] = usuario
+                    return redirect(url_for("painel_operacao"))
+            except:
+                pass
         flash("Usuário ou senha inválidos", "danger")
     return render_template("login.html")
 
@@ -119,16 +97,19 @@ def register():
             return render_template("register.html")
         users = load_users()
         for u in users:
-            if "email" in u and decrypt(u["email"]) == email:
-                flash("Este email já está cadastrado.", "danger")
-                return render_template("register.html")
+            try:
+                if "email" in u and descriptografar(u["email"], username) == email:
+                    flash("Este email já está cadastrado.", "danger")
+                    return render_template("register.html")
+            except:
+                continue
         users.append({
-            "usuario": encrypt(username),
-            "senha": encrypt(password),
-            "email": encrypt(email),
+            "usuario": criptografar(username, username),
+            "senha": criptografar(password, username),
+            "email": criptografar(email, username),
             "binance_key": "",
             "binance_secret": "",
-            "openai_key": "",
+            "openai_key": ""
         })
         save_users(users)
         flash("Cadastro realizado! Faça login.", "success")
@@ -142,67 +123,65 @@ def configurar():
     username = session["usuario"]
     user = find_user(username)
     if request.method == "POST":
-        bin_key    = request.form.get("binance_api_key", "").strip()
-        bin_secret = request.form.get("binance_api_secret", "").strip()
-        oaikey     = request.form.get("openai_api_key", "").strip()
-        updated = False
-        if bin_key and bin_secret:
-            user["binance_key"] = encrypt(bin_key)
-            user["binance_secret"] = encrypt(bin_secret)
-            updated = True
-        if oaikey:
-            user["openai_key"] = encrypt(oaikey)
-            updated = True
-        if updated:
-            users = load_users()
-            for idx, u in enumerate(users):
-                if decrypt(u["usuario"]) == username:
+        bin_key = request.form.get("binance_api_key", "").strip()
+        bin_sec = request.form.get("binance_api_secret", "").strip()
+        openai_key = request.form.get("openai_api_key", "").strip()
+        if bin_key:
+            user["binance_key"] = criptografar(bin_key, username)
+        if bin_sec:
+            user["binance_secret"] = criptografar(bin_sec, username)
+        if openai_key:
+            user["openai_key"] = criptografar(openai_key, username)
+        users = load_users()
+        for idx, u in enumerate(users):
+            try:
+                if descriptografar(u["usuario"], username) == username:
                     users[idx] = user
-            save_users(users)
-            flash("Chaves salvas com sucesso!", "success")
-            return redirect(url_for("painel_operacao"))
-        else:
-            flash("Preencha todos os campos de chave!", "danger")
+            except:
+                continue
+        save_users(users)
+        flash("Chaves salvas com sucesso!", "success")
+        return redirect(url_for("painel_operacao"))
     return render_template("configurar.html", user={
-        "binance_api_key": decrypt(user["binance_key"]) if user.get("binance_key") else "",
-        "binance_api_secret": decrypt(user["binance_secret"]) if user.get("binance_secret") else "",
-        "openai_api_key": decrypt(user["openai_key"]) if user.get("openai_key") else "",
+        "binance_api_key": descriptografar(user["binance_key"], username) if user.get("binance_key") else "",
+        "binance_api_secret": descriptografar(user["binance_secret"], username) if user.get("binance_secret") else "",
+        "openai_api_key": descriptografar(user["openai_key"], username) if user.get("openai_key") else "",
     })
 
-@app.route("/painel_operacao", methods=["GET", "POST"])
+@app.route("/painel_operacao")
 def painel_operacao():
     if not session.get("usuario"):
         return redirect(url_for("login"))
     username = session["usuario"]
     user = find_user(username)
-    saldo_btc = saldo_usdt = saldo_futures_usdt = "0"
+    saldo_btc = "0"
+    saldo_usdt = "0"
+    saldo_futures_usdt = "0"
     error_msg = ""
     try:
-        binance_key, binance_secret = get_binance_keys(user)
-        from binance.client import Client
-        client = Client(binance_key, binance_secret)
-
-        account = client.get_account()
-        for b in account["balances"]:
-            if b["asset"] == "BTC": saldo_btc = b["free"]
-            if b["asset"] == "USDT": saldo_usdt = b["free"]
-
-        try:
-            futures = client.futures_account_balance()
-            for f in futures:
-                if f["asset"] == "USDT":
-                    saldo_futures_usdt = f["balance"]
-        except: saldo_futures_usdt = "N/A"
-
+        if user.get("binance_key") and user.get("binance_secret"):
+            from binance.client import Client
+            client = Client(
+                descriptografar(user["binance_key"], username),
+                descriptografar(user["binance_secret"], username)
+            )
+            account = client.get_account()
+            for b in account["balances"]:
+                if b["asset"] == "BTC":
+                    saldo_btc = b["free"]
+                if b["asset"] == "USDT":
+                    saldo_usdt = b["free"]
+            try:
+                futures_balances = client.futures_account_balance()
+                for f in futures_balances:
+                    if f['asset'] == 'USDT':
+                        saldo_futures_usdt = f['balance']
+            except:
+                saldo_futures_usdt = "N/A"
     except Exception as e:
         error_msg = f"Erro ao consultar saldo Binance: {e}"
 
-    return render_template("painel_operacao.html",
-        user={"username": username},
-        saldo_btc=saldo_btc,
-        saldo_usdt=saldo_usdt,
-        saldo_futures_usdt=saldo_futures_usdt,
-        error_msg=error_msg)
+    return render_template("painel_operacao.html", user={"username": username}, saldo_btc=saldo_btc, saldo_usdt=saldo_usdt, saldo_futures_usdt=saldo_futures_usdt, error_msg=error_msg)
 
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
@@ -213,23 +192,26 @@ def executar_ordem():
     symbol = request.form.get("symbol", "BTCUSDT")
     username = session["usuario"]
     user = find_user(username)
-
+    if not (user.get("binance_key") and user.get("binance_secret")):
+        return "API não configurada", 400
     try:
-        binance_key, binance_secret = get_binance_keys(user)
         from binance.client import Client
-        client = Client(binance_key, binance_secret)
-
+        client = Client(
+            descriptografar(user["binance_key"], username),
+            descriptografar(user["binance_secret"], username)
+        )
         if tipo == "compra":
             order = client.order_market_buy(symbol=symbol, quantity=float(quantidade))
         elif tipo == "venda":
             order = client.order_market_sell(symbol=symbol, quantity=float(quantidade))
         else:
             return "Tipo inválido", 400
-
         preco = "N/A"
-        if order.get("fills"):
-            preco = order["fills"][0].get("price", "N/A")
-
+        try:
+            if order.get("fills"):
+                preco = order["fills"][0].get("price", "N/A")
+        except Exception:
+            pass
         orders = load_orders()
         orders.insert(0, {
             "tipo": "Compra" if tipo == "compra" else "Venda",
