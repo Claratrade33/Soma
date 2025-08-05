@@ -11,8 +11,7 @@
     <nav class="nav">
       <a href="{{ url_for('index') }}">Início</a>
       {% if session.get('usuario') %}
-        <a href="{{ url_for('painel_operacao') }}">Painel</a>
-        <a href="{{ url_for('configurar') }}">Configurar</a>
+        <a href="{{ url_for('painel_operacao') }}">Painel de Operações</a>
         <a href="{{ url_for('logout') }}">Sair</a>
       {% else %}
         <a href="{{ url_for('login') }}">Login</a>
