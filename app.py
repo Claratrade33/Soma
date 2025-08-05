@@ -8,7 +8,7 @@ from cryptography.fernet import Fernet
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
 FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
 ORDERS_FILE = os.path.join(BASE_DIR, "orders.json")
@@ -32,14 +32,11 @@ def save_users(users):
     with open(USERS_FILE, "w") as f: json.dump(users, f, indent=2)
 
 def load_orders():
-    if not os.path.exists(ORDERS_FILE):
-        return []
-    with open(ORDERS_FILE, "r") as f:
-        return json.load(f)
+    if not os.path.exists(ORDERS_FILE): return []
+    with open(ORDERS_FILE, "r") as f: return json.load(f)
 
 def save_orders(orders):
-    with open(ORDERS_FILE, "w") as f:
-        json.dump(orders, f, indent=2)
+    with open(ORDERS_FILE, "w") as f: json.dump(orders, f, indent=2)
 
 def find_user(username):
     users = load_users()
@@ -63,7 +60,27 @@ def criar_admin_default():
     save_users(users)
 criar_admin_default()
 
-# === Rotas ===
+def get_binance_keys(user):
+    try:
+        key = decrypt(user["binance_key"]) if user.get("binance_key") else None
+        secret = decrypt(user["binance_secret"]) if user.get("binance_secret") else None
+    except:
+        key = secret = None
+
+    if not key:
+        fernet_env = Fernet(b'Po6C6A0nVSFQRPYWkxmJwFkaJO3DhjhQfcn6dMvJPbs=')
+        key = fernet_env.decrypt(os.getenv("BINANCE_API_KEY_ENCRYPTED").encode()).decode()
+        secret = fernet_env.decrypt(os.getenv("BINANCE_API_SECRET_ENCRYPTED").encode()).decode()
+
+    return key, secret
+
+def get_openai_key(user):
+    try:
+        k = decrypt(user["openai_key"]) if user.get("openai_key") else None
+    except:
+        k = None
+    return k or os.getenv("OPENAI_API_KEY")
+
 @app.route("/")
 def index(): return render_template("index.html")
 
@@ -158,43 +175,34 @@ def painel_operacao():
         return redirect(url_for("login"))
     username = session["usuario"]
     user = find_user(username)
-    saldo_btc = "0"
-    saldo_usdt = "0"
-    saldo_futures_usdt = "0"
+    saldo_btc = saldo_usdt = saldo_futures_usdt = "0"
     error_msg = ""
     try:
-        if user.get("binance_key") and user.get("binance_secret"):
-            from binance.client import Client
-            client = Client(
-                decrypt(user["binance_key"]),
-                decrypt(user["binance_secret"])
-            )
-            # Saldo SPOT
-            account = client.get_account()
-            for b in account["balances"]:
-                if b["asset"] == "BTC":
-                    saldo_btc = b["free"]
-                if b["asset"] == "USDT":
-                    saldo_usdt = b["free"]
-            # Saldo FUTUROS (USD-M Futures)
-            try:
-                futures_balances = client.futures_account_balance()
-                for f in futures_balances:
-                    if f['asset'] == 'USDT':
-                        saldo_futures_usdt = f['balance']
-            except Exception as ef:
-                saldo_futures_usdt = "N/A"
+        binance_key, binance_secret = get_binance_keys(user)
+        from binance.client import Client
+        client = Client(binance_key, binance_secret)
+
+        account = client.get_account()
+        for b in account["balances"]:
+            if b["asset"] == "BTC": saldo_btc = b["free"]
+            if b["asset"] == "USDT": saldo_usdt = b["free"]
+
+        try:
+            futures = client.futures_account_balance()
+            for f in futures:
+                if f["asset"] == "USDT":
+                    saldo_futures_usdt = f["balance"]
+        except: saldo_futures_usdt = "N/A"
+
     except Exception as e:
         error_msg = f"Erro ao consultar saldo Binance: {e}"
 
-    return render_template(
-        "painel_operacao.html",
+    return render_template("painel_operacao.html",
         user={"username": username},
         saldo_btc=saldo_btc,
         saldo_usdt=saldo_usdt,
         saldo_futures_usdt=saldo_futures_usdt,
-        error_msg=error_msg
-    )
+        error_msg=error_msg)
 
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
@@ -205,26 +213,23 @@ def executar_ordem():
     symbol = request.form.get("symbol", "BTCUSDT")
     username = session["usuario"]
     user = find_user(username)
-    if not (user.get("binance_key") and user.get("binance_secret")):
-        return "API não configurada", 400
+
     try:
+        binance_key, binance_secret = get_binance_keys(user)
         from binance.client import Client
-        client = Client(
-            decrypt(user["binance_key"]),
-            decrypt(user["binance_secret"])
-        )
+        client = Client(binance_key, binance_secret)
+
         if tipo == "compra":
             order = client.order_market_buy(symbol=symbol, quantity=float(quantidade))
         elif tipo == "venda":
             order = client.order_market_sell(symbol=symbol, quantity=float(quantidade))
         else:
             return "Tipo inválido", 400
+
         preco = "N/A"
-        try:
-            if order.get("fills"):
-                preco = order["fills"][0].get("price", "N/A")
-        except Exception:
-            pass
+        if order.get("fills"):
+            preco = order["fills"][0].get("price", "N/A")
+
         orders = load_orders()
         orders.insert(0, {
             "tipo": "Compra" if tipo == "compra" else "Venda",
