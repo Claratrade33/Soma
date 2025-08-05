@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import os
+import json
+from datetime import datetime
+from clarinha_ia import solicitar_analise_json
+from binance_trade import executar_ordem as executar_ordem_binance
 
 load_dotenv()
 
@@ -17,7 +21,8 @@ db = SQLAlchemy(app)
 # Modelo de Usuário
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario = db.Column(db.String(80), unique=True, nullable=False)
+    usuario = db.Column(db.String(80), unique=True, nullable=False
+    )
     senha_hash = db.Column(db.String(128), nullable=False)
 
 # Criar banco e garantir admin
@@ -78,6 +83,67 @@ def painel_operacao():
     if not session.get("logado"):
         return redirect(url_for("login"))
     return render_template("painel_operacao.html")
+
+@app.route("/historico")
+def historico():
+    if not session.get("logado"):
+        return jsonify([]), 401
+    if os.path.exists("orders.json"):
+        with open("orders.json", "r") as f:
+            data = json.load(f)
+    else:
+        data = []
+    return jsonify(data)
+
+@app.route("/executar_ordem", methods=["POST"])
+def executar_ordem():
+    if not session.get("logado"):
+        return "Não autenticado", 401
+    tipo = request.form.get("tipo")
+    quantidade = request.form.get("quantidade", "0.001")
+    side = "BUY" if tipo == "compra" else "SELL"
+    try:
+        resultado = executar_ordem_binance("BTCUSDT", side, quantidade)
+        ordem = {
+            "tipo": tipo,
+            "ativo": "BTCUSDT",
+            "valor": quantidade,
+            "preco": resultado.get("fills", [{}])[0].get("price", "0"),
+            "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        if os.path.exists("orders.json"):
+            with open("orders.json", "r") as f:
+                historico = json.load(f)
+        else:
+            historico = []
+        historico.append(ordem)
+        with open("orders.json", "w") as f:
+            json.dump(historico, f, indent=2)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return str(e), 500
+
+@app.route("/sugestao_ia")
+def sugestao_ia():
+    if not session.get("logado"):
+        return jsonify({"status": "erro", "mensagem": "não autenticado"}), 401
+    quantidade = request.args.get("quantidade", "0.001")
+    analise = solicitar_analise_json()
+    texto = analise.get("sugestao", "").lower()
+    if "compra" in texto:
+        tipo = "compra"
+    elif "venda" in texto:
+        tipo = "venda"
+    else:
+        tipo = None
+    status = "ok" if tipo else "erro"
+    return jsonify({"status": status, "tipo": tipo, "quantidade": quantidade, "analise": analise})
+
+@app.route("/modo_automatico", methods=["POST"])
+def modo_automatico():
+    if not session.get("logado"):
+        return jsonify({"erro": "não autenticado"}), 401
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(debug=True)
