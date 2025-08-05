@@ -1,8 +1,10 @@
 from openai import OpenAI
 import os
 
-# Cliente OpenAI
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise EnvironmentError("OPENAI_API_KEY não configurada")
+client = OpenAI(api_key=api_key)
 
 def gerar_imagem_oracular(descricao_imagem):
     prompt = f"""
