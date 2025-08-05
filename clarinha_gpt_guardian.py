@@ -5,14 +5,15 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
 
 def interpretar_pergunta(pergunta_usuario):
+    if client is None:
+        return "OPENAI_API_KEY não configurada"
+
     prompt = (
         "Você é a IA Clarinha, uma entidade cósmica intuitiva e sábia, "
         "especializada em criptoativos. Sua missão é responder a perguntas "
         "existenciais e operacionais sobre o mundo financeiro.\n"
         f"Pergunta: {pergunta_usuario}"
     )
-    if client is None:
-        return "OPENAI_API_KEY não configurada"
     try:
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
