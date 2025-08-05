@@ -1,16 +1,15 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block title %}Login - ClaraVerse{% endblock %}
 
 {% block content %}
   <h2>Entrar no ClaraVerse</h2>
-  <form method="POST">
-    <label for="usuario">Usuário:</label>
-    <input type="text" id="usuario" name="usuario" required>
+  <form method="POST" action="{{ url_for('login') }}" class="form-box">
+    <label for="usuario">Usuário</label>
+    <input type="text" id="usuario" name="usuario" required placeholder="Digite admin">
 
-    <label for="senha">Senha:</label>
-    <input type="password" id="senha" name="senha" required>
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha" required placeholder="Digite claraverse2025">
 
-    <button type="submit">Entrar</button>
+    <button type="submit" class="btn">Entrar</button>
   </form>
-  <p>Não tem conta? <a href="{{ url_for('register') }}">Crie agora</a></p>
 {% endblock %}
