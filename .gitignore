@@ -1,7 +1,6 @@
 .env
+fernet.key
+users.json
+orders.json
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.env.*
-chave_criptografia.key
