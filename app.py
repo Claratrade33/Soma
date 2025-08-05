@@ -21,7 +21,6 @@ class Usuario(db.Model):
     senha_hash = db.Column(db.String(128), nullable=False)
 
 # Criar banco e garantir admin
-@app.before_first_request
 def criar_admin():
     db.create_all()
     admin = Usuario.query.filter_by(usuario="admin").first()
@@ -30,6 +29,9 @@ def criar_admin():
         novo_admin = Usuario(usuario="admin", senha_hash=senha_hash)
         db.session.add(novo_admin)
         db.session.commit()
+
+with app.app_context():
+    criar_admin()
 
 @app.route("/")
 def index():
