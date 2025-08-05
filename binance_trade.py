@@ -9,6 +9,7 @@ API_KEY = os.getenv("BINANCE_API_KEY")
 API_SECRET = os.getenv("BINANCE_API_SECRET")
 BASE_URL = "https://api.binance.com"
 
+
 def _signed_request(method, path, params):
     if not API_KEY or not API_SECRET:
         raise EnvironmentError("Chaves da Binance não configuradas")
@@ -20,6 +21,7 @@ def _signed_request(method, path, params):
     resp = requests.request(method, url, headers=headers)
     resp.raise_for_status()
     return resp.json()
+
 
 def executar_ordem(symbol, side, quantity):
     params = {
