@@ -3,8 +3,9 @@ import requests
 import json
 import os
 
-# Cliente OpenAI com chave do ambiente
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Cliente OpenAI com chave do ambiente (opcional)
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key) if api_key else None
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:
@@ -39,6 +40,15 @@ def solicitar_analise_json(simbolo="BTCUSDT"):
             "stop": "-",
             "confianca": 0,
             "sugestao": dados["erro"]
+        }
+
+    if client is None:
+        return {
+            "entrada": "-",
+            "alvo": "-",
+            "stop": "-",
+            "confianca": 0,
+            "sugestao": "OPENAI_API_KEY não configurada"
         }
 
     prompt = f"""
