@@ -1,8 +1,7 @@
-{% extends "base.html" %}
-{% block title %}Logout – Painel Financeiro{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Logout - ClaraVerse{% endblock %}
 
 {% block content %}
-  <h2>Você saiu da sua conta</h2>
-  <p>Até breve! 🌌</p>
-  <a href="{{ url_for('index') }}">Voltar ao Início</a>
+  <h2>Você saiu da sua conta.</h2>
+  <p><a href="{{ url_for('login') }}">Clique aqui para fazer login novamente</a>.</p>
 {% endblock %}
