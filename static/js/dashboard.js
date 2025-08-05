@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Histórico local (simulação visual)
   let historico = [];
 
   async function atualizarHistorico() {
@@ -34,44 +33,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.confirmarOrdem = async function(tipo) {
-    let msg = "Tem certeza que deseja executar essa ordem?";
-    if (tipo === "buy") msg = "Confirmar compra?";
-    if (tipo === "sell") msg = "Confirmar venda?";
-    if (tipo === "suggest") msg = "Pedir sugestão para a IA?";
-    if (tipo === "auto") msg = "Ativar modo automático?";
-    if (confirm(msg)) {
-      let valor = document.getElementById("qtd_input")?.value || "0.001";
-      if (tipo === "buy" || tipo === "sell") {
-        const form = new URLSearchParams();
-        form.append("tipo", tipo === "buy" ? "compra" : "venda");
-        form.append("quantidade", valor);
-        try {
-          const resp = await fetch("/executar_ordem", {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: form.toString()
-          });
-          if (resp.ok) {
-            alert("Ordem executada!");
-            await atualizarHistorico();
-          } else {
-            alert("Erro ao executar ordem");
-          }
-        } catch (e) {
-          console.error("Erro ao executar ordem", e);
-        }
+  async function executarCompraVenda(tipo, valor) {
+    const form = new URLSearchParams();
+    form.append("tipo", tipo);
+    form.append("quantidade", valor);
+    try {
+      const resp = await fetch("/executar_ordem", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: form.toString()
+      });
+      if (resp.ok) {
+        alert("Ordem executada com sucesso!");
+        await atualizarHistorico();
       } else {
-        historico.unshift({
-          tipo: tipo === "suggest" ? "Sugestão IA" : "Automático",
-          ativo: "BTCUSDT",
-          valor: valor,
-          preco: "ao vivo",
-          hora: new Date().toLocaleTimeString().slice(0,5)
-        });
-        renderHistorico();
+        const msg = await resp.text();
+        alert("Erro: " + msg);
       }
+    } catch (e) {
+      alert("Falha ao enviar ordem");
+      console.error(e);
     }
+  }
+
+  async function pedirSugestaoIA(valor) {
+    try {
+      const resp = await fetch("/sugestao_ia?quantidade=" + valor);
+      const data = await resp.json();
+      if (data.tipo && data.status === "ok") {
+        await executarCompraVenda(data.tipo, data.quantidade || valor);
+      } else {
+        alert("IA não retornou sugestão válida.");
+      }
+    } catch (e) {
+      console.error("Erro ao consultar IA", e);
+      alert("Erro ao pedir sugestão para a IA.");
+    }
+  }
+
+  async function ativarAutomatico() {
+    try {
+      const resp = await fetch("/modo_automatico", { method: "POST" });
+      const data = await resp.json();
+      if (data.status === "ok") {
+        alert("Modo automático ativado.");
+      } else {
+        alert("Erro ao ativar automático: " + (data.erro || "desconhecido"));
+      }
+    } catch (e) {
+      console.error("Erro no modo automático", e);
+      alert("Erro ao ativar automático.");
+    }
+  }
+
+  window.confirmarOrdem = async function(tipo) {
+    let valor = document.getElementById("qtd_input")?.value || "0.001";
+    let msg = {
+      buy: "Confirmar compra?",
+      sell: "Confirmar venda?",
+      suggest: "Pedir sugestão da IA e executar?",
+      auto: "Deseja ativar o modo automático?"
+    }[tipo] || "Executar ação?";
+    
+    if (!confirm(msg)) return;
+
+    if (tipo === "buy" || tipo === "sell") {
+      await executarCompraVenda(tipo === "buy" ? "compra" : "venda", valor);
+    } else if (tipo === "suggest") {
+      await pedirSugestaoIA(valor);
+    } else if (tipo === "auto") {
+      await ativarAutomatico();
+    }
+
+    await atualizarHistorico();
   };
 
   atualizarHistorico();
