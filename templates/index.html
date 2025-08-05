@@ -1,97 +1,14 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse • Inteligência Financeira</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
-            background: linear-gradient(120deg, #b847ff 0%, #1e1e2f 100%);
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        .hero {
-            max-width: 430px;
-            margin: 8vh auto 0 auto;
-            padding: 2.7rem 2rem;
-            background: rgba(255,255,255,0.07);
-            border-radius: 2rem;
-            box-shadow: 0 10px 32px 0 rgba(0,0,0,0.17);
-            text-align: center;
-        }
-        .hero-logo {
-            font-size: 2.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #fff;
-            margin-bottom: .7rem;
-        }
-        .hero-desc {
-            font-size: 1.1rem;
-            color: #e0c7ff;
-            margin-bottom: 1.7rem;
-        }
-        .cta-btns {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            margin-bottom: 1.2rem;
-        }
-        .cta-btn {
-            background: #00f7ff;
-            color: #1e1e2f;
-            padding: .95rem 2.3rem;
-            border: none;
-            border-radius: 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-decoration: none;
-        }
-        .cta-btn:hover {
-            background: #b847ff;
-            color: #fff;
-        }
-        .features {
-            margin-top: 2.5rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.1rem;
-        }
-        .feature-card {
-            background: rgba(0,0,0,0.15);
-            color: #fff;
-            padding: 1.1rem;
-            border-radius: 1rem;
-            font-size: 1rem;
-            min-width: 120px;
-        }
-        @media (max-width: 600px) {
-            .hero { max-width: 99vw; padding: 1.3rem 0.5rem; }
-            .features { grid-template-columns: 1fr; gap: 0.9rem;}
-        }
-    </style>
-</head>
-<body>
-    <div class="hero">
-        <div class="hero-logo">ClaraVerse</div>
-        <div class="hero-desc">
-            Inteligência Financeira, Automação de Cripto e Segurança Avançada<br>
-            Plataforma 100% focada em performance real
-        </div>
-        <div class="cta-btns">
-            <a href="{{ url_for('login') }}" class="cta-btn">Entrar</a>
-            <a href="{{ url_for('register') }}" class="cta-btn" style="background:#b847ff;color:#fff;">Criar Conta</a>
-        </div>
-        <div class="features">
-            <div class="feature-card">🔎 Análise de Mercado em Tempo Real</div>
-            <div class="feature-card">🤖 IA com Estratégias Automatizadas</div>
-            <div class="feature-card">🔒 Segurança de Dados e Criptografia</div>
-            <div class="feature-card">🧑‍💻 Suporte Humano e Inteligente</div>
-        </div>
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}ClaraVerse — Início{% endblock %}
+
+{% block content %}
+  <h2>Bem-vindo(a) ao ClaraVerse</h2>
+  <p>A plataforma de operações reais com inteligência da IA Clarinha e integração direta com a Binance.</p>
+
+  {% if session.get('usuario') %}
+    <a href="{{ url_for('painel_operacao') }}" class="btn">Ir para o Painel de Operações</a>
+  {% else %}
+    <a href="{{ url_for('login') }}" class="btn">Entrar</a>
+    <a href="{{ url_for('register') }}" class="btn">Criar Conta</a>
+  {% endif %}
+{% endblock %}
