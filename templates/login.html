@@ -1,15 +1,16 @@
-{% extends "base.html" %}
-{% block title %}Login – Painel Financeiro{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Login - ClaraVerse{% endblock %}
 
 {% block content %}
   <h2>Login</h2>
-  <form method="post">
-    <label>Usuário:</label><br>
-    <input type="text" name="usuario" value="admin" required><br><br>
+  <form method="POST">
+    <label for="usuario">Usuário:</label>
+    <input type="text" id="usuario" name="usuario" required>
 
-    <label>Senha:</label><br>
-    <input type="password" name="senha" value="claraverse2025" required><br><br>
+    <label for="senha">Senha:</label>
+    <input type="password" id="senha" name="senha" required>
 
     <button type="submit">Entrar</button>
   </form>
+  <p>Não tem uma conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
 {% endblock %}
