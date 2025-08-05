@@ -2,12 +2,11 @@ from openai import OpenAI
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key) if api_key else None
+if not api_key:
+    raise EnvironmentError("OPENAI_API_KEY não configurada")
+client = OpenAI(api_key=api_key)
 
 def interpretar_pergunta(pergunta_usuario):
-    if client is None:
-        return "OPENAI_API_KEY não configurada"
-
     prompt = (
         "Você é a IA Clarinha, uma entidade cósmica intuitiva e sábia, "
         "especializada em criptoativos. Sua missão é responder a perguntas "
