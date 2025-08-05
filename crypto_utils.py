@@ -2,7 +2,6 @@ from cryptography.fernet import Fernet
 import os
 
 KEYS_FOLDER = "keys"
-
 os.makedirs(KEYS_FOLDER, exist_ok=True)
 
 def gerar_chave(usuario):
@@ -22,11 +21,9 @@ def carregar_chave(usuario):
 def criptografar(texto, usuario):
     chave = carregar_chave(usuario)
     f = Fernet(chave)
-    token = f.encrypt(texto.encode())
-    return token.decode()
+    return f.encrypt(texto.encode()).decode()
 
 def descriptografar(token, usuario):
     chave = carregar_chave(usuario)
     f = Fernet(chave)
-    texto = f.decrypt(token.encode())
-    return texto.decode()
+    return f.decrypt(token.encode()).decode()
