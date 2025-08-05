@@ -3,25 +3,26 @@ from binance.client import Client
 from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
+import json
 import requests
-import os, json
+import os
 
-# Carregar variáveis do ambiente (.env ou Render)
+# Carregar variáveis de ambiente do .env
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 
-# Chaves já estão salvas no ambiente do Render
+# Chaves reais (Render)
 BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
 BINANCE_SECRET = os.getenv("BINANCE_SECRET")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Instâncias de cliente
+# Clientes externos
 client_binance = Client(BINANCE_API_KEY, BINANCE_SECRET)
 client_openai = OpenAI(api_key=OPENAI_API_KEY)
 
-# Histórico local (pode ser adaptado para banco futuramente)
+# Histórico de ordens (temporário)
 historico_ordens = []
 
 @app.route("/")
@@ -83,7 +84,7 @@ def executar_ordem():
             "ativo": "BTCUSDT",
             "valor": quantidade,
             "preco": ordem["fills"][0]["price"],
-            "hora": datetime.now().strftime("%H:%M:%S")
+            "hora": datetime.now().strftime("%H:%M")
         })
         return "Ordem executada", 200
     except Exception as e:
@@ -97,7 +98,8 @@ def historico():
 def sugestao_ia():
     quantidade = request.args.get("quantidade", "0.001")
     try:
-        dados = requests.get("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT").json()
+        url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        dados = requests.get(url).json()
         preco = float(dados["lastPrice"])
         variacao = float(dados["priceChangePercent"])
         volume = float(dados["volume"])
@@ -139,7 +141,7 @@ Responda somente com JSON estruturado assim:
 @app.route("/modo_automatico", methods=["POST"])
 def modo_automatico():
     try:
-        # Placeholder para lógica real de automação contínua
+        # Aqui você pode ativar um loop de execução automática se desejar
         return jsonify({"status": "ok", "mensagem": "Modo automático ativado."})
     except Exception as e:
         return jsonify({"status": "erro", "erro": str(e)})
