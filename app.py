@@ -1,229 +1,147 @@
-import os
-import json
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from binance.client import Client
+from openai import OpenAI
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from crypto_utils import criptografar, descriptografar
+from dotenv import load_dotenv
+import os
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 
-BASE_DIR = os.path.dirname(__file__)
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
-ORDERS_FILE = os.path.join(BASE_DIR, "orders.json")
+# Chaves reais (vindas do Render)
+BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
+BINANCE_SECRET = os.getenv("BINANCE_SECRET")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def load_users():
-    if not os.path.exists(USERS_FILE): return []
-    with open(USERS_FILE, "r") as f: return json.load(f)
+client_binance = Client(BINANCE_API_KEY, BINANCE_SECRET)
+client_openai = OpenAI(api_key=OPENAI_API_KEY)
 
-def save_users(users):
-    with open(USERS_FILE, "w") as f: json.dump(users, f, indent=2)
-
-def load_orders():
-    if not os.path.exists(ORDERS_FILE): return []
-    with open(ORDERS_FILE, "r") as f: return json.load(f)
-
-def save_orders(orders):
-    with open(ORDERS_FILE, "w") as f: json.dump(orders, f, indent=2)
-
-def find_user(username):
-    users = load_users()
-    for u in users:
-        try:
-            if "usuario" in u and descriptografar(u["usuario"], username) == username:
-                return u
-        except: continue
-    return None
-
-def criar_admin_default():
-    users = load_users()
-    for u in users:
-        try:
-            if descriptografar(u["usuario"], "admin") == "admin":
-                return
-        except: continue
-    users.append({
-        "usuario": criptografar("admin", "admin"),
-        "senha": criptografar("claraverse2025", "admin"),
-        "email": criptografar("admin@claraverse.com", "admin"),
-        "binance_key": "",
-        "binance_secret": "",
-        "openai_key": ""
-    })
-    save_users(users)
-
-criar_admin_default()
+# Memória local de histórico
+historico_ordens = []
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if not session.get("logado"):
+        return redirect(url_for("login"))
+    return redirect(url_for("painel_operacao"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        usuario = request.form.get("usuario")
-        senha = request.form.get("senha")
-        user = find_user(usuario)
-        if user and descriptografar(user["senha"], usuario) == senha:
-            session["usuario"] = usuario
+        usuario = request.form["usuario"]
+        senha = request.form["senha"]
+        if usuario == "admin" and senha == "claraverse2025":
+            session["logado"] = True
             return redirect(url_for("painel_operacao"))
-        flash("Usuário ou senha inválidos", "danger")
+        return render_template("login.html", error_msg="Credenciais inválidas.")
     return render_template("login.html")
 
 @app.route("/logout")
 def logout():
-    session.pop("usuario", None)
+    session.clear()
     return redirect(url_for("login"))
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        confirm = request.form.get("confirm_password", "")
-        if not username or not password or not email or not confirm:
-            flash("Preencha todos os campos.", "danger")
-            return render_template("register.html")
-        if password != confirm:
-            flash("As senhas não coincidem.", "danger")
-            return render_template("register.html")
-        if find_user(username):
-            flash("Usuário já existe.", "danger")
-            return render_template("register.html")
-        users = load_users()
-        for u in users:
-            try:
-                if descriptografar(u["email"], username) == email:
-                    flash("Email já cadastrado.", "danger")
-                    return render_template("register.html")
-            except: continue
-        users.append({
-            "usuario": criptografar(username, username),
-            "senha": criptografar(password, username),
-            "email": criptografar(email, username),
-            "binance_key": "",
-            "binance_secret": "",
-            "openai_key": ""
-        })
-        save_users(users)
-        flash("Cadastro realizado! Faça login.", "success")
-        return redirect(url_for("login"))
-    return render_template("register.html")
-
-@app.route("/configurar", methods=["GET", "POST"])
-def configurar():
-    if not session.get("usuario"):
-        return redirect(url_for("login"))
-    username = session["usuario"]
-    user = find_user(username)
-    if request.method == "POST":
-        bin_key = request.form.get("binance_api_key", "").strip()
-        bin_secret = request.form.get("binance_api_secret", "").strip()
-        openai_key = request.form.get("openai_api_key", "").strip()
-        updated = False
-        if bin_key and bin_secret:
-            user["binance_key"] = criptografar(bin_key, username)
-            user["binance_secret"] = criptografar(bin_secret, username)
-            updated = True
-        if openai_key:
-            user["openai_key"] = criptografar(openai_key, username)
-            updated = True
-        if updated:
-            users = load_users()
-            for idx, u in enumerate(users):
-                try:
-                    if descriptografar(u["usuario"], username) == username:
-                        users[idx] = user
-                        break
-                except: continue
-            save_users(users)
-            flash("Chaves salvas com sucesso!", "success")
-            return redirect(url_for("painel_operacao"))
-        else:
-            flash("Preencha pelo menos uma chave!", "danger")
-    return render_template("configurar.html", user={
-        "binance_api_key": descriptografar(user["binance_key"], username) if user.get("binance_key") else "",
-        "binance_api_secret": descriptografar(user["binance_secret"], username) if user.get("binance_secret") else "",
-        "openai_api_key": descriptografar(user["openai_key"], username) if user.get("openai_key") else ""
-    })
 
 @app.route("/painel_operacao")
 def painel_operacao():
-    if not session.get("usuario"):
+    if not session.get("logado"):
         return redirect(url_for("login"))
-    username = session["usuario"]
-    user = find_user(username)
-    saldo_btc, saldo_usdt, saldo_futures_usdt = "0", "0", "0"
-    error_msg = ""
     try:
-        if user.get("binance_key") and user.get("binance_secret"):
-            from binance.client import Client
-            client = Client(
-                descriptografar(user["binance_key"], username),
-                descriptografar(user["binance_secret"], username)
-            )
-            account = client.get_account()
-            for b in account["balances"]:
-                if b["asset"] == "BTC":
-                    saldo_btc = b["free"]
-                if b["asset"] == "USDT":
-                    saldo_usdt = b["free"]
-            futures = client.futures_account_balance()
-            for f in futures:
-                if f["asset"] == "USDT":
-                    saldo_futures_usdt = f["balance"]
+        saldo_spot = client_binance.get_account()
+        saldo_futures = client_binance.futures_account_balance()
+        saldo_btc = next((a["free"] for a in saldo_spot["balances"] if a["asset"] == "BTC"), "0")
+        saldo_usdt = next((a["free"] for a in saldo_spot["balances"] if a["asset"] == "USDT"), "0")
+        saldo_futures_usdt = next((a["balance"] for a in saldo_futures if a["asset"] == "USDT"), "0")
     except Exception as e:
-        error_msg = f"Erro ao acessar Binance: {e}"
+        return render_template("painel_operacao.html", error_msg=str(e), saldo_btc="0", saldo_usdt="0", saldo_futures_usdt="0")
+
     return render_template("painel_operacao.html",
                            saldo_btc=saldo_btc,
                            saldo_usdt=saldo_usdt,
-                           saldo_futures_usdt=saldo_futures_usdt,
-                           error_msg=error_msg)
+                           saldo_futures_usdt=saldo_futures_usdt)
 
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
-    if not session.get("usuario"):
-        return "Não autenticado", 401
+    if not session.get("logado"):
+        return "Não autorizado", 403
     tipo = request.form.get("tipo")
-    quantidade = request.form.get("quantidade")
-    symbol = "BTCUSDT"
-    username = session["usuario"]
-    user = find_user(username)
+    quantidade = request.form.get("quantidade", "0.001")
     try:
-        from binance.client import Client
-        client = Client(
-            descriptografar(user["binance_key"], username),
-            descriptografar(user["binance_secret"], username)
-        )
         if tipo == "compra":
-            ordem = client.order_market_buy(symbol=symbol, quantity=float(quantidade))
+            ordem = client_binance.order_market_buy(symbol="BTCUSDT", quantity=quantidade)
         elif tipo == "venda":
-            ordem = client.order_market_sell(symbol=symbol, quantity=float(quantidade))
+            ordem = client_binance.order_market_sell(symbol="BTCUSDT", quantity=quantidade)
         else:
-            return "Tipo inválido", 400
-        preco = ordem.get("fills", [{}])[0].get("price", "N/A")
-        ordens = load_orders()
-        ordens.insert(0, {
-            "tipo": "Compra" if tipo == "compra" else "Venda",
-            "ativo": symbol,
+            return "Tipo de ordem inválido", 400
+
+        historico_ordens.insert(0, {
+            "tipo": tipo.title(),
+            "ativo": "BTCUSDT",
             "valor": quantidade,
-            "preco": preco,
+            "preco": ordem["fills"][0]["price"],
             "hora": datetime.now().strftime("%H:%M")
         })
-        save_orders(ordens)
-        return jsonify(status="ok"), 200
+        return "Ordem executada", 200
     except Exception as e:
-        return f"Erro ao executar ordem: {e}", 500
+        return str(e), 500
 
 @app.route("/historico")
 def historico():
-    if not session.get("usuario"):
-        return "Não autenticado", 401
-    return jsonify(load_orders())
+    return jsonify(historico_ordens)
 
-@app.errorhandler(404)
-def nao_encontrado(e):
-    return render_template("error.html"), 404
+@app.route("/sugestao_ia")
+def sugestao_ia():
+    quantidade = request.args.get("quantidade", "0.001")
+    try:
+        url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        dados = requests.get(url).json()
+        preco = float(dados["lastPrice"])
+        variacao = float(dados["priceChangePercent"])
+        volume = float(dados["volume"])
+        rsi = min(max(50 + variacao * 0.5, 0), 100)
+
+        prompt = f"""
+Você é Clarinha, a IA espiritualista da ClaraVerse. Com base nos dados abaixo, diga se devemos comprar ou vender agora.
+
+DADOS:
+- Preço Atual: {preco}
+- Variação 24h: {variacao}%
+- Volume: {volume}
+- RSI: {rsi}
+
+Responda somente com JSON estruturado assim:
+{{
+  "tipo": "compra" ou "venda",
+  "entrada": "...",
+  "alvo": "...",
+  "stop": "...",
+  "confianca": 0-100,
+  "sugestao": "..."
+}}
+"""
+
+        resposta = client_openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=300,
+        )
+        conteudo = resposta.choices[0].message.content.strip()
+        analise = json.loads(conteudo)
+        analise["status"] = "ok"
+        return jsonify(analise)
+    except Exception as e:
+        return jsonify({"status": "erro", "erro": str(e)})
+
+@app.route("/modo_automatico", methods=["POST"])
+def modo_automatico():
+    try:
+        # Aqui pode-se implementar loop contínuo ou flag para execução automática
+        return jsonify({"status": "ok", "mensagem": "Modo automático ativado."})
+    except Exception as e:
+        return jsonify({"status": "erro", "erro": str(e)})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
