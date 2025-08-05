@@ -3,23 +3,25 @@ from binance.client import Client
 from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
-import os
+import requests
+import os, json
 
-# Carregar variáveis de ambiente
+# Carregar variáveis do ambiente (.env ou Render)
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 
-# Chaves reais (vindas do Render)
+# Chaves já estão salvas no ambiente do Render
 BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
 BINANCE_SECRET = os.getenv("BINANCE_SECRET")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Instâncias de cliente
 client_binance = Client(BINANCE_API_KEY, BINANCE_SECRET)
 client_openai = OpenAI(api_key=OPENAI_API_KEY)
 
-# Memória local de histórico
+# Histórico local (pode ser adaptado para banco futuramente)
 historico_ordens = []
 
 @app.route("/")
@@ -81,7 +83,7 @@ def executar_ordem():
             "ativo": "BTCUSDT",
             "valor": quantidade,
             "preco": ordem["fills"][0]["price"],
-            "hora": datetime.now().strftime("%H:%M")
+            "hora": datetime.now().strftime("%H:%M:%S")
         })
         return "Ordem executada", 200
     except Exception as e:
@@ -95,8 +97,7 @@ def historico():
 def sugestao_ia():
     quantidade = request.args.get("quantidade", "0.001")
     try:
-        url = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-        dados = requests.get(url).json()
+        dados = requests.get("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT").json()
         preco = float(dados["lastPrice"])
         variacao = float(dados["priceChangePercent"])
         volume = float(dados["volume"])
@@ -123,7 +124,7 @@ Responda somente com JSON estruturado assim:
 """
 
         resposta = client_openai.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
             max_tokens=300,
@@ -138,7 +139,7 @@ Responda somente com JSON estruturado assim:
 @app.route("/modo_automatico", methods=["POST"])
 def modo_automatico():
     try:
-        # Aqui pode-se implementar loop contínuo ou flag para execução automática
+        # Placeholder para lógica real de automação contínua
         return jsonify({"status": "ok", "mensagem": "Modo automático ativado."})
     except Exception as e:
         return jsonify({"status": "erro", "erro": str(e)})
