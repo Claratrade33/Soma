@@ -1,45 +1,212 @@
-body {
-  background: linear-gradient(120deg, #3a2052 0%, #8344d6 100%);
-  font-family: 'Montserrat', Arial, sans-serif;
+/* Reset e fonte */
+* {
   margin: 0;
-  min-height: 100vh;
-  color: #fff;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-header nav {
+body {
+  background-color: #0f0f1a;
+  color: #f5f5f5;
+  line-height: 1.6;
+  padding: 0 16px;
+}
+
+/* Header */
+header {
+  background-color: #1b1b2f;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #292945;
+}
+
+nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 32px 6vw 18px 6vw;
-  background: transparent;
 }
 
-/* ... (lines omitted for brevity above) ... */
+.logo {
+  font-size: 1.4rem;
+  color: #fff;
+  font-weight: bold;
+}
 
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #dcdcdc;
+  transition: color 0.2s;
+}
+
+nav ul li a:hover {
+  color: #f0b90b;
+}
+
+/* Painel Container */
+.painel-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+/* Gráfico */
+.grafico-section {
+  flex: 1 1 640px;
+}
+
+/* Carteira */
+.carteira-section {
+  flex: 1 1 340px;
+  background-color: #18182c;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.carteira-title {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  color: #f0b90b;
+}
+
+.carteira-saldo div {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #1e1e32;
+  color: #fff;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn.buy {
+  background-color: #16c784;
+}
+
+.btn.buy:hover {
+  background-color: #13b176;
+}
+
+.btn.sell {
+  background-color: #ea3943;
+}
+
+.btn.sell:hover {
+  background-color: #d82e39;
+}
+
+.btn.suggest {
+  background-color: #5a4fcf;
+}
+
+.btn.suggest:hover {
+  background-color: #483ec0;
+}
+
+.btn.auto {
+  background-color: #f0b90b;
+  color: #0f0f1a;
+}
+
+.btn.auto:hover {
+  background-color: #d9a407;
+}
+
+/* Tabela */
 .historico-title {
-  font-size: 1.11rem;
-  margin: 20px 0 8px 0;
-  color: #12e3ff;
-  letter-spacing: 0.6px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 4px;
 }
 
 #ordens-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.99rem;
-  color: #eee;
+  font-size: 0.9rem;
 }
-#ordens-table th,
-#ordens-table td {
-  padding: 6px 8px;
+
+#ordens-table th, #ordens-table td {
+  padding: 8px;
   text-align: left;
 }
-#ordens-table thead th {
-  color: #12e3ff;
-  border-bottom: 1px solid #3c2a5d;
-  font-weight: 700;
+
+#ordens-table thead {
+  background-color: #2a2a3e;
+  color: #f0b90b;
 }
-#ordens-table tbody tr:nth-child(odd) { background: #211742; }
-#ordens-table tbody tr:nth-child(even) { background: #1a1336; }
-#ordens-table td.tipo-compra { color: #19e09e; font-weight: 700; }
-#ordens-table td.tipo-venda { color: #ff3c6e; font-weight: 700; }
+
+#ordens-table tbody tr:nth-child(even) {
+  background-color: #1f1f30;
+}
+
+.tipo-compra {
+  color: #16c784;
+}
+
+.tipo-venda {
+  color: #ea3943;
+}
+
+/* Alertas */
+.alert {
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.alert.danger {
+  background-color: #ff3c3c33;
+  color: #ff4c4c;
+  border: 1px solid #ff4c4c;
+}
+
+/* Responsivo */
+@media screen and (max-width: 768px) {
+  .painel-container {
+    flex-direction: column;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .grafico-section, .carteira-section {
+    width: 100%;
+  }
+
+  .carteira-section {
+    margin-bottom: 20px;
+  }
+}
