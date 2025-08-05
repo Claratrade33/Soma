@@ -3,8 +3,10 @@ import requests
 import json
 import os
 
-# Cliente OpenAI com chave do ambiente
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise EnvironmentError("OPENAI_API_KEY não configurada")
+client = OpenAI(api_key=api_key)
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:
@@ -42,23 +44,23 @@ def solicitar_analise_json(simbolo="BTCUSDT"):
         }
 
     prompt = f"""
-Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o contexto e retorne um sinal de operação.
+    Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o contexto e retorne um sinal de operação.
 
-DADOS DE MERCADO:
-- Preço Atual: {dados['preco_atual']}
-- Variação 24h: {dados['variacao_24h']}%
-- Volume: {dados['volume']}
-- RSI: {dados['rsi']}
+    DADOS DE MERCADO:
+    - Preço Atual: {dados['preco_atual']}
+    - Variação 24h: {dados['variacao_24h']}%
+    - Volume: {dados['volume']}
+    - RSI: {dados['rsi']}
 
-Responda exclusivamente em JSON:
-{{
-  "entrada": "<preço de entrada recomendado>",
-  "alvo": "<alvo de lucro>",
-  "stop": "<limite de perda>",
-  "confianca": "<valor de 0 a 100>",
-  "sugestao": "<texto breve com a análise>"
-}}
-"""
+    Responda exclusivamente em JSON:
+    {{
+      "entrada": "<preço de entrada recomendado>",
+      "alvo": "<alvo de lucro>",
+      "stop": "<limite de perda>",
+      "confianca": "<valor de 0 a 100>",
+      "sugestao": "<texto breve com a análise>"
+    }}
+    """
 
     try:
         resp = client.chat.completions.create(

@@ -1,7 +1,10 @@
 from openai import OpenAI
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise EnvironmentError("OPENAI_API_KEY não configurada")
+client = OpenAI(api_key=api_key)
 
 def interpretar_pergunta(pergunta_usuario):
     prompt = (
@@ -19,3 +22,4 @@ def interpretar_pergunta(pergunta_usuario):
         return resp.choices[0].message.content
     except Exception as e:
         return f"Clarinha ficou em silêncio cósmico: {e}"
+
