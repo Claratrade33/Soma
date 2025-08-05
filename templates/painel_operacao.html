@@ -1,90 +1,31 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ClaraVerse Finance 🌙 | Painel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://s3.tradingview.com/tv.js"></script>
-</head>
-<body>
-    <header>
-        <nav>
-            <span class="logo">🌙 ClaraVerse Finance</span>
-            <ul>
-                <li><a href="{{ url_for('index') }}">Início</a></li>
-                <li><a href="{{ url_for('painel_operacao') }}">Painel</a></li>
-                <li><a href="{{ url_for('logout') }}">Sair</a></li>
-            </ul>
-        </nav>
-    </header>
+{% extends "base.html" %}
+{% block title %}Painel de Operações - ClaraVerse{% endblock %}
 
-    {% if error_msg %}
-    <div class="alert danger">{{ error_msg }}</div>
-    {% endif %}
+{% block content %}
+  <h2>ClaraVerse • Operações em Tempo Real</h2>
 
-    <div class="painel-container">
-        <section class="grafico-section">
-            <div id="tv-chart" style="width:100%;height:340px;background:#18182c;border-radius:24px;margin-bottom:12px;"></div>
-            <script type="text/javascript">
-                new TradingView.widget({
-                  "container_id": "tv-chart",
-                  "width": "100%",
-                  "height": 340,
-                  "symbol": "BINANCE:BTCUSDT",
-                  "interval": "15",
-                  "timezone": "America/Sao_Paulo",
-                  "theme": "dark",
-                  "style": "1",
-                  "locale": "br",
-                  "toolbar_bg": "#16112b",
-                  "enable_publishing": false,
-                  "allow_symbol_change": true,
-                  "hide_top_toolbar": false,
-                  "withdateranges": true,
-                  "details": true,
-                  "studies": [
-                    "STD;Moving Average",
-                    "STD;RSI"
-                  ]
-                });
-            </script>
-            <div class="info-row">
-                <span>Par: <b>BTC/USDT</b></span>
-                <span style="margin-left:16px;">Mercado em tempo real</span>
-            </div>
-        </section>
+  <div id="grafico-container">
+    <!-- Aqui pode ir o gráfico TradingView ou similar -->
+    <p>Gráfico BTC/USDT em tempo real aqui.</p>
+  </div>
 
-        <aside class="carteira-section">
-            <h2 class="carteira-title">Carteira</h2>
-            <div class="carteira-saldo">
-                <div><strong>BTC Spot:</strong> <span id="saldo-btc">{{ saldo_btc }}</span></div>
-                <div><strong>USDT Spot:</strong> <span id="saldo-usdt">{{ saldo_usdt }}</span></div>
-                <div><strong>USDT Futuros:</strong> <span id="saldo-futures-usdt">{{ saldo_futures_usdt }}</span></div>
-            </div>
+  <div class="botoes-operacao">
+    <button onclick="executarAcao('entrada')">ENTRADA</button>
+    <button onclick="executarAcao('stop')">STOP</button>
+    <button onclick="executarAcao('alvo')">ALVO</button>
+    <button onclick="executarAcao('executar')">EXECUTAR</button>
+    <button onclick="executarAcao('automatico')">AUTOMÁTICO</button>
+  </div>
 
-            <input type="number" step="any" min="0" id="qtd_input" placeholder="Quantidade (ex: 0.001)">
-            <button class="btn buy" onclick="confirmarOrdem('buy')">🟢 Comprar</button>
-            <button class="btn sell" onclick="confirmarOrdem('sell')">🔴 Vender</button>
-            <button class="btn suggest" onclick="confirmarOrdem('suggest')">✨ Sugestão IA</button>
-            <button class="btn auto" onclick="confirmarOrdem('auto')">⚙️ Automático</button>
+  <div class="sugestao-ia">
+    <h3>Sugestão da IA Clarinha</h3>
+    <p id="ia_sugestao">Aguardando sugestão...</p>
+  </div>
 
-            <h3 class="historico-title">Histórico de Ordens</h3>
-            <table id="ordens-table">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Ativo</th>
-                        <th>Qtd.</th>
-                        <th>Preço</th>
-                        <th>Hora</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </aside>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-</body>
-</html>
+  <div class="dados-operacao">
+    <p><strong>Entrada:</strong> <span id="valor_entrada">-</span></p>
+    <p><strong>Alvo:</strong> <span id="valor_alvo">-</span></p>
+    <p><strong>Stop:</strong> <span id="valor_stop">-</span></p>
+    <p><strong>Confiança:</strong> <span id="valor_confianca">-</span></p>
+  </div>
+{% endblock %}
