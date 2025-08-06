@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Configurar Binance{% endblock %}
+{% block content %}
+<h2>Configurar API da Binance</h2>
+<form method="post">
+  <label>API Key:<br><input type="text" name="api_key" required></label><br>
+  <label>API Secret:<br><input type="text" name="api_secret" required></label><br>
+  <label><input type="checkbox" name="testnet" {% if binance_key and binance_key.testnet %}checked{% endif %}> Usar Testnet</label><br>
+  <button type="submit">Salvar</button>
+</form>
+{% endblock %}
