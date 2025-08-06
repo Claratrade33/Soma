@@ -19,6 +19,5 @@ class BinanceKey(db.Model):
     api_key = db.Column(db.String(255), nullable=False)
     api_secret = db.Column(db.String(255), nullable=False)
     testnet = db.Column(db.Boolean, default=True)
-    openai_key = db.Column(db.String(255))
 
     usuario = db.relationship('Usuario', backref=db.backref('binance_key', uselist=False))

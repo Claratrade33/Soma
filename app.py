@@ -89,18 +89,12 @@ def config_api():
         api_key = request.form["api_key"]
         api_secret = request.form["api_secret"]
         testnet = bool(request.form.get("testnet"))
-        openai_key = request.form.get("openai_key")
-        api_key_enc = criptografar(api_key, usuario.usuario)
-        api_secret_enc = criptografar(api_secret, usuario.usuario)
-        openai_key_enc = criptografar(openai_key, usuario.usuario) if openai_key else None
+
         if cred:
             cred.api_key = api_key_enc
             cred.api_secret = api_secret_enc
             cred.testnet = testnet
-            if openai_key:
-                cred.openai_key = openai_key_enc
-        else:
-            cred = BinanceKey(user_id=usuario.id, api_key=api_key_enc, api_secret=api_secret_enc, testnet=testnet, openai_key=openai_key_enc)
+
             db.session.add(cred)
         db.session.commit()
         flash("Chaves atualizadas!", "success")
