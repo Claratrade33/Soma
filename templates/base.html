@@ -7,16 +7,6 @@
 </head>
 <body>
   <header class="header">
-    <h1>ClaraVerse</h1>
-    <nav class="nav">
-      <a href="{{ url_for('index') }}">Início</a>
-      {% if session.get('usuario') %}
-        <a href="{{ url_for('painel_operacao') }}">Painel de Operações</a>
-        <a href="{{ url_for('logout') }}">Sair</a>
-      {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('register') }}">Cadastrar</a>
-      {% endif %}
     </nav>
   </header>
 
@@ -33,8 +23,6 @@
     {% block content %}{% endblock %}
   </main>
 
-  {% block scripts %}
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-  {% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>

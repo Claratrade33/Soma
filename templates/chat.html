@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Chat com Clarice</h2>
+<div id="chat-box" style="border:1px solid #ccc;padding:1rem;height:300px;overflow-y:scroll"></div>
+<input id="msg" type="text" placeholder="Digite sua mensagem" style="width:80%">
+<button onclick="enviar()">Enviar</button>
+<script>
+async function enviar(){
+  const text=document.getElementById('msg').value;
+  if(!text) return;
+  const token=localStorage.getItem('token');
+  const resp=await fetch('/clarice',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({message:text})});
+  const data=await resp.json();
+  const box=document.getElementById('chat-box');
+  box.innerHTML += '<p><b>Você:</b> '+text+'</p>';
+  if(data.answer){box.innerHTML+='<p><b>Clarice:</b> '+data.answer+'</p>';}
+  else{box.innerHTML+='<p><b>Erro:</b> '+data.error+'</p>';}
+  document.getElementById('msg').value='';
+  box.scrollTop = box.scrollHeight;
+}
+</script>
+{% endblock %}
