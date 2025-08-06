@@ -82,13 +82,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ⚙️ Ativa modo automático (execução contínua)
-  async function ativarAutomatico() {
+  async function ativarAutomatico(valor) {
+    const form = new URLSearchParams();
+    form.append("quantidade", valor);
+
     try {
-      const resp = await fetch("/modo_automatico", { method: "POST" });
+      const resp = await fetch("/modo_automatico", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: form.toString()
+      });
       const data = await resp.json();
 
       if (data.status === "ok") {
         alert("Modo automático ativado.");
+      } else if (data.status === "ja_ativo") {
+        alert("Modo automático já está ativo.");
       } else {
         alert("Erro ao ativar automático: " + (data.erro || "desconhecido"));
       }
@@ -117,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (tipo === "suggest") {
       await pedirSugestaoIA(valor);
     } else if (tipo === "auto") {
-      await ativarAutomatico();
+      await ativarAutomatico(valor);
     }
 
     await atualizarHistorico();

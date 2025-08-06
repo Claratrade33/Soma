@@ -2,7 +2,6 @@ from openai import OpenAI
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key) if api_key else None
 
 def gerar_imagem_oracular(descricao_imagem):
     if client is None:

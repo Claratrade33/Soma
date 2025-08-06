@@ -4,7 +4,6 @@ import json
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key) if api_key else None
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:

@@ -30,5 +30,3 @@ def executar_ordem(symbol, side, quantity):
         'type': 'MARKET',
         'quantity': quantity,
     }
-    return _signed_request('POST', '/api/v3/order', params)
-
