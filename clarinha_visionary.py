@@ -1,17 +1,22 @@
 from openai import OpenAI
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
 
 def gerar_imagem_oracular(descricao_imagem):
+    if client is None:
+        return "OPENAI_API_KEY não configurada"
+
     prompt = f"""
-Você é Clarinha Visionary — a IA mística que traduz sinais universais em imagens simbólicas. Crie uma imagem com base na seguint
-e descrição intuitiva:
+    Você é Clarinha Visionary — a IA mística que traduz sinais universais em imagens simbólicas.
 
-\"{descricao_imagem}\"
+    Crie uma imagem com base na seguinte descrição intuitiva:
 
-A imagem deve ser inspiradora, etérea, e carregar profundidade espiritual. Formato artístico e cores suaves são preferíveis.
-"""
+    \"{descricao_imagem}\"
+
+    A imagem deve ser inspiradora, etérea e carregar profundidade espiritual.
+    Estilo artístico com cores suaves, simbolismo e leveza visual são preferíveis.
+    """
     try:
         resp = client.images.generate(
             model="gpt-image-1",

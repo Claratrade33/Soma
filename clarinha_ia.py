@@ -3,7 +3,7 @@ import requests
 import json
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:
@@ -16,6 +16,7 @@ def obter_dados_mercado(simbolo="BTCUSDT"):
         variacao = float(dados["priceChangePercent"])
         volume = float(dados["volume"])
 
+        # RSI simulado a partir da variação (modelo simples)
         rsi = 50 + (variacao * 0.5)
         rsi = min(max(rsi, 0), 100)
 
@@ -26,7 +27,7 @@ def obter_dados_mercado(simbolo="BTCUSDT"):
             "rsi": rsi
         }
     except Exception as e:
-        return {"erro": f"Falha ao obter dados: {e}"}
+        return {"erro": f"Falha ao obter dados da Binance: {e}"}
 
 def solicitar_analise_json(simbolo="BTCUSDT"):
     dados = obter_dados_mercado(simbolo)
@@ -39,25 +40,33 @@ def solicitar_analise_json(simbolo="BTCUSDT"):
             "sugestao": dados["erro"]
         }
 
+    if client is None:
+        return {
+            "entrada": "-",
+            "alvo": "-",
+            "stop": "-",
+            "confianca": 0,
+            "sugestao": "OPENAI_API_KEY não configurada"
+        }
+
     prompt = f"""
-Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o seguinte contexto de mercado e retorne um sinal de oper
-ação em JSON.
+    Você é a IA Clarinha, especialista espiritual em criptoativos. Analise o contexto e retorne um sinal de operação.
 
-DADOS:
-- Preço Atual: {dados['preco_atual']}
-- Variação 24h: {dados['variacao_24h']}%
-- Volume: {dados['volume']}
-- RSI: {dados['rsi']}
+    DADOS DE MERCADO:
+    - Preço Atual: {dados['preco_atual']}
+    - Variação 24h: {dados['variacao_24h']}%
+    - Volume: {dados['volume']}
+    - RSI: {dados['rsi']}
 
-Responda exclusivamente em JSON estruturado:
-{{
-  "entrada": "...",
-  "alvo": "...",
-  "stop": "...",
-  "confianca": "...",
-  "sugestao": "..."
-}}
-"""
+    Responda exclusivamente em JSON:
+    {{
+      "entrada": "<preço de entrada recomendado>",
+      "alvo": "<alvo de lucro>",
+      "stop": "<limite de perda>",
+      "confianca": "<valor de 0 a 100>",
+      "sugestao": "<texto breve com a análise>"
+    }}
+    """
 
     try:
         resp = client.chat.completions.create(
@@ -74,5 +83,5 @@ Responda exclusivamente em JSON estruturado:
             "alvo": "-",
             "stop": "-",
             "confianca": 0,
-            "sugestao": f"Erro GPT: {e}"
+            "sugestao": f"Erro ao consultar GPT: {e}"
         }

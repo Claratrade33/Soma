@@ -1,253 +1,142 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
 import os
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from cryptography.fernet import Fernet
+from clarinha_ia import solicitar_analise_json
+from binance_trade import executar_ordem as executar_ordem_binance
 
-# === Config ===
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "claraverse_secret_2025")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 
-BASE_DIR = os.path.dirname(__file__)
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
-FERNET_KEY_FILE = os.path.join(BASE_DIR, "fernet.key")
-ORDERS_FILE = os.path.join(BASE_DIR, "orders.json")
+# Configuração do banco SQLite
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
 
-if os.path.exists(FERNET_KEY_FILE):
-    key = open(FERNET_KEY_FILE, "rb").read()
-else:
-    key = Fernet.generate_key()
-    with open(FERNET_KEY_FILE, "wb") as f:
-        f.write(key)
-fernet = Fernet(key)
+# Controle de modo automático
+auto_thread = None
+auto_running = False
 
-def encrypt(text): return fernet.encrypt(text.encode()).decode()
-def decrypt(text): return fernet.decrypt(text.encode()).decode()
+# Modelo de Usuário
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario = db.Column(db.String(80), unique=True, nullable=False)
+    senha_hash = db.Column(db.String(128), nullable=False)
 
-def load_users():
-    if not os.path.exists(USERS_FILE): return []
-    with open(USERS_FILE, "r") as f: return json.load(f)
+# Criar banco e garantir admin
+def criar_admin():
+    db.create_all()
+    admin = Usuario.query.filter_by(usuario="admin").first()
+    if not admin:
+        senha_hash = generate_password_hash("claraverse2025")
+        novo_admin = Usuario(usuario="admin", senha_hash=senha_hash)
+        db.session.add(novo_admin)
+        db.session.commit()
 
-def save_users(users):
-    with open(USERS_FILE, "w") as f: json.dump(users, f, indent=2)
+with app.app_context():
+    criar_admin()
 
-def load_orders():
-    if not os.path.exists(ORDERS_FILE):
-        return []
-    with open(ORDERS_FILE, "r") as f:
-        return json.load(f)
-
-def save_orders(orders):
-    with open(ORDERS_FILE, "w") as f:
-        json.dump(orders, f, indent=2)
-
-def find_user(username):
-    users = load_users()
-    for u in users:
-        if "usuario" in u and decrypt(u["usuario"]) == username:
-            return u
-    return None
-
-def criar_admin_default():
-    users = load_users()
-    for u in users:
-        if decrypt(u["usuario"]) == "admin": return
-    users.append({
-        "usuario": encrypt("admin"),
-        "senha": encrypt("claraverse2025"),
-        "email": encrypt("admin@claraverse.com"),
-        "binance_key": "",
-        "binance_secret": "",
-        "openai_key": "",
-    })
-    save_users(users)
-criar_admin_default()
-
-# === Rotas ===
 @app.route("/")
-def index(): return render_template("index.html")
+def index():
+    if not session.get("logado"):
+        return redirect(url_for("login"))
+    return redirect(url_for("painel_operacao"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        usuario = request.form.get("usuario")
-        senha = request.form.get("senha")
-        user = find_user(usuario)
-        if user and decrypt(user["senha"]) == senha:
+        usuario = request.form["usuario"]
+        senha = request.form["senha"]
+        user = Usuario.query.filter_by(usuario=usuario).first()
+        if user and check_password_hash(user.senha_hash, senha):
+            session["logado"] = True
             session["usuario"] = usuario
             return redirect(url_for("painel_operacao"))
-        flash("Usuário ou senha inválidos", "danger")
+        flash("Credenciais inválidas.", "error")
     return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.pop("usuario", None)
-    return redirect(url_for("login"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email    = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        confirm  = request.form.get("confirm_password", "")
-        if not username or not password or not email or not confirm:
-            flash("Preencha todos os campos.", "danger")
-            return render_template("register.html")
-        if password != confirm:
-            flash("As senhas não coincidem.", "danger")
-            return render_template("register.html")
-        if find_user(username):
-            flash("Usuário já existe.", "danger")
-            return render_template("register.html")
-        users = load_users()
-        for u in users:
-            if "email" in u and decrypt(u["email"]) == email:
-                flash("Este email já está cadastrado.", "danger")
-                return render_template("register.html")
-        users.append({
-            "usuario": encrypt(username),
-            "senha": encrypt(password),
-            "email": encrypt(email),
-            "binance_key": "",
-            "binance_secret": "",
-            "openai_key": "",
-        })
-        save_users(users)
-        flash("Cadastro realizado! Faça login.", "success")
-        return redirect(url_for("login"))
+        usuario = request.form["usuario"]
+        senha = request.form["senha"]
+        if Usuario.query.filter_by(usuario=usuario).first():
+            flash("Usuário já existe.", "error")
+        else:
+            senha_hash = generate_password_hash(senha)
+            novo_user = Usuario(usuario=usuario, senha_hash=senha_hash)
+            db.session.add(novo_user)
+            db.session.commit()
+            flash("Cadastro realizado com sucesso!", "success")
+            return redirect(url_for("login"))
     return render_template("register.html")
 
-@app.route("/configurar", methods=["GET", "POST"])
-def configurar():
-    if not session.get("usuario"):
-        return redirect(url_for("login"))
-    username = session["usuario"]
-    user = find_user(username)
-    if request.method == "POST":
-        bin_key    = request.form.get("binance_api_key", "").strip()
-        bin_secret = request.form.get("binance_api_secret", "").strip()
-        oaikey     = request.form.get("openai_api_key", "").strip()
-        updated = False
-        if bin_key and bin_secret:
-            user["binance_key"] = encrypt(bin_key)
-            user["binance_secret"] = encrypt(bin_secret)
-            updated = True
-        if oaikey:
-            user["openai_key"] = encrypt(oaikey)
-            updated = True
-        if updated:
-            users = load_users()
-            for idx, u in enumerate(users):
-                if decrypt(u["usuario"]) == username:
-                    users[idx] = user
-            save_users(users)
-            flash("Chaves salvas com sucesso!", "success")
-            return redirect(url_for("painel_operacao"))
-        else:
-            flash("Preencha todos os campos de chave!", "danger")
-    return render_template("configurar.html", user={
-        "binance_api_key": decrypt(user["binance_key"]) if user.get("binance_key") else "",
-        "binance_api_secret": decrypt(user["binance_secret"]) if user.get("binance_secret") else "",
-        "openai_api_key": decrypt(user["openai_key"]) if user.get("openai_key") else "",
-    })
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
-@app.route("/painel_operacao", methods=["GET", "POST"])
+@app.route("/painel_operacao")
 def painel_operacao():
-    if not session.get("usuario"):
+    if not session.get("logado"):
         return redirect(url_for("login"))
-    username = session["usuario"]
-    user = find_user(username)
-    saldo_btc = "0"
-    saldo_usdt = "0"
-    saldo_futures_usdt = "0"
-    error_msg = ""
-    try:
-        if user.get("binance_key") and user.get("binance_secret"):
-            from binance.client import Client
-            client = Client(
-                decrypt(user["binance_key"]),
-                decrypt(user["binance_secret"])
-            )
-            # Saldo SPOT
-            account = client.get_account()
-            for b in account["balances"]:
-                if b["asset"] == "BTC":
-                    saldo_btc = b["free"]
-                if b["asset"] == "USDT":
-                    saldo_usdt = b["free"]
-            # Saldo FUTUROS (USD-M Futures)
-            try:
-                futures_balances = client.futures_account_balance()
-                for f in futures_balances:
-                    if f['asset'] == 'USDT':
-                        saldo_futures_usdt = f['balance']
-            except Exception as ef:
-                saldo_futures_usdt = "N/A"
-    except Exception as e:
-        error_msg = f"Erro ao consultar saldo Binance: {e}"
+    return render_template("painel_operacao.html")
 
-    return render_template(
-        "painel_operacao.html",
-        user={"username": username},
-        saldo_btc=saldo_btc,
-        saldo_usdt=saldo_usdt,
-        saldo_futures_usdt=saldo_futures_usdt,
-        error_msg=error_msg
-    )
-
-@app.route("/executar_ordem", methods=["POST"])
-def executar_ordem():
-    if not session.get("usuario"):
-        return "Não autenticado", 401
-    tipo = request.form.get("tipo")
-    quantidade = request.form.get("quantidade")
-    symbol = request.form.get("symbol", "BTCUSDT")
-    username = session["usuario"]
-    user = find_user(username)
-    if not (user.get("binance_key") and user.get("binance_secret")):
-        return "API não configurada", 400
-    try:
-        from binance.client import Client
-        client = Client(
-            decrypt(user["binance_key"]),
-            decrypt(user["binance_secret"])
-        )
-        if tipo == "compra":
-            order = client.order_market_buy(symbol=symbol, quantity=float(quantidade))
-        elif tipo == "venda":
-            order = client.order_market_sell(symbol=symbol, quantity=float(quantidade))
-        else:
-            return "Tipo inválido", 400
-        preco = "N/A"
-        try:
-            if order.get("fills"):
-                preco = order["fills"][0].get("price", "N/A")
-        except Exception:
-            pass
-        orders = load_orders()
-        orders.insert(0, {
-            "tipo": "Compra" if tipo == "compra" else "Venda",
-            "ativo": symbol,
-            "valor": quantidade,
-            "preco": preco,
-            "hora": datetime.now().strftime("%H:%M")
-        })
-        save_orders(orders)
-        return jsonify(status="ok", order=order), 200
-    except Exception as e:
-        return f"Erro ao executar ordem: {e}", 500
 
 @app.route("/historico")
 def historico():
-    if not session.get("usuario"):
-        return "Não autenticado", 401
-    orders = load_orders()
-    return jsonify(orders), 200
+    if not session.get("logado"):
+        return jsonify([]), 401
+    if os.path.exists("orders.json"):
+        with open("orders.json", "r") as f:
+            data = json.load(f)
+    else:
+        data = []
+    return jsonify(data)
 
-@app.errorhandler(404)
-def pagina_nao_encontrada(error):
-    return render_template("error.html"), 404
+@app.route("/executar_ordem", methods=["POST"])
+def executar_ordem():
+    if not session.get("logado"):
+        return "Não autenticado", 401
+    tipo = request.form.get("tipo")
+    quantidade = request.form.get("quantidade", "0.001")
+    side = "BUY" if tipo == "compra" else "SELL"
+    try:
+        resultado = executar_ordem_binance("BTCUSDT", side, quantidade)
+
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return str(e), 500
+
+
+@app.route("/sugestao_ia")
+def sugestao_ia():
+    if not session.get("logado"):
+        return jsonify({"status": "erro", "mensagem": "não autenticado"}), 401
+    quantidade = request.args.get("quantidade", "0.001")
+    analise = solicitar_analise_json()
+    texto = analise.get("sugestao", "").lower()
+    if "compra" in texto:
+        tipo = "compra"
+    elif "venda" in texto:
+        tipo = "venda"
+    else:
+        tipo = None
+    status = "ok" if tipo else "erro"
+    return jsonify({"status": status, "tipo": tipo, "quantidade": quantidade, "analise": analise})
+
+
+@app.route("/modo_automatico", methods=["POST"])
+def modo_automatico():
+    if not session.get("logado"):
+        return jsonify({"erro": "não autenticado"}), 401
+
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
