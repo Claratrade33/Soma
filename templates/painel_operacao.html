@@ -15,8 +15,13 @@
   <button onclick="executarAcao('stop')">STOP</button>
   <button onclick="executarAcao('alvo')">ALVO</button>
   <button onclick="executarAcao('executar')">EXECUTAR</button>
-  <button onclick="executarAcao('automatico')">AUTOMÁTICO</button>
+  <form id="auto-form" method="post" action="/modo_automatico">
+    <button name="acao" value="start">INICIAR AUTO</button>
+    <button name="acao" value="stop">PARAR AUTO</button>
+  </form>
 </div>
+
+<p><a href="{{ url_for('config_api') }}">Configurar Binance API</a></p>
 
 <div class="sugestao-ia">
   <h3>Sugestão da IA Clarinha</h3>

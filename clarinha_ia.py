@@ -2,8 +2,22 @@ from openai import OpenAI
 import requests
 import json
 import os
+from models import Usuario, BinanceKey
+from crypto_utils import descriptografar
 
-api_key = os.getenv("OPENAI_API_KEY")
+
+def get_openai_client(usuario_nome=None):
+    if usuario_nome:
+        usuario = Usuario.query.filter_by(usuario=usuario_nome).first()
+        if usuario:
+            cred = BinanceKey.query.filter_by(user_id=usuario.id).first()
+            if cred and cred.openai_key:
+                key = descriptografar(cred.openai_key, usuario.usuario)
+                return OpenAI(api_key=key)
+    api_key_env = os.getenv("OPENAI_API_KEY")
+    if api_key_env:
+        return OpenAI(api_key=api_key_env)
+    return None
 
 def obter_dados_mercado(simbolo="BTCUSDT"):
     try:
@@ -29,7 +43,7 @@ def obter_dados_mercado(simbolo="BTCUSDT"):
     except Exception as e:
         return {"erro": f"Falha ao obter dados da Binance: {e}"}
 
-def solicitar_analise_json(simbolo="BTCUSDT"):
+def solicitar_analise_json(usuario_nome=None, simbolo="BTCUSDT"):
     dados = obter_dados_mercado(simbolo)
     if "erro" in dados:
         return {
@@ -37,16 +51,17 @@ def solicitar_analise_json(simbolo="BTCUSDT"):
             "alvo": "-",
             "stop": "-",
             "confianca": 0,
-            "sugestao": dados["erro"]
+            "sugestao": dados["erro"],
         }
 
+    client = get_openai_client(usuario_nome)
     if client is None:
         return {
             "entrada": "-",
             "alvo": "-",
             "stop": "-",
             "confianca": 0,
-            "sugestao": "OPENAI_API_KEY não configurada"
+            "sugestao": "OPENAI_API_KEY não configurada",
         }
 
     prompt = f"""

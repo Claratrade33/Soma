@@ -4,7 +4,7 @@ from clarinha_visionary import gerar_imagem_oracular
 
 def clarinha_responder(pergunta, simbolo="BTCUSDT", gerar_imagem=False):
     resposta_gpt = interpretar_pergunta(pergunta)
-    analise_json = solicitar_analise_json(simbolo)
+    analise_json = solicitar_analise_json(simbolo=simbolo)
     imagem_url = gerar_imagem_oracular(pergunta) if gerar_imagem else "Imagem não solicitada."
 
     return {
