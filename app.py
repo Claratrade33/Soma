@@ -18,6 +18,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+# Controle de modo automático
+auto_thread = None
+auto_running = False
+
 # Modelo de Usuário
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,7 +99,6 @@ def historico():
         data = []
     return jsonify(data)
 
-
 @app.route("/executar_ordem", methods=["POST"])
 def executar_ordem():
     if not session.get("logado"):
@@ -105,21 +108,7 @@ def executar_ordem():
     side = "BUY" if tipo == "compra" else "SELL"
     try:
         resultado = executar_ordem_binance("BTCUSDT", side, quantidade)
-        ordem = {
-            "tipo": tipo,
-            "ativo": "BTCUSDT",
-            "valor": quantidade,
-            "preco": resultado.get("fills", [{}])[0].get("price", "0"),
-            "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        if os.path.exists("orders.json"):
-            with open("orders.json", "r") as f:
-                historico = json.load(f)
-        else:
-            historico = []
-        historico.append(ordem)
-        with open("orders.json", "w") as f:
-            json.dump(historico, f, indent=2)
+
         return jsonify({"status": "ok"})
     except Exception as e:
         return str(e), 500
@@ -146,6 +135,7 @@ def sugestao_ia():
 def modo_automatico():
     if not session.get("logado"):
         return jsonify({"erro": "não autenticado"}), 401
+
     return jsonify({"status": "ok"})
 
 if __name__ == "__main__":

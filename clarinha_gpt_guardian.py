@@ -2,7 +2,6 @@ from openai import OpenAI
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key) if api_key else None
 
 def interpretar_pergunta(pergunta_usuario):
     if client is None:
@@ -22,5 +21,5 @@ def interpretar_pergunta(pergunta_usuario):
         )
         return resp.choices[0].message.content
     except Exception as e:
-        return f"Clarinha ficou em silêncio cósmico: {e}"
+
 
