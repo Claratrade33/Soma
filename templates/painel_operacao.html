@@ -2,30 +2,67 @@
 {% block title %}Painel de Operações - ClaraVerse{% endblock %}
 
 {% block content %}
-  <h2>ClaraVerse • Operações em Tempo Real</h2>
+<h2>ClaraVerse • Operações em Tempo Real</h2>
 
-  <div id="grafico-container">
-    <!-- Aqui pode ir o gráfico TradingView ou similar -->
-    <p>Gráfico BTC/USDT em tempo real aqui.</p>
-  </div>
+<div id="grafico-container">
+  <!-- Exemplo TradingView Widget, trocar pelo ativo que desejar -->
+  <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=1&theme=dark"
+          width="100%" height="350" frameborder="0"></iframe>
+</div>
 
-  <div class="botoes-operacao">
-    <button onclick="executarAcao('entrada')">ENTRADA</button>
-    <button onclick="executarAcao('stop')">STOP</button>
-    <button onclick="executarAcao('alvo')">ALVO</button>
-    <button onclick="executarAcao('executar')">EXECUTAR</button>
-    <button onclick="executarAcao('automatico')">AUTOMÁTICO</button>
-  </div>
+<div class="botoes-operacao">
+  <button onclick="executarAcao('entrada')">ENTRADA</button>
+  <button onclick="executarAcao('stop')">STOP</button>
+  <button onclick="executarAcao('alvo')">ALVO</button>
+  <button onclick="executarAcao('executar')">EXECUTAR</button>
+  <button onclick="executarAcao('automatico')">AUTOMÁTICO</button>
+</div>
 
-  <div class="sugestao-ia">
-    <h3>Sugestão da IA Clarinha</h3>
-    <p id="ia_sugestao">Aguardando sugestão...</p>
-  </div>
+<div class="sugestao-ia">
+  <h3>Sugestão da IA Clarinha</h3>
+  <p id="ia_sugestao">Aguardando sugestão...</p>
+</div>
 
-  <div class="dados-operacao">
-    <p><strong>Entrada:</strong> <span id="valor_entrada">-</span></p>
-    <p><strong>Alvo:</strong> <span id="valor_alvo">-</span></p>
-    <p><strong>Stop:</strong> <span id="valor_stop">-</span></p>
-    <p><strong>Confiança:</strong> <span id="valor_confianca">-</span></p>
-  </div>
+<div class="dados-operacao">
+  <p><strong>Entrada:</strong> <span id="valor_entrada">-</span></p>
+  <p><strong>Alvo:</strong> <span id="valor_alvo">-</span></p>
+  <p><strong>Stop:</strong> <span id="valor_stop">-</span></p>
+  <p><strong>Confiança:</strong> <span id="valor_confianca">-</span></p>
+</div>
+
+<script>
+// Busca sugestão da IA do backend Flask
+function atualizarSugestaoIA() {
+  fetch('/api/ia/sugestao')
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('ia_sugestao').innerText = data.sugestao || 'Sem sugestão';
+      document.getElementById('valor_entrada').innerText = data.entrada || '-';
+      document.getElementById('valor_alvo').innerText = data.alvo || '-';
+      document.getElementById('valor_stop').innerText = data.stop || '-';
+      document.getElementById('valor_confianca').innerText = data.confianca ? (data.confianca + "%") : '-';
+    })
+    .catch(() => {
+      document.getElementById('ia_sugestao').innerText = 'Erro ao buscar sugestão';
+    });
+}
+
+// Função de execução de ação (manda para backend, registra histórico e executa ordem)
+function executarAcao(acao) {
+  fetch('/api/operacao', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ acao: acao })
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert(data.mensagem || 'Ação executada!');
+    atualizarSugestaoIA();
+  })
+  .catch(() => alert('Erro ao executar ação'));
+}
+
+// Atualiza sugestão da IA ao carregar
+document.addEventListener('DOMContentLoaded', atualizarSugestaoIA);
+</script>
 {% endblock %}
