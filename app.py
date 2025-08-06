@@ -89,14 +89,12 @@ def config_api():
         api_key = request.form["api_key"]
         api_secret = request.form["api_secret"]
         testnet = bool(request.form.get("testnet"))
-        api_key_enc = criptografar(api_key, usuario.usuario)
-        api_secret_enc = criptografar(api_secret, usuario.usuario)
+
         if cred:
             cred.api_key = api_key_enc
             cred.api_secret = api_secret_enc
             cred.testnet = testnet
-        else:
-            cred = BinanceKey(user_id=usuario.id, api_key=api_key_enc, api_secret=api_secret_enc, testnet=testnet)
+
             db.session.add(cred)
         db.session.commit()
         flash("Chaves atualizadas!", "success")
@@ -135,7 +133,7 @@ def sugestao_ia():
     if not session.get("logado"):
         return jsonify({"status": "erro", "mensagem": "não autenticado"}), 401
     quantidade = request.args.get("quantidade", "0.001")
-    analise = solicitar_analise_json()
+    analise = solicitar_analise_json(session["usuario"])
     texto = analise.get("sugestao", "").lower()
     if "compra" in texto:
         tipo = "compra"
