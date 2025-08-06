@@ -2,11 +2,11 @@ from openai import OpenAI
 import os
 
 api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise EnvironmentError("OPENAI_API_KEY não configurada")
-client = OpenAI(api_key=api_key)
 
 def gerar_imagem_oracular(descricao_imagem):
+    if client is None:
+        return "OPENAI_API_KEY não configurada"
+
     prompt = f"""
     Você é Clarinha Visionary — a IA mística que traduz sinais universais em imagens simbólicas.
 
