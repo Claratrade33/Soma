@@ -29,4 +29,4 @@ def executar_ordem(symbol, side, quantity):
         'side': side,
         'type': 'MARKET',
         'quantity': quantity,
-    }
+

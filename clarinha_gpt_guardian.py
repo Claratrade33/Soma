@@ -22,3 +22,4 @@ def interpretar_pergunta(pergunta_usuario):
         return resp.choices[0].message.content
     except Exception as e:
 
+
