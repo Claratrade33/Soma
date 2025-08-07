@@ -65,7 +65,7 @@ def register():
             db.session.commit()
             flash("Cadastro realizado com sucesso!", "success")
             return redirect(url_for("login"))
-    return render_template("register.html")
+    return render_template("usuarios/novo_usuario.html")
 
 @app.route("/logout")
 def logout():
@@ -76,7 +76,7 @@ def logout():
 def painel_operacao():
     if not session.get("logado"):
         return redirect(url_for("login"))
-    return render_template("painel_operacao.html")
+    return render_template("operacoes/painel_operacao.html")
 
 
 @app.route("/config_api", methods=["GET", "POST"])
@@ -101,7 +101,7 @@ def config_api():
         db.session.commit()
         flash("Chaves atualizadas!", "success")
         return redirect(url_for("painel_operacao"))
-    return render_template("config_api.html", binance_key=cred)
+    return render_template("conectores/configurar_api.html", binance_key=cred)
 
 
 @app.route("/historico")
