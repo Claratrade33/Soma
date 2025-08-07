@@ -8,6 +8,12 @@ from models import db, Usuario, BinanceKey
 from crypto_utils import criptografar
 from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
+from conectores import bp as conectores_bp
+from configuracao import bp as configuracao_bp
+from inteligencia_financeira import bp as inteligencia_financeira_bp
+from tokens import bp as tokens_bp
+from usuarios import bp as usuarios_bp
+from operacoes import bp as operacoes_bp
 
 load_dotenv()
 
@@ -18,6 +24,14 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+# Registro de Blueprints
+app.register_blueprint(conectores_bp)
+app.register_blueprint(configuracao_bp)
+app.register_blueprint(inteligencia_financeira_bp)
+app.register_blueprint(tokens_bp)
+app.register_blueprint(usuarios_bp)
+app.register_blueprint(operacoes_bp)
 
 # Criar banco e garantir admin
 def criar_admin():
