@@ -73,6 +73,7 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("painel_operacao.index"))
     return redirect(url_for("acessos.login"))
+
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
