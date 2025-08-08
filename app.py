@@ -60,6 +60,7 @@ def index():
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
+    return render_template("operacoes/painel_operacao.html")
 
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
