@@ -17,6 +17,7 @@ from inteligencia_financeira import bp as inteligencia_financeira_bp
 from operacoes import bp as operacoes_bp
 from tokens import bp as tokens_bp
 from usuarios import bp as usuarios_bp
+from painel_operacao import bp as painel_operacao_bp
 
 load_dotenv()
 
@@ -45,6 +46,7 @@ app.register_blueprint(inteligencia_financeira_bp)
 app.register_blueprint(tokens_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(operacoes_bp)
+app.register_blueprint(painel_operacao_bp)
 
 # Criar banco e garantir admin
 def criar_admin():
@@ -63,15 +65,8 @@ with app.app_context():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for("painel_operacao"))
+        return redirect(url_for("painel_operacao.index"))
     return redirect(url_for("acessos.login"))
-
-
-
-@app.route("/painel_operacao")
-@login_required
-def painel_operacao():
-    return render_template("dashboard.html")
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
@@ -92,7 +87,7 @@ def config_api():
             db.session.add(cred)
         db.session.commit()
         flash("Chaves atualizadas!", "success")
-        return redirect(url_for("painel_operacao"))
+        return redirect(url_for("painel_operacao.index"))
     return render_template("conectores/configurar_api.html", binance_key=cred)
 
 
