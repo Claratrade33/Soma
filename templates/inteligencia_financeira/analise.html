@@ -2,4 +2,46 @@
 {% block title %}Análise Financeira{% endblock %}
 {% block content %}
 <h2>Inteligência Financeira</h2>
+
+<form method="get" class="mb-3">
+  <label>Ticker <input type="text" name="ticker" value="{{ ticker }}" /></label>
+  <label>RSI período <input type="number" name="rsi_periodo" value="{{ rsi_periodo }}" /></label>
+  <label>MACD curto <input type="number" name="macd_curto" value="{{ macd_curto }}" /></label>
+  <label>MACD longo <input type="number" name="macd_longo" value="{{ macd_longo }}" /></label>
+  <label>MACD sinal <input type="number" name="macd_sinal" value="{{ macd_sinal }}" /></label>
+  <label>MM período <input type="number" name="mm_periodo" value="{{ mm_periodo }}" /></label>
+  <label>Taxa <input type="number" step="0.0001" name="taxa" value="{{ taxa }}" /></label>
+  <button type="submit">Atualizar</button>
+</form>
+
+<p>RSI: <span class="{% if rsi>70 %}text-danger{% elif rsi<30 %}text-success{% endif %}">{{ rsi|round(2) }}</span></p>
+<p>MACD: {{ macd|round(2) }} | Sinal: {{ sinal|round(2) }}</p>
+<p>Média Móvel: {{ media_movel|round(2) }}</p>
+<p>Performance: {{ performance|round(2) }}% | Comissão: {{ comissao|round(4) }} | Líquida: {{ performance_liquida|round(2) }}%</p>
+
+{% if erro_dados %}
+<p class="text-warning">Dados de mercado indisponíveis, utilizando valores de demonstração.</p>
+{% endif %}
+
+<canvas id="grafico" width="400" height="200"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const dados = {{ valores|tojson }};
+  const ctx = document.getElementById('grafico').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dados.map((_, i) => i + 1),
+      datasets: [{
+        label: 'Preço',
+        data: dados,
+        borderColor: 'blue',
+        fill: false
+      }]
+    }
+  });
+</script>
+
+<h3>Análise</h3>
+<p>{{ analise }}</p>
 {% endblock %}
