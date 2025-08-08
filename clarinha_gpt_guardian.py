@@ -26,7 +26,6 @@ def interpretar_pergunta(pergunta_usuario: str) -> str:
             temperature=0.4,
         )
         return resp.choices[0].message.content
-    except Exception as e:  # pragma: no cover - simple pass-through
-        return f"Erro ao consultar OpenAI: {e}"
+
 
 

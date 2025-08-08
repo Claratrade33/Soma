@@ -9,7 +9,7 @@ from models import db, Usuario, BinanceKey
 from crypto_utils import criptografar
 from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
-from acessos import bp as acessos_bp
+
 from conectores import bp as conectores_bp
 from configuracao import bp as configuracao_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
@@ -27,18 +27,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-# Gerenciador de login
-login_manager = LoginManager()
-login_manager.login_view = "acessos.login"
-login_manager.init_app(app)
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    return Usuario.query.get(int(user_id))
-
-# Registro de Blueprints
-app.register_blueprint(acessos_bp)
 app.register_blueprint(conectores_bp)
 app.register_blueprint(configuracao_bp)
 app.register_blueprint(inteligencia_financeira_bp)
@@ -67,10 +56,11 @@ def index():
     return redirect(url_for("acessos.login"))
 
 
+
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
-    return render_template("operacoes/painel_operacao.html")
+
 
 
 @app.route("/config_api", methods=["GET", "POST"])
