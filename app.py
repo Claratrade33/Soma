@@ -69,7 +69,7 @@ with app.app_context():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for("painel_operacao"))
+        return redirect(url_for("painel_operacao.index"))
     return redirect(url_for("acessos.login"))
 
 
