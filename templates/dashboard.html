@@ -5,10 +5,10 @@
   <h2>Bem-vindo(a) ao ClaraVerse</h2>
   <p>A plataforma de operações reais com inteligência da IA Clarinha e integração direta com a Binance.</p>
 
-  {% if session.get('usuario') %}
+  {% if current_user.is_authenticated %}
     <a href="{{ url_for('painel_operacao') }}" class="btn">Ir para o Painel de Operações</a>
   {% else %}
-    <a href="{{ url_for('login') }}" class="btn">Entrar</a>
-    <a href="{{ url_for('register') }}" class="btn">Criar Conta</a>
+    <a href="{{ url_for('acessos.login') }}" class="btn">Entrar</a>
+    <a href="{{ url_for('acessos.register') }}" class="btn">Criar Conta</a>
   {% endif %}
 {% endblock %}
