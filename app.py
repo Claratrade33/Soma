@@ -10,12 +10,13 @@ from crypto_utils import criptografar
 from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
 
+from acessos import bp as acessos_bp
 from conectores import bp as conectores_bp
 from configuracao import bp as configuracao_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
+from operacoes import bp as operacoes_bp
 from tokens import bp as tokens_bp
 from usuarios import bp as usuarios_bp
-from operacoes import bp as operacoes_bp
 
 load_dotenv()
 
@@ -27,7 +28,17 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
+login_manager = LoginManager()
+login_manager.login_view = "acessos.login"
+login_manager.init_app(app)
 
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
+
+
+app.register_blueprint(acessos_bp)
 app.register_blueprint(conectores_bp)
 app.register_blueprint(configuracao_bp)
 app.register_blueprint(inteligencia_financeira_bp)
@@ -60,7 +71,7 @@ def index():
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
-
+    return render_template("dashboard.html")
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
