@@ -11,8 +11,11 @@ from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
 
 from acessos import bp as acessos_bp
+from clientes import bp as clientes_bp
 from conectores import bp as conectores_bp
 from configuracao import bp as configuracao_bp
+from painel_operacao import bp as painel_operacao_bp
+from resgates import bp as resgates_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
 from operacoes import bp as operacoes_bp
 from tokens import bp as tokens_bp
@@ -39,9 +42,12 @@ def load_user(user_id):
 
 
 app.register_blueprint(acessos_bp)
+app.register_blueprint(clientes_bp)
 app.register_blueprint(conectores_bp)
 app.register_blueprint(configuracao_bp)
+app.register_blueprint(painel_operacao_bp)
 app.register_blueprint(inteligencia_financeira_bp)
+app.register_blueprint(resgates_bp)
 app.register_blueprint(tokens_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(operacoes_bp)
