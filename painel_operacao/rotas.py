@@ -1,6 +1,6 @@
-# painel_operacao/rotas.py
-from flask import render_template
-from . import bp  # importa o blueprint criado em __init__.py
+from flask import Blueprint, render_template
+
+bp = Blueprint('painel_operacao', __name__, url_prefix="/painel")
 
 @bp.route("/")
 def index():
