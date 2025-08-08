@@ -2,17 +2,22 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Configurar API Binance</title>
+  <title>Configurar API da Binance</title>
 </head>
 <body>
-  <h1>Inserir Chaves da Binance</h1>
+  <h1>Configurar API da Binance</h1>
   <form method="POST">
-    <label>API Key:</label>
+    <label>API Key:</label><br>
     <input type="text" name="api_key" required><br><br>
-    <label>API Secret:</label>
+
+    <label>API Secret:</label><br>
     <input type="text" name="api_secret" required><br><br>
-    <label>OpenAI Key:</label>
+
+    <label>OpenAI Key:</label><br>
     <input type="text" name="openai_key" required><br><br>
+
+    <label><input type="checkbox" name="testnet" checked> Usar Testnet</label><br><br>
+
     <button type="submit">Salvar</button>
   </form>
 </body>
