@@ -7,7 +7,6 @@ from openai import OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
 
-
 def interpretar_pergunta(pergunta_usuario: str) -> str:
     """Consulta o modelo da OpenAI para interpretar a pergunta."""
     if client is None:
