@@ -18,6 +18,7 @@ from painel_operacao import bp as painel_operacao_bp
 from resgates import bp as resgates_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
 from operacoes import bp as operacoes_bp
+from painel_operacao import bp as painel_operacao_bp
 from tokens import bp as tokens_bp
 from usuarios import bp as usuarios_bp
 from painel_operacao import bp as painel_operacao_bp
@@ -48,7 +49,7 @@ app.register_blueprint(conectores_bp)
 app.register_blueprint(configuracao_bp)
 app.register_blueprint(painel_operacao_bp)
 app.register_blueprint(inteligencia_financeira_bp)
-app.register_blueprint(resgates_bp)
+
 app.register_blueprint(tokens_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(operacoes_bp)
@@ -73,6 +74,7 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("painel_operacao.index"))
     return redirect(url_for("acessos.login"))
+
 
 
 @app.route("/config_api", methods=["GET", "POST"])
