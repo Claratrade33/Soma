@@ -1,61 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Painel de Estratégias | ClaraTrade</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <title>Painel de Estratégias</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="painel-estrategias-body">
+<body>
+  <h1>Painel de Estratégias</h1>
 
-    <header>
-        <h1>Painel de Estratégias</h1>
-        <p>Crie, visualize e gerencie estratégias personalizadas de operação.</p>
-    </header>
+  <form method="POST">
+    <label>Nome:</label><br>
+    <input type="text" name="nome" required><br><br>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flashes">
-          {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    <label>Descrição:</label><br>
+    <textarea name="descricao" required></textarea><br><br>
 
-    <form method="POST">
-        <label for="nome">Nome da Estratégia:</label>
-        <input type="text" id="nome" name="nome" required>
+    <label>Tipo:</label><br>
+    <select name="tipo" required>
+      <option value="manual">Manual</option>
+      <option value="automatica">Automática</option>
+      <option value="hibrida">Híbrida</option>
+    </select><br><br>
 
-        <label for="descricao">Descrição:</label>
-        <textarea id="descricao" name="descricao" required></textarea>
+    <button type="submit">Cadastrar</button>
+  </form>
 
-        <label for="tipo">Tipo:</label>
-        <select id="tipo" name="tipo" required>
-            <option value="manual">Manual</option>
-            <option value="automatica">Automática</option>
-            <option value="hibrida">Híbrida</option>
-        </select>
-
-        <button type="submit">Cadastrar Estratégia</button>
-    </form>
-
-    <hr>
-
-    <section>
-        <h2>Estratégias Cadastradas</h2>
-        {% if estrategias %}
-            <ul>
-                {% for e in estrategias %}
-                    <li>
-                        <strong>{{ e.nome }}</strong> ({{ e.tipo }}) - {{ e.descricao }} <br>
-                        <small>Criada em: {{ e.data }}</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Nenhuma estratégia cadastrada ainda.</p>
-        {% endif %}
-    </section>
-
+  <hr>
+  <h2>Estratégias</h2>
+  {% if estrategias %}
+    <ul>
+      {% for e in estrategias %}
+        <li><strong>{{ e.nome }}</strong> ({{ e.tipo }}) — {{ e.descricao }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Nenhuma estratégia cadastrada.</p>
+  {% endif %}
 </body>
 </html>
