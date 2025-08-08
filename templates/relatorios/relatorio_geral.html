@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Relatório Geral | ClaraTrade</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <title>Relatório Geral</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Relatório Geral</h1>
-    <p>Resumo estatístico das operações.</p>
-    <ul>
-        <li><strong>Total de Operações:</strong> {{ estatisticas.total_operacoes }}</li>
-        <li><strong>Operações Encerradas:</strong> {{ estatisticas.encerradas }}</li>
-        <li><strong>Operações Ativas:</strong> {{ estatisticas.ativas }}</li>
-        <li><strong>Ganhos Totais:</strong> {{ estatisticas.ganhos }}</li>
-        <li><strong>Perdas Totais:</strong> {{ estatisticas.perdas }}</li>
-        <li><strong>Taxa de Acerto:</strong> {{ estatisticas.taxa_acerto }}%</li>
-    </ul>
+  <h1>Relatório Geral</h1>
+  <ul>
+    <li><strong>Total de Operações:</strong> {{ estatisticas.total_operacoes }}</li>
+    <li><strong>Encerradas:</strong> {{ estatisticas.encerradas }}</li>
+    <li><strong>Ativas:</strong> {{ estatisticas.ativas }}</li>
+    <li><strong>Ganhos:</strong> {{ estatisticas.ganhos }}</li>
+    <li><strong>Perdas:</strong> {{ estatisticas.perdas }}</li>
+    <li><strong>Taxa de Acerto:</strong> {{ estatisticas.taxa_acerto }}%</li>
+  </ul>
 </body>
 </html>
