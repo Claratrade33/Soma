@@ -8,6 +8,12 @@ from models import db, Usuario, BinanceKey
 from crypto_utils import criptografar
 from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
+from conectores import bp as conectores_bp
+from configuracao import bp as configuracao_bp
+from inteligencia_financeira import bp as inteligencia_financeira_bp
+from tokens import bp as tokens_bp
+from usuarios import bp as usuarios_bp
+from operacoes import bp as operacoes_bp
 
 load_dotenv()
 
@@ -18,6 +24,14 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+# Registro de Blueprints
+app.register_blueprint(conectores_bp)
+app.register_blueprint(configuracao_bp)
+app.register_blueprint(inteligencia_financeira_bp)
+app.register_blueprint(tokens_bp)
+app.register_blueprint(usuarios_bp)
+app.register_blueprint(operacoes_bp)
 
 # Criar banco e garantir admin
 def criar_admin():
@@ -65,7 +79,7 @@ def register():
             db.session.commit()
             flash("Cadastro realizado com sucesso!", "success")
             return redirect(url_for("login"))
-    return render_template("register.html")
+    return render_template("usuarios/novo_usuario.html")
 
 @app.route("/logout")
 def logout():
@@ -76,7 +90,7 @@ def logout():
 def painel_operacao():
     if not session.get("logado"):
         return redirect(url_for("login"))
-    return render_template("painel_operacao.html")
+    return render_template("operacoes/painel_operacao.html")
 
 
 @app.route("/config_api", methods=["GET", "POST"])
@@ -101,7 +115,7 @@ def config_api():
         db.session.commit()
         flash("Chaves atualizadas!", "success")
         return redirect(url_for("painel_operacao"))
-    return render_template("config_api.html", binance_key=cred)
+    return render_template("conectores/configurar_api.html", binance_key=cred)
 
 
 @app.route("/historico")
