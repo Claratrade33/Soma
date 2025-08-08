@@ -35,9 +35,7 @@ def criptografar(texto, usuario):
     return f.encrypt(texto.encode()).decode()
 
 def descriptografar(token, usuario):
-    """
-    Descriptografa o token com a chave do usuário
-    """
+    """Descriptografa o token com a chave do usuário."""
     chave = carregar_chave(usuario)
     f = Fernet(chave)
     return f.decrypt(token.encode()).decode()

@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import os
 import json
-from datetime import datetime
 from clarinha_ia import solicitar_analise_json
-from binance_trade import executar_ordem as executar_ordem_binance
+from models import db, Usuario, BinanceKey
+from crypto_utils import criptografar
+from binance_client import get_client
+from tasks import start_auto_mode, stop_auto_mode
 
 load_dotenv()
 
@@ -16,17 +17,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
 # Configuração do banco SQLite
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
-
-# Controle de modo automático
-auto_thread = None
-auto_running = False
-
-# Modelo de Usuário
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    usuario = db.Column(db.String(80), unique=True, nullable=False)
-    senha_hash = db.Column(db.String(128), nullable=False)
+db.init_app(app)
 
 # Criar banco e garantir admin
 def criar_admin():
@@ -88,6 +79,35 @@ def painel_operacao():
     return render_template("painel_operacao.html")
 
 
+@app.route("/config_api", methods=["GET", "POST"])
+def config_api():
+    if not session.get("logado"):
+        return redirect(url_for("login"))
+    usuario = Usuario.query.filter_by(usuario=session["usuario"]).first()
+    cred = BinanceKey.query.filter_by(user_id=usuario.id).first()
+    if request.method == "POST":
+        api_key = request.form["api_key"]
+        api_secret = request.form["api_secret"]
+        testnet = bool(request.form.get("testnet"))
+        openai_key = request.form.get("openai_key")
+        api_key_enc = criptografar(api_key, usuario.usuario)
+        api_secret_enc = criptografar(api_secret, usuario.usuario)
+        openai_key_enc = criptografar(openai_key, usuario.usuario) if openai_key else None
+        if cred:
+            cred.api_key = api_key_enc
+            cred.api_secret = api_secret_enc
+            cred.testnet = testnet
+            if openai_key:
+                cred.openai_key = openai_key_enc
+        else:
+            cred = BinanceKey(user_id=usuario.id, api_key=api_key_enc, api_secret=api_secret_enc, testnet=testnet, openai_key=openai_key_enc)
+            db.session.add(cred)
+        db.session.commit()
+        flash("Chaves atualizadas!", "success")
+        return redirect(url_for("painel_operacao"))
+    return render_template("config_api.html", binance_key=cred)
+
+
 @app.route("/historico")
 def historico():
     if not session.get("logado"):
@@ -107,9 +127,9 @@ def executar_ordem():
     quantidade = request.form.get("quantidade", "0.001")
     side = "BUY" if tipo == "compra" else "SELL"
     try:
-        resultado = executar_ordem_binance("BTCUSDT", side, quantidade)
-
-        return jsonify({"status": "ok"})
+        client = get_client(session["usuario"])
+        ordem = client.create_order(symbol="BTCUSDT", side=side, type="MARKET", quantity=quantidade)
+        return jsonify({"status": "ok", "order": ordem})
     except Exception as e:
         return str(e), 500
 
@@ -119,7 +139,7 @@ def sugestao_ia():
     if not session.get("logado"):
         return jsonify({"status": "erro", "mensagem": "não autenticado"}), 401
     quantidade = request.args.get("quantidade", "0.001")
-    analise = solicitar_analise_json()
+    analise = solicitar_analise_json(session["usuario"])
     texto = analise.get("sugestao", "").lower()
     if "compra" in texto:
         tipo = "compra"
@@ -131,12 +151,21 @@ def sugestao_ia():
     return jsonify({"status": status, "tipo": tipo, "quantidade": quantidade, "analise": analise})
 
 
-@app.route("/modo_automatico", methods=["POST"])
+@app.route("/modo_automatico", methods=["GET", "POST"])
 def modo_automatico():
     if not session.get("logado"):
-        return jsonify({"erro": "não autenticado"}), 401
-
-    return jsonify({"status": "ok"})
+        if request.method == "POST":
+            return jsonify({"erro": "não autenticado"}), 401
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        acao = request.form.get("acao")
+        usuario = session["usuario"]
+        if acao == "start":
+            start_auto_mode(usuario)
+        elif acao == "stop":
+            stop_auto_mode(usuario)
+        return jsonify({"status": "ok", "acao": acao})
+    return render_template("modo_automatico.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

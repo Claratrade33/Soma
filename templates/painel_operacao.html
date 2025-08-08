@@ -15,8 +15,11 @@
   <button onclick="executarAcao('stop')">STOP</button>
   <button onclick="executarAcao('alvo')">ALVO</button>
   <button onclick="executarAcao('executar')">EXECUTAR</button>
-  <button onclick="executarAcao('automatico')">AUTOMÁTICO</button>
+  <button onclick="controlarAuto('start')">INICIAR AUTO</button>
+  <button onclick="controlarAuto('stop')">PARAR AUTO</button>
 </div>
+
+<p><a href="{{ url_for('config_api') }}">Configurar Binance API</a></p>
 
 <div class="sugestao-ia">
   <h3>Sugestão da IA Clarinha</h3>
@@ -60,6 +63,18 @@ function executarAcao(acao) {
     atualizarSugestaoIA();
   })
   .catch(() => alert('Erro ao executar ação'));
+}
+
+// Liga/desliga modo automático sem recarregar a página
+function controlarAuto(acao) {
+  fetch('/modo_automatico', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ acao: acao })
+  })
+  .then(response => response.json())
+  .then(data => alert('Modo automático: ' + data.acao))
+  .catch(() => alert('Erro ao controlar modo automático'));
 }
 
 // Atualiza sugestão da IA ao carregar

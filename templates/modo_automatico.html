@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Modo Automático - ClaraVerse{% endblock %}
+
+{% block content %}
+<h2>Modo Automático</h2>
+<p>Controle o agendamento de operações automáticas.</p>
+<button onclick="controlarAuto('start')">Iniciar Auto</button>
+<button onclick="controlarAuto('stop')">Parar Auto</button>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function controlarAuto(acao) {
+  fetch('/modo_automatico', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ acao: acao })
+  })
+  .then(response => response.json())
+  .then(data => alert('Modo automático: ' + data.acao))
+  .catch(() => alert('Erro ao controlar modo automático'));
+}
+</script>
+{% endblock %}
