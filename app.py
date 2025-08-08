@@ -13,9 +13,9 @@ from tasks import start_auto_mode, stop_auto_mode
 from conectores import bp as conectores_bp
 from configuracao import bp as configuracao_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
+from operacoes import bp as operacoes_bp
 from tokens import bp as tokens_bp
 from usuarios import bp as usuarios_bp
-from operacoes import bp as operacoes_bp
 
 load_dotenv()
 
@@ -60,7 +60,7 @@ def index():
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
-
+    return render_template("dashboard.html")
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
