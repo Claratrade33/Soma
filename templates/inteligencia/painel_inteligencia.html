@@ -2,41 +2,30 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Painel de Inteligência | ClaraTrade</title>
+  <title>Painel de Inteligência</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="painel-ia-body">
+<body>
+  <h1>Painel Inteligente da Clarinha</h1>
 
-  <header>
-    <h1>Painel Inteligente da Clarinha</h1>
-    <p>Converse com a inteligência estratégica e veja ela aprender com você.</p>
-  </header>
+  <form method="POST">
+    <label>Pergunte/comande:</label><br>
+    <input type="text" name="comando" required>
+    <button type="submit">Enviar</button>
+  </form>
 
-  <main>
-    <form method="POST">
-      <label for="comando">Digite sua pergunta, comando ou ideia:</label><br>
-      <input type="text" name="comando" id="comando" required>
-      <button type="submit">Enviar</button>
-    </form>
+  {% if resposta %}
+    <h3>Resposta da Clarinha</h3>
+    <p>{{ resposta }}</p>
+  {% endif %}
 
-    {% if resposta %}
-      <div class="resposta-ia">
-        <h2>Resposta da Clarinha:</h2>
-        <p>{{ resposta }}</p>
-      </div>
-    {% endif %}
-
-    {% if historico %}
-      <div class="historico-ia">
-        <h3>Últimas interações:</h3>
-        <ul>
-          {% for item in historico %}
-            <li><strong>Você:</strong> {{ item.entrada }}<br><strong>Clarinha:</strong> {{ item.resposta }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  </main>
-
+  {% if historico %}
+    <h4>Histórico</h4>
+    <ul>
+      {% for item in historico %}
+        <li><strong>Você:</strong> {{ item.entrada }}<br><strong>Clarinha:</strong> {{ item.resposta }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 </body>
 </html>
