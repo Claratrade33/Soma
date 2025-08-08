@@ -3,6 +3,7 @@ from flask import render_template
 from . import bp
 
 
-@bp.route('/')
+@bp.route("/")
 def index():
+    return render_template("operacoes/painel_operacao.html")
 
