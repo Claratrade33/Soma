@@ -63,15 +63,8 @@ with app.app_context():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for("painel_operacao"))
+        return redirect(url_for("operacoes.painel"))
     return redirect(url_for("acessos.login"))
-
-
-
-@app.route("/painel_operacao")
-@login_required
-def painel_operacao():
-    return render_template("dashboard.html")
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
@@ -92,7 +85,7 @@ def config_api():
             db.session.add(cred)
         db.session.commit()
         flash("Chaves atualizadas!", "success")
-        return redirect(url_for("painel_operacao"))
+        return redirect(url_for("operacoes.painel"))
     return render_template("conectores/configurar_api.html", binance_key=cred)
 
 
