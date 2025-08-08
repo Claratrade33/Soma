@@ -4,12 +4,14 @@ from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 import os
 import json
+
 from clarinha_ia import solicitar_analise_json
 from models import db, Usuario, BinanceKey
 from crypto_utils import criptografar
 from binance_client import get_client
 from tasks import start_auto_mode, stop_auto_mode
 
+# Importe cada blueprint apenas uma vez
 from acessos import bp as acessos_bp
 from clientes import bp as clientes_bp
 from conectores import bp as conectores_bp
@@ -18,10 +20,8 @@ from painel_operacao import bp as painel_operacao_bp
 from resgates import bp as resgates_bp
 from inteligencia_financeira import bp as inteligencia_financeira_bp
 from operacoes import bp as operacoes_bp
-from painel_operacao import bp as painel_operacao_bp
 from tokens import bp as tokens_bp
 from usuarios import bp as usuarios_bp
-from painel_operacao import bp as painel_operacao_bp
 
 load_dotenv()
 
@@ -37,25 +37,23 @@ login_manager = LoginManager()
 login_manager.login_view = "acessos.login"
 login_manager.init_app(app)
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-
+# Registre os blueprints (uma única vez cada)
 app.register_blueprint(acessos_bp)
 app.register_blueprint(clientes_bp)
 app.register_blueprint(conectores_bp)
 app.register_blueprint(configuracao_bp)
 app.register_blueprint(painel_operacao_bp)
 app.register_blueprint(inteligencia_financeira_bp)
-
 app.register_blueprint(tokens_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(operacoes_bp)
-app.register_blueprint(painel_operacao_bp)
+app.register_blueprint(resgates_bp)
 
-# Criar banco e garantir admin
+# Função para criar banco de dados e usuário admin, se necessário
 def criar_admin():
     db.create_all()
     admin = Usuario.query.filter_by(usuario="admin").first()
@@ -68,14 +66,11 @@ def criar_admin():
 with app.app_context():
     criar_admin()
 
-
 @app.route("/")
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("painel_operacao.index"))
     return redirect(url_for("acessos.login"))
-
-
 
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
@@ -93,13 +88,17 @@ def config_api():
             cred.api_secret = api_secret_enc
             cred.testnet = testnet
         else:
-            cred = BinanceKey(user_id=usuario.id, api_key=api_key_enc, api_secret=api_secret_enc, testnet=testnet)
+            cred = BinanceKey(
+                user_id=usuario.id,
+                api_key=api_key_enc,
+                api_secret=api_secret_enc,
+                testnet=testnet,
+            )
             db.session.add(cred)
         db.session.commit()
         flash("Chaves atualizadas!", "success")
         return redirect(url_for("painel_operacao.index"))
     return render_template("conectores/configurar_api.html", binance_key=cred)
-
 
 @app.route("/historico")
 @login_required
@@ -119,11 +118,12 @@ def executar_ordem():
     side = "BUY" if tipo == "compra" else "SELL"
     try:
         client = get_client(current_user.usuario)
-        ordem = client.create_order(symbol="BTCUSDT", side=side, type="MARKET", quantity=quantidade)
+        ordem = client.create_order(
+            symbol="BTCUSDT", side=side, type="MARKET", quantity=quantidade
+        )
         return jsonify({"status": "ok", "order": ordem})
     except Exception as e:
         return str(e), 500
-
 
 @app.route("/sugestao_ia")
 @login_required
@@ -138,8 +138,12 @@ def sugestao_ia():
     else:
         tipo = None
     status = "ok" if tipo else "erro"
-    return jsonify({"status": status, "tipo": tipo, "quantidade": quantidade, "analise": analise})
-
+    return jsonify({
+        "status": status,
+        "tipo": tipo,
+        "quantidade": quantidade,
+        "analise": analise,
+    })
 
 @app.route("/modo_automatico", methods=["POST"])
 @login_required
