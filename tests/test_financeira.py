@@ -27,11 +27,13 @@ def test_calcular_rsi_basic():
 
 
 
+
 def test_calcular_macd_basic():
     valores = list(range(1, 60))
     macd, sinal = calcular_macd(valores)
     assert isinstance(macd, float)
     assert isinstance(sinal, float)
+
 
 
 
@@ -54,4 +56,5 @@ def test_analise_route(monkeypatch):
 
     resp = client.get("/inteligencia_financeira/?rsi_periodo=14")
     assert resp.status_code == 200
+
 
