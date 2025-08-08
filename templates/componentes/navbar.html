@@ -1,10 +1,5 @@
 <nav class="nav">
   <a href="{{ url_for('index') }}">Início</a>
-  {% if current_user.is_authenticated %}
-    <a href="{{ url_for('painel_operacao') }}">Painel de Operações</a>
-    <a href="{{ url_for('acessos.logout') }}">Sair</a>
-  {% else %}
-    <a href="{{ url_for('acessos.login') }}">Login</a>
-    <a href="{{ url_for('acessos.register') }}">Cadastrar</a>
+
   {% endif %}
 </nav>
