@@ -26,3 +26,4 @@ def interpretar_pergunta(pergunta_usuario: str) -> str:
         )
         return resp.choices[0].message.content
 
+
