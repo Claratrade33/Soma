@@ -67,9 +67,8 @@ def index():
 @app.route("/painel_operacao")
 @login_required
 def painel_operacao():
-
-
-
+    """Renderiza o painel principal de operações para o usuário logado."""
+    return render_template("operacoes/painel_operacao.html")
 @app.route("/config_api", methods=["GET", "POST"])
 @login_required
 def config_api():
