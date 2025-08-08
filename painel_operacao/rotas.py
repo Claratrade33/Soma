@@ -5,5 +5,3 @@ from . import bp
 
 @bp.route("/")
 def index():
-    return render_template("operacoes/painel_operacao.html")
-
