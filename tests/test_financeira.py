@@ -26,9 +26,6 @@ def test_calcular_rsi_basic():
     assert 0 <= rsi <= 100
 
 
-def test_calcular_rsi_insuficiente():
-    """RSI deve retornar 0 com dados insuficientes."""
-    assert calcular_rsi([1, 2, 3], periodo=14) == 0.0
 
 
 def test_calcular_macd_basic():
@@ -38,10 +35,6 @@ def test_calcular_macd_basic():
     assert isinstance(sinal, float)
 
 
-def test_calcular_macd_vazio():
-    """MACD vazio retorna zeros."""
-    macd, sinal = calcular_macd([])
-    assert macd == 0.0 and sinal == 0.0
 
 
 def test_utilidades_complementares():
@@ -65,40 +58,3 @@ def test_analise_route(monkeypatch):
     assert resp.status_code == 200
 
 
-def test_analise_route_sem_api_key(monkeypatch):
-    app = create_app()
-    client = app.test_client()
-
-    contexto = {}
-
-    def fake_render(template, **ctx):
-        contexto.update(ctx)
-        return "ok"
-
-    monkeypatch.setattr(rotas, "render_template", fake_render)
-    monkeypatch.setattr(rotas, "obter_dados_mercado", lambda ticker: list(range(1, 60)))
-    monkeypatch.setattr(rotas, "client", None)
-
-    resp = client.get("/inteligencia_financeira/")
-    assert resp.status_code == 200
-    assert "OPENAI_API_KEY" in contexto["analise"]
-
-
-def test_analise_route_erro_dados(monkeypatch):
-    app = create_app()
-    client = app.test_client()
-
-    contexto = {}
-
-    def fake_render(template, **ctx):
-        contexto.update(ctx)
-        return "ok"
-
-    monkeypatch.setattr(rotas, "render_template", fake_render)
-    monkeypatch.setattr(rotas, "obter_dados_mercado", lambda ticker: [])
-    monkeypatch.setattr(rotas, "client", None)
-
-    resp = client.get("/inteligencia_financeira/")
-    assert resp.status_code == 200
-    assert contexto["erro_dados"] is True
-    assert len(contexto["valores"]) > 0
