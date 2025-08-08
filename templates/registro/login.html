@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | ClaraTrade</title>
+</head>
+<body>
+    <h1>🔐 Login</h1>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+            {% for categoria, msg in mensagens %}
+                <p style="color: {% if categoria == 'erro' %}red{% elif categoria == 'sucesso' %}green{% else %}orange{% endif %};">
+                    {{ msg }}
+                </p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <label>Usuário:</label><br>
+        <input type="text" name="usuario" required><br><br>
+
+        <label>Senha:</label><br>
+        <input type="password" name="senha" required><br><br>
+
+        <button type="submit">Entrar</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('registro.cadastro_usuario') }}">Não tem conta? Cadastre-se</a>
+</body>
+</html>
