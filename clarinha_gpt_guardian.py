@@ -1,9 +1,11 @@
-from openai import OpenAI
+"""Helpers for Clarinha's interaction with the OpenAI API."""
+
 import os
+from openai import OpenAI
+
 
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
-
 
 def interpretar_pergunta(pergunta_usuario: str) -> str:
     """Consulta o modelo da OpenAI para interpretar a pergunta."""
@@ -23,5 +25,4 @@ def interpretar_pergunta(pergunta_usuario: str) -> str:
             temperature=0.4,
         )
         return resp.choices[0].message.content
-    except Exception as e:
-        return f"Erro ao consultar OpenAI: {e}"
+
