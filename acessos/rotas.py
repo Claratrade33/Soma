@@ -17,7 +17,7 @@ def login():
             login_user(user)
             return redirect(url_for("painel_operacao.index"))
         flash("Credenciais inválidas", "danger")
-    return render_template("login.html")
+    return render_template("acessos/login.html")
 
 
 @bp.route("/logout")
