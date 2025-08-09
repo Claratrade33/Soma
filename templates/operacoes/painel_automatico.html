@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, modal, filtro_periodo, toast %}
+{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes %}
 {% block title %}Painel Automático — Operações{% endblock %}
 {% block content %}
   <h2 class="mb-3">Painel Automático</h2>
   {{ alert('info', status_msg|default('Configure e inicie o robô quando estiver pronta.')) }}
-
   <section class="mb-4">
     <h5>Status do Robô</h5>
     <ul class="mb-2">
@@ -19,27 +18,16 @@
       <button class="btn btn-danger">Parar</button>
     </div>
   </section>
-
-  <section class="mb-4">
-    <h5>Filtro por Período</h5>
-    {{ filtro_periodo(url_for('operacoes_automatico.painel'), inicio, fim) }}
-  </section>
-
   <section class="mb-4">
     <h5>Operações Recentes</h5>
-    {% set _ops = ops if ops is defined else [] %}
-    {% include 'componentes/cards_operacao.html' with context %}
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+      {% for o in ops %}
+      <div class="col">{{ card_operacao(o.par, o.preco, o.direcao, o.status, o.extra) }}</div>
+      {% endfor %}
+    </div>
   </section>
-
   <section class="mb-3">
     <h5>Tabela de Operações</h5>
-    {{ tabela_operacoes(_ops) }}
+    {{ tabela_operacoes(ops) }}
   </section>
-
-  <div class="mb-4">
-    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path) }}
-  </div>
-
-  {{ modal('confirmarAcaoAuto', 'Confirmar ação', 'Deseja realmente executar esta ação?', 'Confirmar') }}
-  {{ toast(toast_titulo|default('Aviso'), toast_msg|default('Operação executada.')) }}
 {% endblock %}
