@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Resultado da Ordem{% endblock %}
 {% block content %}
-  <h2>Resultado da Ordem</h2>
-  <p><strong>{{ side }}</strong> {{ symbol }} — Qtd: {{ qty }}</p>
+  <h2>Resultado da Ordem ({{ tipo or 'MARKET' }})</h2>
+  <p><strong>{{ side }}</strong> {{ symbol }} — Qtd: {{ qty }} {% if price %}a {{ price }}{% endif %}</p>
   {% if resp.ok %}
-    <div class="alert alert-success">Ordem enviada! ✅</div>
+    <div class="alert alert-success">Ordem enviada! ✅ {% if resp.order.paper %}(PAPER){% endif %}</div>
     <pre class="bg-light p-2">{{ resp.order | tojson(indent=2) }}</pre>
   {% else %}
     <div class="alert alert-danger">Falhou ❌</div>
