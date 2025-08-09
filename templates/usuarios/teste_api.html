@@ -1,13 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Teste da API{% endblock %}
 {% block content %}
-  <h2>Teste da API — {{ exchange|capitalize }}</h2>
-  {% if ok %}
-    <div class="alert alert-success mt-3">Conectado com sucesso! ✅</div>
-    <p>Agora você já pode operar pelo painel.</p>
+  <h2>Teste de Conexão — {{ exchange|capitalize }}</h2>
+  {% if result.ok %}
+    <div class="alert alert-success">Conectado! ✅</div>
+    <p><strong>BTCUSDT preço agora:</strong> {{ price or '-' }}</p>
+    <form method="post" action="{{ url_for('usuario_api.ordem_teste') }}" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label">Símbolo</label>
+        <input class="form-control" name="symbol" value="BTCUSDT">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">Side</label>
+        <select class="form-select" name="side">
+          <option value="BUY">BUY</option>
+          <option value="SELL">SELL</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label">Qtd</label>
+        <input class="form-control" name="qty" value="0.001">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-warning">Enviar ordem de teste</button>
+      </div>
+    </form>
+    <p class="text-muted mt-2">*Em TESTNET a ordem é simulada na rede de teste.</p>
   {% else %}
-    <div class="alert alert-danger mt-3">Falha na checagem. ❌</div>
-    <pre>{{ erro or "Verifique API Key/Secret." }}</pre>
+    <div class="alert alert-danger">Falha: {{ result.error }}</div>
+    <a class="btn btn-secondary" href="{{ url_for('usuario_api.configurar_api') }}">Voltar</a>
   {% endif %}
-  <p class="mt-3"><a class="btn btn-secondary" href="{{ url_for('usuario_api.configurar_api') }}">Voltar</a></p>
 {% endblock %}
