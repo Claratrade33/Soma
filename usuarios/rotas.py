@@ -2,10 +2,11 @@ import json
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from sqlalchemy import select
 from db import SessionLocal, init_db
-from models import UserCredential
+from models import UserCredential, OrderLog
 from services.crypto import enc, dec
 from services.binance_client import (
-    make_client, test_account, get_symbol_price, place_market_order, place_limit_order, get_free_usdt
+    make_client, test_account, get_symbol_price, place_market_order, place_limit_order,
+    get_free_usdt, place_stop_loss_limit, place_take_profit_limit, place_oco_order
 )
 from inteligencia.ai_client import sugerir_quantidade
 
@@ -17,6 +18,15 @@ def _get_cred(user_id: str, exchange: str) -> UserCredential | None:
         return s.execute(
             select(UserCredential).where(UserCredential.user_id == user_id, UserCredential.exchange == exchange)
         ).scalar_one_or_none()
+
+def _log_order(user_id, exchange, symbol, side, tipo, qty, price, resp):
+    with SessionLocal() as s:
+        s.add(OrderLog(
+            user_id=user_id, exchange=exchange, symbol=symbol, side=side,
+            tipo=tipo, qty=qty, price=price, status="ok" if resp.get("ok") else "error",
+            resp_json=json.dumps(resp)
+        ))
+        s.commit()
 
 @bp_api.route("/configurar-api", methods=["GET", "POST"])
 def configurar_api():
@@ -63,7 +73,7 @@ def testar_api():
     price = get_symbol_price(client, symbol)
     free_usdt = get_free_usdt(client)
 
-    sug_text = request.args.get("sug_text")  # opcional (quando vier da IA)
+    sug_text = request.args.get("sug_text")
     sug_qty = request.args.get("sug_qty")
 
     return render_template(
@@ -89,7 +99,6 @@ def sugestao_ia():
     free_usdt = get_free_usdt(client)
 
     sug = sugerir_quantidade(symbol, price, free_usdt, risco)
-    # Redireciona de volta com sugestão preenchida
     return redirect(url_for(".testar_api", exchange=exchange, symbol=symbol, sug_text=sug["texto"], sug_qty=(sug["qty"] or "")))
 
 @bp_api.route("/ordem-enviar", methods=["POST"])
@@ -103,16 +112,37 @@ def ordem_enviar():
 
     symbol = request.form.get("symbol", "BTCUSDT")
     side = request.form.get("side", "BUY")
-    tipo = request.form.get("tipo", "MARKET")
+    tipo = request.form.get("tipo", "MARKET").upper()
+
     qty = float(request.form.get("qty", "0.001") or "0.001")
-    price = request.form.get("price", "")
-    price = float(price) if price else 0.0
+    price = float(request.form.get("price", "0") or "0")
+
+    stop_price = float(request.form.get("stop_price", "0") or "0")
+    stop_limit_price = float(request.form.get("stop_limit_price", "0") or "0")
+    take_profit_price = float(request.form.get("take_profit_price", "0") or "0")
 
     client = make_client(dec(cred.api_key_enc), dec(cred.api_secret_enc))
 
     if tipo == "LIMIT":
         resp = place_limit_order(client, symbol=symbol, side=side, qty=qty, price=price)
+    elif tipo == "STOP_LOSS_LIMIT":
+        resp = place_stop_loss_limit(client, symbol=symbol, side=side, qty=qty,
+                                     stop_price=stop_price, limit_price=price or stop_limit_price)
+    elif tipo == "TAKE_PROFIT_LIMIT":
+        resp = place_take_profit_limit(client, symbol=symbol, side=side, qty=qty,
+                                       stop_price=take_profit_price, limit_price=price)
+    elif tipo == "OCO":
+        resp = place_oco_order(client, symbol=symbol, side=side, qty=qty,
+                               price=price, stop_price=stop_price, stop_limit_price=stop_limit_price or stop_price)
     else:
         resp = place_market_order(client, symbol=symbol, side=side, qty=qty)
 
+    _log_order(user_id, exchange, symbol, side, tipo, qty, price, resp)
     return render_template("usuarios/ordem_resultado.html", symbol=symbol, side=side, qty=qty, resp=resp, tipo=tipo, price=price)
+
+@bp_api.route("/historico")
+def historico():
+    user_id = "demo-user"
+    with SessionLocal() as s:
+        logs = s.execute(select(OrderLog).where(OrderLog.user_id == user_id).order_by(OrderLog.id.desc())).scalars().all()
+    return render_template("usuarios/historico.html", logs=logs)
