@@ -1,24 +1,14 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
+from __future__ import annotations
+from datetime import datetime
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
+from db import Base
 
-# Instância global do banco de dados
-
-db = SQLAlchemy()
-
-
-class Usuario(UserMixin, db.Model):
-    __tablename__ = 'usuario'
-    id = db.Column(db.Integer, primary_key=True)
-    usuario = db.Column(db.String(80), unique=True, nullable=False)
-    senha_hash = db.Column(db.String(128), nullable=False)
-
-
-class BinanceKey(db.Model):
-    __tablename__ = 'binance_key'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    api_key = db.Column(db.String(255), nullable=False)
-    api_secret = db.Column(db.String(255), nullable=False)
-    testnet = db.Column(db.Boolean, default=True)
-
-    usuario = db.relationship('Usuario', backref=db.backref('binance_key', uselist=False))
+class UserCredential(Base):
+    __tablename__ = "user_credentials"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    exchange: Mapped[str] = mapped_column(String(32), index=True)
+    api_key_enc: Mapped[str] = mapped_column(String(1024))
+    api_secret_enc: Mapped[str] = mapped_column(String(1024))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
