@@ -1,8 +1,21 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head><meta charset="UTF-8"><title>Controle de Acessos</title></head>
-<body>
-  <h1>Controle de Acessos</h1>
-  <p>Gerencie permissões dos usuários.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Controle de Acessos{% endblock %}
+{% block content %}
+  <h2>Controle de Acessos</h2>
+  <p>Gerencie permissões e papéis dos usuários.</p>
+  <table class="table">
+    <thead><tr><th>Usuário</th><th>Papel</th><th>Ações</th></tr></thead>
+    <tbody>
+      {% for u in usuarios or [] %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary">Editar</button>
+          <button class="btn btn-sm btn-outline-danger">Revogar</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
