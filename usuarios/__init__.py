@@ -1,5 +1,2 @@
-from flask import Blueprint
-
-bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
-
-from . import rotas
+# Mantido vazio para evitar import prematuro.
+# O app importa explicitamente: from usuarios.rotas_api import bp_api
