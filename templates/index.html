@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Entrar — ClaraVerse{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <h2 class="mb-3">Entrar</h2>
+      <form method="post" action="{{ url_for('usuarios.login') }}">
+        <div class="mb-3">
+          <label class="form-label">Usuário</label>
+          <input class="form-control" name="username" value="admin">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Senha</label>
+          <input class="form-control" name="password" type="password" value="Claraverse2025">
+        </div>
+        <button class="btn btn-primary w-100">Entrar</button>
+      </form>
+      <p class="text-muted mt-3 small">
+        Dica: admin / Claraverse2025
+      </p>
+    </div>
+  </div>
+{% endblock %}
