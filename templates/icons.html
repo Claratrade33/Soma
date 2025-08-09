@@ -1,14 +1,14 @@
-{% extends 'base.html' %}
-{% block title %}Ícones - ClaraVerse{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}Ícones{% endblock %}
 {% block content %}
-  <h2>Ícones e Legendas</h2>
-  <ul>
-    <li>📈 — Gráfico em alta</li>
-    <li>📉 — Gráfico em queda</li>
-    <li>🧠 — IA Clarinha ativa</li>
-    <li>⚙️ — Configurações do sistema</li>
-    <li>🔒 — Segurança habilitada</li>
-    <li>💡 — Sugestão de operação</li>
+  <h2>Ícones</h2>
+  <p>Galeria de ícones estáticos do sistema.</p>
+  <ul class="list-unstyled">
+    <li><img src="{{ url_for('static', filename='icons/ai.svg') }}" alt="AI" width="24"> ai.svg</li>
+    <li><img src="{{ url_for('static', filename='icons/logout.svg') }}" alt="Logout" width="24"> logout.svg</li>
+    <li><img src="{{ url_for('static', filename='icons/settings.svg') }}" alt="Settings" width="24"> settings.svg</li>
+    <li><img src="{{ url_for('static', filename='icons/stop.svg') }}" alt="Stop" width="24"> stop.svg</li>
+    <li><img src="{{ url_for('static', filename='icons/target.svg') }}" alt="Target" width="24"> target.svg</li>
+    <li><img src="{{ url_for('static', filename='icons/wallet.svg') }}" alt="Wallet" width="24"> wallet.svg</li>
   </ul>
 {% endblock %}
