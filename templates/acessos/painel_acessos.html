@@ -1,8 +1,11 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head><meta charset="UTF-8"><title>Painel de Acessos</title></head>
-<body>
-  <h1>Painel de Acessos</h1>
-  <p>Área para visualização geral de acessos e permissões.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Painel de Acessos{% endblock %}
+{% block content %}
+  <h2>Painel de Acessos</h2>
+  <p>Resumo de logins, tentativas e bloqueios recentes.</p>
+  <ul>
+    <li>Logins hoje: {{ logins_hoje|default(0) }}</li>
+    <li>Tentativas falhas: {{ falhas|default(0) }}</li>
+    <li>Bloqueios ativos: {{ bloqueios|default(0) }}</li>
+  </ul>
+{% endblock %}
