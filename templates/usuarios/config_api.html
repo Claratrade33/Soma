@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Configurar API da Corretora{% endblock %}
+{% block content %}
+  <h2>Configurar API da Corretora</h2>
+  <form method="post" class="mt-3" style="max-width:480px">
+    <div class="mb-2">
+      <label class="form-label">Corretora</label>
+      <select name="exchange" class="form-select">
+        <option value="binance">Binance</option>
+        <option value="bybit">Bybit</option>
+      </select>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">API Key</label>
+      <input name="api_key" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <label class="form-label">API Secret</label>
+      <input name="api_secret" class="form-control" required>
+    </div>
+    <button class="btn btn-primary mt-2">Salvar e Testar</button>
+  </form>
+{% endblock %}
