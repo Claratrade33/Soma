@@ -1,10 +1,9 @@
 import os, re
 from typing import List, Dict, Optional
-import openai
+from openai import OpenAI
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 SYSTEM_PROMPT = (
     "Você é a Clara, assistente de trading da ClaraVerse. "
@@ -12,12 +11,13 @@ SYSTEM_PROMPT = (
 )
 
 def chat_responder(mensagem: str, contexto: Optional[List[Dict]] = None, modelo: str = "gpt-4o-mini") -> str:
-    msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
-    if contexto: msgs.extend(contexto)
-    msgs.append({"role": "user", "content": mensagem})
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if contexto:
+        messages.extend(contexto)
+    messages.append({"role": "user", "content": mensagem})
     try:
-        resp = openai.ChatCompletion.create(model=modelo, messages=msgs)
-        return resp.choices[0].message.content
+        resp = client.chat.completions.create(model=modelo, messages=messages)
+        return resp.choices[0].message.content or ""
     except Exception as e:
         return f"[IA indisponível] {e}"
 
@@ -37,6 +37,8 @@ def sugerir_quantidade(symbol: str, preco: float, saldo_usdt: float, risco: str 
     if texto and not texto.startswith("[IA indisponível]"):
         nums = _QTY_RE.findall(texto)
         if nums:
-            try: qty = float(nums[-1])
-            except: qty = None
+            try:
+                qty = float(nums[-1])
+            except:
+                qty = None
     return {"texto": texto, "qty": qty}
