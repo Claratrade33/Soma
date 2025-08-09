@@ -14,11 +14,8 @@ from operacoes_automatico.rotas import bp_operacoes_auto
 from painel_operacao.rotas import bp_painel_operacao
 from usuarios.rotas import bp as usuarios_bp  # login/logout
 
-# ---------------------------
-# API pública simples (preço vivo)
-# ---------------------------
+# ---------- API pública (preço vivo) ----------
 bp_public = Blueprint("public_api", __name__)
-
 @bp_public.route("/api/ticker")
 def api_ticker():
     symbol = request.args.get("symbol", "BTCUSDT").upper()
@@ -30,12 +27,8 @@ def api_ticker():
     except Exception as e:
         return jsonify({"ok": False, "symbol": symbol, "error": str(e)}), 502
 
-
-# ---------------------------
-# Helpers
-# ---------------------------
+# ---------- helpers ----------
 def ensure_admin():
-    """Cria usuário admin se não existir."""
     with SessionLocal() as s:
         admin = s.query(Usuario).filter(Usuario.username == "admin").one_or_none()
         if not admin:
@@ -44,14 +37,9 @@ def ensure_admin():
                 password_hash=generate_password_hash("Claraverse2025"),
                 is_active=True
             )
-            s.add(admin)
-            s.commit()
+            s.add(admin); s.commit()
 
 def validate_fernet_env() -> tuple[bool, str]:
-    """
-    Valida FERNET_KEY no ambiente (32 bytes base64 url-safe).
-    Retorna (ok, msg_erro_ou_vazio).
-    """
     key = os.getenv("FERNET_KEY", "").strip()
     if not key:
         return False, "FERNET_KEY ausente. Defina no Render (Environment Variables)."
@@ -63,70 +51,12 @@ def validate_fernet_env() -> tuple[bool, str]:
     except Exception as e:
         return False, f"FERNET_KEY inválida: {e}"
 
-
-# ---------------------------
-# App factory
-# ---------------------------
-def create_app():
-    app = Flask(__name__, template_folder="templates", static_folder="static")
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque-esta-chave-super-secreta")
-
-    # DB + admin
-    init_db()
-    ensure_admin()
-
-    # Login Manager
-    login_manager = LoginManager()
-    login_manager.login_view = "usuarios.login"
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id: str):
-        with SessionLocal() as s:
-            return s.get(Usuario, int(user_id))
-
-    # Blueprints sempre seguros
-    app.register_blueprint(usuarios_bp, url_prefix="/usuario")  # /usuario/login, /usuario/logout
-    app.register_blueprint(bp_operacoes_auto)
-    app.register_blueprint(bp_painel_operacao)
-    app.register_blueprint(bp_public)  # /api/ticker
-
-    # Tenta registrar a API de corretora (depende da FERNET_KEY válida)
-    ok, msg = validate_fernet_env()
-    if ok:
-        try:
-            from usuarios.rotas_api import bp_api  # importa só se a FERNET_KEY está OK
-            app.register_blueprint(bp_api)
-        except Exception as e:
-            _err = f"Falha ao carregar rotas da corretora (usuarios.rotas_api): {e}"
-            _mount_config_error_routes(app, _err)
-    else:
-        _mount_config_error_routes(app, msg)
-
-    # INDEX = Tela de login
-    @app.route("/")
-    def index():
-        return render_template("index.html")
-
-    # Atalho para painel (exige login)
-    @app.route("/painel")
-    @login_required
-    def painel_redirect():
-        return redirect(url_for("painel_operacao.painel_operacao"))
-
-    return app
-
-
 def _mount_config_error_routes(app: Flask, message: str):
-    """
-    Sobe o app mesmo se a FERNET_KEY estiver inválida,
-    exibindo uma rota de diagnóstico para você arrumar no Render.
-    """
     @app.route("/_config_error")
     def _config_error():
         tips = (
             "<h3>Configuração pendente</h3>"
-            "<p><b>Erro:</b> " + message + "</p>"
+            f"<p><b>Erro:</b> {message}</p>"
             "<p>Como resolver no Render → Settings → Environment:</p>"
             "<ol>"
             "<li>Remova <code>FERNET_KEY</code> antiga (se houver).</li>"
@@ -138,8 +68,50 @@ def _mount_config_error_routes(app: Flask, message: str):
         )
         return tips, 503
 
+# ---------- app factory ----------
+def create_app():
+    app = Flask(__name__, template_folder="templates", static_folder="static")
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque-esta-chave-super-secreta")
 
-# Objeto WSGI para o Render
+    init_db()
+    ensure_admin()
+
+    login_manager = LoginManager()
+    login_manager.login_view = "usuarios.login"
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        with SessionLocal() as s:
+            return s.get(Usuario, int(user_id))
+
+    app.register_blueprint(usuarios_bp, url_prefix="/usuario")  # /usuario/login, /usuario/logout
+    app.register_blueprint(bp_operacoes_auto)
+    app.register_blueprint(bp_painel_operacao)
+    app.register_blueprint(bp_public)  # /api/ticker
+
+    ok, msg = validate_fernet_env()
+    if ok:
+        try:
+            from usuarios.rotas_api import bp_api
+            app.register_blueprint(bp_api)  # /usuario/configurar-api, /usuario/testar-api, /usuario/historico...
+        except Exception as e:
+            _mount_config_error_routes(app, f"Falha ao carregar rotas da corretora: {e}")
+    else:
+        _mount_config_error_routes(app, msg)
+
+    @app.route("/")
+    def index():
+        # Tela de login (index.html)
+        return render_template("index.html")
+
+    @app.route("/painel")
+    @login_required
+    def painel_redirect():
+        return redirect(url_for("painel_operacao.painel_operacao"))
+
+    return app
+
 app = create_app()
 
 if __name__ == "__main__":
