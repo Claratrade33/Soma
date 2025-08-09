@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Resultado da Ordem{% endblock %}
+{% block content %}
+  <h2>Resultado da Ordem</h2>
+  <p><strong>{{ side }}</strong> {{ symbol }} — Qtd: {{ qty }}</p>
+  {% if resp.ok %}
+    <div class="alert alert-success">Ordem enviada! ✅</div>
+    <pre class="bg-light p-2">{{ resp.order | tojson(indent=2) }}</pre>
+  {% else %}
+    <div class="alert alert-danger">Falhou ❌</div>
+    <pre class="bg-light p-2">{{ resp.error }}</pre>
+  {% endif %}
+  <a class="btn btn-secondary mt-2" href="{{ url_for('usuario_api.testar_api') }}">Voltar</a>
+{% endblock %}
