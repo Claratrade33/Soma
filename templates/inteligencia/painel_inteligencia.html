@@ -1,31 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Painel de Inteligência</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-  <h1>Painel Inteligente da Clarinha</h1>
-
-  <form method="POST">
-    <label>Pergunte/comande:</label><br>
-    <input type="text" name="comando" required>
-    <button type="submit">Enviar</button>
-  </form>
-
-  {% if resposta %}
-    <h3>Resposta da Clarinha</h3>
-    <p>{{ resposta }}</p>
-  {% endif %}
-
-  {% if historico %}
-    <h4>Histórico</h4>
-    <ul>
-      {% for item in historico %}
-        <li><strong>Você:</strong> {{ item.entrada }}<br><strong>Clarinha:</strong> {{ item.resposta }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Painel de Inteligência{% endblock %}
+{% block content %}
+  <h2>Inteligência</h2>
+  <p>Insights gerados por IA, análise de sentimento e previsões.</p>
+  <div>
+    <h4>Resumo</h4>
+    <pre class="bg-light p-2">{{ resumo|default("Sem dados") }}</pre>
+  </div>
+{% endblock %}
