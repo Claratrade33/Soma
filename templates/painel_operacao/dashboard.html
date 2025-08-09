@@ -1,7 +1,25 @@
-{% extends 'base.html' %}
-{% block title %}ClaraVerse — Início{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}Dashboard — Operações{% endblock %}
 {% block content %}
-  <h2>Bem-vindo(a) ao ClaraVerse</h2>
-  <p>A plataforma de operações reais com inteligência da IA Clarinha e integração direta com a Binance.</p>
+  <h2>Dashboard</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Saldo</h5>
+        <p>{{ saldo|default(0) }} USDT</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Lucro (24h)</h5>
+        <p>{{ lucro_24h|default(0) }} USDT</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3">
+        <h5>Operações Abertas</h5>
+        <p>{{ abertas|default(0) }}</p>
+      </div>
+    </div>
+  </div>
 {% endblock %}
