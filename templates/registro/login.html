@@ -1,25 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head><meta charset="UTF-8"><title>Login | ClaraVerse</title></head>
-<body>
-  <h1>🔐 Login</h1>
-
-  {% with mensagens = get_flashed_messages(with_categories=true) %}
-    {% if mensagens %}
-      {% for categoria, msg in mensagens %}
-        <p style="color:{% if categoria=='erro' %}red{% elif categoria=='sucesso' %}green{% else %}orange{% endif %}">{{ msg }}</p>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
-  <form method="POST">
-    <label>Usuário:</label><br>
-    <input type="text" name="usuario" required><br><br>
-    <label>Senha:</label><br>
-    <input type="password" name="senha" required><br><br>
-    <button type="submit">Entrar</button>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+  <h2>Entrar</h2>
+  <form method="post" action="{{ url_for('acessos.login') if 'acessos.login' in globals() else '#' }}">
+    <div class="mb-2">
+      <label>Email</label>
+      <input class="form-control" name="email" type="email" required>
+    </div>
+    <div class="mb-2">
+      <label>Senha</label>
+      <input class="form-control" name="senha" type="password" required>
+    </div>
+    <button class="btn btn-primary">Entrar</button>
   </form>
-
-  <p><a href="{{ url_for('registro.cadastro_usuario') }}">Criar conta</a></p>
-</body>
-</html>
+{% endblock %}
