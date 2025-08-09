@@ -4,3 +4,4 @@ SQLAlchemy>=2.0
 cryptography>=42.0.5
 python-binance>=1.0.19
 openai>=0.28.0
+gunicorn
