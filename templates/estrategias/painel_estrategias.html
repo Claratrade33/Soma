@@ -1,40 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Painel de Estratégias</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-  <h1>Painel de Estratégias</h1>
-
-  <form method="POST">
-    <label>Nome:</label><br>
-    <input type="text" name="nome" required><br><br>
-
-    <label>Descrição:</label><br>
-    <textarea name="descricao" required></textarea><br><br>
-
-    <label>Tipo:</label><br>
-    <select name="tipo" required>
-      <option value="manual">Manual</option>
-      <option value="automatica">Automática</option>
-      <option value="hibrida">Híbrida</option>
-    </select><br><br>
-
-    <button type="submit">Cadastrar</button>
-  </form>
-
-  <hr>
+{% extends "base.html" %}
+{% block title %}Painel de Estratégias{% endblock %}
+{% block content %}
   <h2>Estratégias</h2>
-  {% if estrategias %}
-    <ul>
-      {% for e in estrategias %}
-        <li><strong>{{ e.nome }}</strong> ({{ e.tipo }}) — {{ e.descricao }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Nenhuma estratégia cadastrada.</p>
-  {% endif %}
-</body>
-</html>
+  <p>Gerencie, ative e ajuste as estratégias de trading.</p>
+  <div class="row">
+    {% for s in estrategias or [] %}
+    <div class="col-md-4 mb-3">
+      <div class="card p-3">
+        <h5>{{ s.nome }}</h5>
+        <p>{{ s.descricao }}</p>
+        <button class="btn btn-sm btn-primary">Ativar</button>
+        <button class="btn btn-sm btn-outline-secondary">Configurar</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% endblock %}
