@@ -1,51 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Painel de Comunicação | ClaraTrade</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="painel-comunicacao-body">
-
-    <header>
-        <h1>Painel de Comunicação</h1>
-        <p>Envie mensagens internas, recados ou comunicados para o sistema ou equipe.</p>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flashes">
-          {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-
-    <form method="POST">
-        <label for="autor">Seu nome:</label>
-        <input type="text" id="autor" name="autor" required>
-
-        <label for="conteudo">Mensagem:</label>
-        <textarea id="conteudo" name="conteudo" required></textarea>
-
-        <button type="submit">Enviar Mensagem</button>
-    </form>
-
-    <hr>
-
-    <section>
-        <h2>Mensagens Enviadas</h2>
-        {% if mensagens %}
-            <ul>
-                {% for msg in mensagens %}
-                    <li><strong>{{ msg.autor }}</strong> ({{ msg.data }}): {{ msg.conteudo }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Nenhuma mensagem enviada ainda.</p>
-        {% endif %}
-    </section>
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Acessos • Comunicação{% endblock %}
+{% block content %}
+  <h2>Comunicação de Acessos</h2>
+  <p>Notificações para eventos de segurança (MFA, reset, bloqueios).</p>
+  <form>
+    <label>Canal:</label>
+    <select class="form-select">
+      <option>Email</option>
+      <option>Telegram</option>
+      <option>Push</option>
+    </select>
+    <button class="btn btn-primary mt-2">Salvar</button>
+  </form>
+{% endblock %}
