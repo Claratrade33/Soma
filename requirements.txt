@@ -1,7 +1,10 @@
-Flask>=3.0
-python-dotenv>=1.0.1
-SQLAlchemy>=2.0
-cryptography>=42.0.5
-python-binance>=1.0.19
-openai>=0.28.0
+Flask
+Flask-Login
+Flask-SQLAlchemy
 gunicorn
+python-dotenv
+cryptography
+python-binance
+openai
+requests
+SQLAlchemy
