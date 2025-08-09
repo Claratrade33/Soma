@@ -1,25 +1,58 @@
 {% extends "base.html" %}
+{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, filtro_periodo %}
+
 {% block title %}Dashboard — Operações{% endblock %}
+
 {% block content %}
-  <h2>Dashboard</h2>
-  <div class="row">
+  <h2 class="mb-3">Dashboard</h2>
+
+  {{ alert('success', alerta_dashboard|default('Bem-vinda ao painel!')) }}
+
+  <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <div class="card p-3">
-        <h5>Saldo</h5>
-        <p>{{ saldo|default(0) }} USDT</p>
+      <div class="card p-3 h-100">
+        <h6 class="text-muted">Saldo</h6>
+        <div class="display-6">{{ saldo|default(0) }} <small class="text-muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card p-3">
-        <h5>Lucro (24h)</h5>
-        <p>{{ lucro_24h|default(0) }} USDT</p>
+      <div class="card p-3 h-100">
+        <h6 class="text-muted">Lucro (24h)</h6>
+        <div class="display-6">{{ lucro_24h|default(0) }} <small class="text-muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card p-3">
-        <h5>Operações Abertas</h5>
-        <p>{{ abertas|default(0) }}</p>
+      <div class="card p-3 h-100">
+        <h6 class="text-muted">Operações Abertas</h6>
+        <div class="display-6">{{ abertas|default(0) }}</div>
       </div>
     </div>
+  </div>
+
+  <section class="mb-4">
+    <h5>Filtro</h5>
+    {{ filtro_periodo(url_for('painel_operacao.dashboard') if 'painel_operacao.dashboard' in globals() else '#', inicio, fim) }}
+  </section>
+
+  <section class="mb-4">
+    <h5>Visão Rápida</h5>
+    {# Cards de algumas operações em destaque #}
+    {% set destaques = destaques if destaques is defined else [
+      {'par':'BTC/USDT', 'preco':'-', 'direcao':'COMPRA', 'status':'aguardando', 'extra':'RSI 1h em 42'},
+      {'par':'ETH/USDT', 'preco':'-', 'direcao':'VENDA',  'status':'aberta',     'extra':'Alvo 1 em 1.5%'},
+      {'par':'BNB/USDT', 'preco':'-', 'direcao':'COMPRA', 'status':'encerrada',  'extra':'P/L +1.9%'}
+    ] %}
+    {% set ops = destaques %}
+    {% include 'componentes/cards_operacao.html' with context %}
+  </section>
+
+  <section class="mb-3">
+    <h5>Lista Completa</h5>
+    {% set ops = ops_tabela if ops_tabela is defined else [] %}
+    {{ tabela_operacoes(ops) }}
+  </section>
+
+  <div class="mb-4">
+    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path if request is defined else '#') }}
   </div>
 {% endblock %}
