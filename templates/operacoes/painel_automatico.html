@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Painel Automático — Operações{% endblock %}
+{% block content %}
+  <h2>Painel Automático</h2>
+  <p>Bem-vinda ao módulo de operações automáticas. Ajuste suas estratégias e monitoramento aqui.</p>
+
+  <section>
+    <h3>Status do Robô</h3>
+    <ul>
+      <li>Rodando: {{ robo_status|default("desconhecido") }}</li>
+      <li>Par de Operação: {{ par|default("BTC/USDT") }}</li>
+      <li>Timeframe: {{ timeframe|default("15m") }}</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Ações Rápidas</h3>
+    <button class="btn btn-primary">Iniciar</button>
+    <button class="btn btn-warning">Pausar</button>
+    <button class="btn btn-danger">Parar</button>
+  </section>
+{% endblock %}
