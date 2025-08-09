@@ -1,14 +1,8 @@
-/* ClaraVerse — estilos mínimos úteis */
 :root { --cv-gap: 12px; }
-
 body { padding: 12px; }
 h2, h5 { margin-bottom: 10px; }
-
 .card { border-radius: 8px; }
 .card .display-6 { font-weight: 600; }
-
 .table td, .table th { vertical-align: middle; }
-
 .alert { margin-top: 6px; }
-
 .btn + .btn { margin-left: 8px; }
