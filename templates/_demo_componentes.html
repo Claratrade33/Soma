@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, modal, filtro_periodo, toast %}
+{% block title %}Demo Componentes{% endblock %}
+{% block content %}
+  <h2>Demo de Componentes</h2>
+  {{ alert('success', 'Tudo certo por aqui!') }}
+
+  <hr>
+  <h4>Filtro por período</h4>
+  {{ filtro_periodo('#') }}
+
+  <hr>
+  <h4>Cards</h4>
+  <div class="row row-cols-1 row-cols-md-3 g-3">
+    <div class="col">{{ card_operacao('BTC/USDT', '67450', 'COMPRA', 'aberta') }}</div>
+    <div class="col">{{ card_operacao('ETH/USDT', '3520', 'VENDA', 'encerrada', 'P/L: +2.1%') }}</div>
+    <div class="col">{{ card_operacao('BNB/USDT', '590', 'COMPRA', 'aguardando') }}</div>
+  </div>
+
+  <hr>
+  <h4>Tabela</h4>
+  {{ tabela_operacoes([
+    {'par': 'BTC/USDT', 'tipo': 'COMPRA', 'preco': '67450', 'qtd': 0.01, 'status': 'aberta', 'atualizado_em': 'agora'},
+    {'par': 'ETH/USDT', 'tipo': 'VENDA', 'preco': '3520', 'qtd': 0.5, 'status': 'encerrada', 'atualizado_em': 'há 1h'}
+  ]) }}
+
+  <hr>
+  <h4>Paginação</h4>
+  {{ paginacao(1, 5, '/demo') }}
+
+  <hr>
+  <h4>Modal</h4>
+  {{ modal('demoModal', 'Confirmação', 'Deseja apagar este item?', 'Apagar') }}
+
+  <hr>
+  <h4>Toast</h4>
+  {{ toast('Aviso', 'Operação executada!') }}
+{% endblock %}
