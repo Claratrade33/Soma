@@ -2,24 +2,25 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente (Render já injeta, local usa .env)
+# Carrega variáveis (no Render já vêm do ambiente; local usa .env)
 load_dotenv()
 
+# Infra do banco + blueprints
 from db import init_db
 from operacoes_automatico.rotas import bp_operacoes_auto
 from painel_operacao.rotas import bp_painel_operacao
-from usuarios.rotas_api import bp_api
+from usuarios.rotas_api import bp_api  # <- usamos este módulo novo
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
-    # Secret para sessões/flash (em produção use ENV no Render)
+    # Chave de sessão/flash (em produção vem do ENV)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque-esta-chave-super-secreta")
 
-    # Cria tabelas caso não existam
+    # Cria tabelas se não existirem
     init_db()
 
-    # Blueprints
+    # Registra rotas/blueprints
     app.register_blueprint(bp_operacoes_auto)
     app.register_blueprint(bp_painel_operacao)
     app.register_blueprint(bp_api)
@@ -39,7 +40,7 @@ def create_app():
 
     return app
 
-# Deixa o objeto app pronto pro gunicorn (app:app)
+# Objeto WSGI para o gunicorn (Start Command: gunicorn app:app)
 app = create_app()
 
 if __name__ == "__main__":
