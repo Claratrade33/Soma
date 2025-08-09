@@ -1,11 +1,19 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #0b0f1a;
-  color: #f1f1f1;
+/* Reset básico para evitar estilos inconsistentes */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
+/* Corpo geral */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #0e1621;
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+/* Cabeçalho */
 .header {
   background-color: #121a2e;
   color: #ffffff;
@@ -15,122 +23,58 @@ body {
 }
 
 .header h1 {
-  margin: 0;
   font-size: 24px;
   letter-spacing: 1px;
 }
 
+/* Navegação */
 .nav {
   margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nav a {
   color: #4ecdc4;
   text-decoration: none;
-  margin: 0 12px;
+  margin: 8px 12px;
   font-weight: bold;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
 }
 
 .nav a:hover {
   text-decoration: underline;
+  color: #3bb3a8;
 }
 
+/* Container de conteúdo */
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 30px auto;
   padding: 20px;
   background-color: #121a2e;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(78, 205, 196, 0.1);
-}
-
-h2, h3 {
-  color: #4ecdc4;
-  margin-bottom: 15px;
-}
-
-.form-box {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-input[type="text"],
-input[type="password"],
-button {
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  font-size: 16px;
-}
-
-input[type="text"],
-input[type="password"] {
-  background-color: #0b132b;
-  color: #ffffff;
-  border: 1px solid #1e2a47;
-}
-
-button.btn,
-.botoes-operacao button {
-  background-color: #4ecdc4;
-  color: #0b0f1a;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-button.btn:hover,
-.botoes-operacao button:hover {
-  background-color: #38bfb0;
-}
-
-.botoes-operacao {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  margin: 20px 0;
-}
-
-.botoes-operacao button {
-  padding: 12px 20px;
-  min-width: 120px;
   border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
 
-.sugestao-ia {
-  margin-top: 30px;
-  background-color: #0f1c2e;
-  padding: 20px;
-  border-radius: 8px;
+/* Alertas */
+.alert {
+  border-radius: 5px;
 }
 
-.dados-operacao {
-  margin-top: 25px;
-  background-color: #111b2d;
-  padding: 15px;
-  border-radius: 8px;
-  line-height: 1.6;
-}
+/* Responsividade */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 20px;
+  }
 
-.flashes {
-  list-style: none;
-  padding: 0;
-}
+  .nav {
+    flex-direction: column;
+    align-items: center;
+  }
 
-.flash {
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-}
-
-.flash.success {
-  background-color: #38bfb0;
-  color: #0b0f1a;
-}
-
-.flash.error {
-  background-color: #ff6b6b;
-  color: #fff;
+  .nav a {
+    margin: 6px 0;
+  }
 }
