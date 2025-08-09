@@ -2,10 +2,9 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
-# carrega variáveis do Render/local
+# Carrega variáveis de ambiente (Render já injeta, local usa .env)
 load_dotenv()
 
-# >>> usamos a infra do db.py e os blueprints
 from db import init_db
 from operacoes_automatico.rotas import bp_operacoes_auto
 from painel_operacao.rotas import bp_painel_operacao
@@ -13,12 +12,14 @@ from usuarios.rotas_api import bp_api
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
+
+    # Secret para sessões/flash (em produção use ENV no Render)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque-esta-chave-super-secreta")
 
-    # cria tabelas se não existirem
+    # Cria tabelas caso não existam
     init_db()
 
-    # registra blueprints
+    # Blueprints
     app.register_blueprint(bp_operacoes_auto)
     app.register_blueprint(bp_painel_operacao)
     app.register_blueprint(bp_api)
@@ -38,7 +39,7 @@ def create_app():
 
     return app
 
-# <<< linha importante pro gunicorn "app:app"
+# Deixa o objeto app pronto pro gunicorn (app:app)
 app = create_app()
 
 if __name__ == "__main__":
