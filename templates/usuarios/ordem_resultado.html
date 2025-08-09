@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Resultado da Ordem{% endblock %}
 {% block content %}
-  <h2>Resultado da Ordem ({{ tipo or 'MARKET' }})</h2>
-  <p><strong>{{ side }}</strong> {{ symbol }} — Qtd: {{ qty }} {% if price %}a {{ price }}{% endif %}</p>
-  {% if resp.ok %}
-    <div class="alert alert-success">Ordem enviada! ✅ {% if resp.order.paper %}(PAPER){% endif %}</div>
-    <pre class="bg-light p-2">{{ resp.order | tojson(indent=2) }}</pre>
-  {% else %}
-    <div class="alert alert-danger">Falhou ❌</div>
-    <pre class="bg-light p-2">{{ resp.error }}</pre>
-  {% endif %}
-  <a class="btn btn-secondary mt-2" href="{{ url_for('usuario_api.testar_api') }}">Voltar</a>
+<h3>Resultado da Ordem</h3>
+<ul>
+  <li>Símbolo: <b>{{ symbol }}</b></li>
+  <li>Side: <b>{{ side }}</b></li>
+  <li>Tipo: <b>{{ tipo }}</b></li>
+  <li>Qtd: <b>{{ qty }}</b></li>
+  <li>Preço: <b>{{ price }}</b></li>
+</ul>
+<h6>Resposta</h6>
+<pre class="small">{{ resp|tojson(indent=2) }}</pre>
+<a class="btn btn-primary" href="/usuario/historico">Ver histórico</a>
 {% endblock %}
