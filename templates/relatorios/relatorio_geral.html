@@ -1,19 +1,14 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Relatório Geral</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-  <h1>Relatório Geral</h1>
-  <ul>
-    <li><strong>Total de Operações:</strong> {{ estatisticas.total_operacoes }}</li>
-    <li><strong>Encerradas:</strong> {{ estatisticas.encerradas }}</li>
-    <li><strong>Ativas:</strong> {{ estatisticas.ativas }}</li>
-    <li><strong>Ganhos:</strong> {{ estatisticas.ganhos }}</li>
-    <li><strong>Perdas:</strong> {{ estatisticas.perdas }}</li>
-    <li><strong>Taxa de Acerto:</strong> {{ estatisticas.taxa_acerto }}%</li>
-  </ul>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Relatório Geral{% endblock %}
+{% block content %}
+  <h2>Relatório Geral</h2>
+  <p>Resumo consolidado das operações e métricas.</p>
+  <table class="table">
+    <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
+    <tbody>
+      {% for k, v in (metricas or {}).items() %}
+      <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
