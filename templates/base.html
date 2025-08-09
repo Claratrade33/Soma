@@ -11,25 +11,13 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url_for('index') }}">ClaraVerse</a>
-
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav" aria-controls="topnav" aria-expanded="false" aria-label="Alternar navegação">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="topnav">
-        <div class="navbar-nav me-auto">
-          <a class="nav-link" href="{{ url_for('operacoes_automatico.painel_automatico') }}">Automático</a>
-          <a class="nav-link" href="{{ url_for('painel_operacao.painel_operacao') }}">Operação</a>
-          <a class="nav-link" href="{{ url_for('usuario_api.configurar_api') }}">Corretora</a>
-          <a class="nav-link" href="{{ url_for('usuario_api.testar_api') }}">Ordens</a>
-          <a class="nav-link" href="{{ url_for('usuario_api.historico') }}">Histórico</a>
-        </div>
-
-        <!-- opcional: canto direito com usuário/sair -->
-        {% if current_user.is_authenticated %}
-          <span class="navbar-text me-3">Olá, {{ current_user.username }}</span>
-          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('usuarios.logout') }}">Sair</a>
-        {% endif %}
+      <div class="navbar-nav">
+        <!-- endpoints corretos -->
+        <a class="nav-link" href="{{ url_for('operacoes_automatico.painel') }}">Automático</a>
+        <a class="nav-link" href="{{ url_for('painel_operacao.painel_operacao') }}">Operação</a>
+        <a class="nav-link" href="{{ url_for('usuario_api.configurar_api') }}">Corretora</a>
+        <a class="nav-link" href="{{ url_for('usuario_api.testar_api') }}">Ordens</a>
+        <a class="nav-link" href="{{ url_for('usuario_api.historico') }}">Histórico</a>
       </div>
     </div>
   </nav>
@@ -45,7 +33,6 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-
     {% block content %}{% endblock %}
   </div>
 
