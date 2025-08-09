@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, filtro_periodo %}
+{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes %}
 {% block title %}Painel de Operação{% endblock %}
 {% block content %}
   <h2 class="mb-3">Painel de Operação</h2>
   {{ alert('success', alerta_dashboard|default('Bem-vinda ao painel!')) }}
-
   <div class="row g-3 mb-4">
     <div class="col-md-4">
       <div class="card p-3 h-100">
@@ -25,24 +24,16 @@
       </div>
     </div>
   </div>
-
-  <section class="mb-4">
-    <h5>Filtro</h5>
-    {{ filtro_periodo(url_for('painel_operacao.painel_operacao'), inicio, fim) }}
-  </section>
-
   <section class="mb-4">
     <h5>Visão Rápida</h5>
-    {% set ops = destaques if destaques is defined else [] %}
-    {% include 'componentes/cards_operacao.html' with context %}
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+      {% for o in destaques %}
+      <div class="col">{{ card_operacao(o.par, o.preco, o.direcao, o.status, o.extra) }}</div>
+      {% endfor %}
+    </div>
   </section>
-
   <section class="mb-3">
     <h5>Lista Completa</h5>
     {{ tabela_operacoes(ops_tabela or []) }}
   </section>
-
-  <div class="mb-4">
-    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path) }}
-  </div>
 {% endblock %}
