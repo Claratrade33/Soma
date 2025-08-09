@@ -1,0 +1,12 @@
+{% from 'componentes/macros.html' import card_operacao %}
+<div class="row row-cols-1 row-cols-md-3 g-3">
+  {% for o in ops or [] %}
+  <div class="col">
+    {{ card_operacao(o.par, o.preco, o.direcao, o.status, o.extra) }}
+  </div>
+  {% else %}
+  <div class="col">
+    <div class="text-muted">Sem dados de operações.</div>
+  </div>
+  {% endfor %}
+</div>
