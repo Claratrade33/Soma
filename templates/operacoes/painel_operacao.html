@@ -1,19 +1,15 @@
 {% extends "base.html" %}
 {% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, modal, filtro_periodo, toast %}
-
 {% block title %}Painel Automático — Operações{% endblock %}
-
 {% block content %}
   <h2 class="mb-3">Painel Automático</h2>
-
-  {# Alerta inicial / mensagens do sistema #}
   {{ alert('info', status_msg|default('Configure e inicie o robô quando estiver pronta.')) }}
 
   <section class="mb-4">
     <h5>Status do Robô</h5>
     <ul class="mb-2">
       <li>Rodando: <strong>{{ robo_status|default('desconhecido') }}</strong></li>
-      <li>Par de Operação: <strong>{{ par|default('BTC/USDT') }}</strong></li>
+      <li>Par: <strong>{{ par|default('BTC/USDT') }}</strong></li>
       <li>Timeframe: <strong>{{ timeframe|default('15m') }}</strong></li>
       <li>Estratégia: <strong>{{ estrategia|default('Padrão') }}</strong></li>
     </ul>
@@ -26,12 +22,11 @@
 
   <section class="mb-4">
     <h5>Filtro por Período</h5>
-    {{ filtro_periodo(url_for('operacoes_automatico.painel') if 'operacoes_automatico.painel' in globals() else '#', inicio, fim) }}
+    {{ filtro_periodo(url_for('operacoes_automatico.painel'), inicio, fim) }}
   </section>
 
   <section class="mb-4">
     <h5>Operações Recentes</h5>
-    {# Grid de cards com as operações #}
     {% set _ops = ops if ops is defined else [] %}
     {% include 'componentes/cards_operacao.html' with context %}
   </section>
@@ -42,10 +37,9 @@
   </section>
 
   <div class="mb-4">
-    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path if request is defined else '#') }}
+    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path) }}
   </div>
 
-  {# Modal e Toast de exemplo reutilizáveis #}
   {{ modal('confirmarAcaoAuto', 'Confirmar ação', 'Deseja realmente executar esta ação?', 'Confirmar') }}
   {{ toast(toast_titulo|default('Aviso'), toast_msg|default('Operação executada.')) }}
 {% endblock %}
