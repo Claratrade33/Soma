@@ -4,11 +4,39 @@
   <h2>Teste de Conexão — {{ exchange|capitalize }}</h2>
   {% if result.ok %}
     <div class="alert alert-success">Conectado! ✅</div>
-    <p><strong>BTCUSDT preço agora:</strong> {{ price or '-' }}</p>
-    <form method="post" action="{{ url_for('usuario_api.ordem_teste') }}" class="row g-2 align-items-end">
+    <p>
+      <strong>{{ symbol }}</strong> preço: <code>{{ price or '-' }}</code> •
+      USDT livre: <code>{{ free_usdt or 0 }}</code>
+    </p>
+
+    {# Sugestão com IA #}
+    <form method="post" action="{{ url_for('usuario_api.sugestao_ia') }}" class="row g-2 align-items-end mb-3">
       <div class="col-auto">
         <label class="form-label">Símbolo</label>
-        <input class="form-control" name="symbol" value="BTCUSDT">
+        <input class="form-control" name="symbol" value="{{ symbol or 'BTCUSDT' }}">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">Risco</label>
+        <select class="form-select" name="risco">
+          <option value="conservador">Conservador</option>
+          <option value="moderado">Moderado</option>
+          <option value="arrojado">Arrojado</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-info">Sugerir com IA</button>
+      </div>
+    </form>
+
+    {% if sug_text %}
+      <div class="alert alert-primary"><strong>IA:</strong> {{ sug_text }}</div>
+    {% endif %}
+
+    {# Envio de ordem #}
+    <form method="post" action="{{ url_for('usuario_api.ordem_enviar') }}" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label">Símbolo</label>
+        <input class="form-control" name="symbol" value="{{ symbol or 'BTCUSDT' }}">
       </div>
       <div class="col-auto">
         <label class="form-label">Side</label>
@@ -18,14 +46,32 @@
         </select>
       </div>
       <div class="col-auto">
-        <label class="form-label">Qtd</label>
-        <input class="form-control" name="qty" value="0.001">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" name="tipo" id="tipo">
+          <option value="MARKET">MARKET</option>
+          <option value="LIMIT">LIMIT (GTC)</option>
+        </select>
+      </div>
+      <div class="col-auto" id="priceWrap" style="display:none;">
+        <label class="form-label">Preço (LIMIT)</label>
+        <input class="form-control" name="price" value="{{ price or '' }}">
       </div>
       <div class="col-auto">
-        <button class="btn btn-warning">Enviar ordem de teste</button>
+        <label class="form-label">Qtd</label>
+        <input class="form-control" name="qty" value="{{ sug_qty or '0.001' }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-warning">Enviar ordem</button>
       </div>
     </form>
-    <p class="text-muted mt-2">*Em TESTNET a ordem é simulada na rede de teste.</p>
+
+    <script>
+      const tipo = document.getElementById('tipo');
+      const priceWrap = document.getElementById('priceWrap');
+      function togglePrice(){ priceWrap.style.display = (tipo.value === 'LIMIT') ? '' : 'none'; }
+      tipo.addEventListener('change', togglePrice); togglePrice();
+    </script>
+
   {% else %}
     <div class="alert alert-danger">Falha: {{ result.error }}</div>
     <a class="btn btn-secondary" href="{{ url_for('usuario_api.configurar_api') }}">Voltar</a>
