@@ -3,7 +3,6 @@ from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from flask_login import UserMixin
-
 from db import Base
 
 class Usuario(Base, UserMixin):
@@ -30,7 +29,7 @@ class OrderLog(Base):
     exchange: Mapped[str] = mapped_column(String(32), index=True)
     symbol: Mapped[str] = mapped_column(String(32), index=True)
     side: Mapped[str] = mapped_column(String(8))
-    tipo: Mapped[str] = mapped_column(String(16))  # MARKET/LIMIT/STOP/TAKE/OCO
+    tipo: Mapped[str] = mapped_column(String(16))
     qty: Mapped[float] = mapped_column(Float)
     price: Mapped[float] = mapped_column(Float, default=0.0)
     status: Mapped[str] = mapped_column(String(32), default="created")
