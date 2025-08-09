@@ -10,6 +10,5 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 Base = declarative_base()
 
 def init_db():
-    # importe SOMENTE os modelos que existem
-    from models import UserCredential, OrderLog  # noqa: F401
+    from models import Usuario, UserCredential, OrderLog  # noqa
     Base.metadata.create_all(engine)
