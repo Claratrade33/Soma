@@ -2,29 +2,44 @@
 {% block title %}Histórico de Ordens{% endblock %}
 {% block content %}
 <h3>Histórico de Ordens</h3>
-<table class="table table-dark table-striped align-middle">
-  <thead>
-    <tr>
-      <th>ID</th><th>Data</th><th>Exchange</th><th>Symbol</th>
-      <th>Side</th><th>Tipo</th><th>Qtd</th><th>Preço</th><th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for o in logs %}
-    <tr>
-      <td>{{ o.id }}</td>
-      <td>{{ o.created_at }}</td>
-      <td>{{ o.exchange }}</td>
-      <td>{{ o.symbol }}</td>
-      <td>{{ o.side }}</td>
-      <td>{{ o.tipo }}</td>
-      <td>{{ o.qty }}</td>
-      <td>{{ o.price }}</td>
-      <td>{{ o.status }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="9" class="text-center">Sem ordens ainda.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+
+{% if not has_local %}
+  <div class="alert alert-info">
+    Seu banco ainda não possui a tabela local de histórico (OrderHistory).
+    As ordens executadas podem ser vistas na exchange.
+  </div>
+{% endif %}
+
+{% if rows and rows|length > 0 %}
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>Quando</th>
+          <th>Símbolo</th>
+          <th>Side</th>
+          <th>Tipo</th>
+          <th>Qtd</th>
+          <th>Preço</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.created_at }}</td>
+          <td>{{ r.symbol }}</td>
+          <td>{{ r.side }}</td>
+          <td>{{ r.order_type }}</td>
+          <td>{{ r.quantity }}</td>
+          <td>{{ r.price }}</td>
+          <td>{{ r.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="text-muted">Nenhum registro local encontrado.</p>
+{% endif %}
 {% endblock %}
