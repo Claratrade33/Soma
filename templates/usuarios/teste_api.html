@@ -1,90 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Testar API / Ordens{% endblock %}
+{% block title %}Ordens / Teste de Conexão{% endblock %}
 {% block content %}
-<h3>Testar API / Enviar Ordem</h3>
+<h3>Teste de Conexão — Binance</h3>
 
-<div class="row g-3">
-  <div class="col-md-4">
-    <div class="card p-3">
-      <h6>Status da Conta</h6>
-      {% if result and result.ok %}
-        <pre class="small text-success">{{ result|tojson(indent=2) }}</pre>
-      {% else %}
-        <pre class="small text-danger">{{ result|tojson(indent=2) }}</pre>
-      {% endif %}
-    </div>
+{% if st.conectado %}
+  <div class="alert alert-success">Conectado! <small>(API: {{ st.api_base }})</small></div>
+{% else %}
+  <div class="alert alert-danger">Não conectado. Verifique suas credenciais.</div>
+{% endif %}
+
+<p><b>{{ st.symbol }}</b> preço: <b>{{ st.price }}</b> • USDT livre: <b>{{ st.usdt_free }}</b></p>
+
+<hr>
+<h5>Enviar Ordem de Mercado</h5>
+<form method="post" class="row g-3">
+  <div class="col-md-3">
+    <label class="form-label">Símbolo</label>
+    <input name="symbol" class="form-control" value="{{ st.symbol }}">
   </div>
-  <div class="col-md-8">
-    <div class="card p-3">
-      <form method="post" action="/usuario/ordem-enviar">
-        <div class="row g-2">
-          <div class="col-md-4">
-            <label class="form-label">Símbolo</label>
-            <input class="form-control" name="symbol" value="{{ symbol or 'BTCUSDT' }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Side</label>
-            <select name="side" class="form-select">
-              <option value="BUY">BUY</option>
-              <option value="SELL">SELL</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Tipo</label>
-            <select name="tipo" class="form-select" id="tipo">
-              <option>MARKET</option>
-              <option>LIMIT</option>
-              <option>STOP_LOSS_LIMIT</option>
-              <option>TAKE_PROFIT_LIMIT</option>
-              <option>OCO</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row g-2 mt-2">
-          <div class="col-md-3">
-            <label class="form-label">Qtd</label>
-            <input class="form-control" name="qty" value="{{ sug_qty or '' }}" placeholder="ex: 0.001">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Preço (LIMIT)</label>
-            <input class="form-control" name="price" value="">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Stop Price</label>
-            <input class="form-control" name="stop_price" value="">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Stop Limit Price</label>
-            <input class="form-control" name="stop_limit_price" value="">
-          </div>
-        </div>
-
-        <div class="row g-2 mt-3">
-          <div class="col-md-6">
-            <button class="btn btn-primary w-100">Enviar Ordem</button>
-          </div>
-          <div class="col-md-6">
-            <form method="post" action="/usuario/sugestao-ia">
-              <input type="hidden" name="symbol" value="{{ symbol or 'BTCUSDT' }}">
-              <select name="risco" class="form-select mb-2">
-                <option value="conservador">Conservador</option>
-                <option value="moderado">Moderado</option>
-                <option value="arrojado">Arrojado</option>
-              </select>
-              <button class="btn btn-outline-light w-100">Sugestão da IA</button>
-            </form>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <div class="card p-3 mt-3">
-      <div>Preço atual: <b>{{ price }}</b> | Saldo USDT: <b>{{ free_usdt }}</b></div>
-      {% if sug_text %}
-        <hr><div><b>Sugestão IA:</b> {{ sug_text }}</div>
-      {% endif %}
-    </div>
+  <div class="col-md-3">
+    <label class="form-label">Side</label>
+    <select name="side" class="form-select">
+      <option value="BUY">BUY</option>
+      <option value="SELL">SELL</option>
+    </select>
   </div>
-</div>
+  <div class="col-md-3">
+    <label class="form-label">Qtd</label>
+    <input name="qty" class="form-control" value="0.001">
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button class="btn btn-warning w-100">Enviar ordem</button>
+  </div>
+</form>
+
+{% if order_result %}
+  <div class="mt-3">
+    <pre class="bg-light p-3 rounded">{{ order_result | tojson(indent=2) }}</pre>
+  </div>
+{% endif %}
 {% endblock %}
