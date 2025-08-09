@@ -1,8 +1,18 @@
 from __future__ import annotations
 from datetime import datetime
-from sqlalchemy import String, DateTime, Text, Float
+from sqlalchemy import String, DateTime, Text, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
+from flask_login import UserMixin
+
 from db import Base
+
+class Usuario(Base, UserMixin):
+    __tablename__ = "usuarios"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(150), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class UserCredential(Base):
     __tablename__ = "user_credentials"
