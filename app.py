@@ -1,7 +1,9 @@
 import os
-from flask import Flask, render_template, redirect, url_for
-from dotenv import load_dotenv
+import requests
+from flask import Flask, render_template, redirect, url_for, Blueprint, jsonify, request
 from flask_login import LoginManager, login_required, current_user
+from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash
 
 load_dotenv()
 
@@ -9,13 +11,23 @@ from db import init_db, SessionLocal
 from models import Usuario
 from operacoes_automatico.rotas import bp_operacoes_auto
 from painel_operacao.rotas import bp_painel_operacao
-from usuarios.rotas import bp as usuarios_bp   # login/cadastro/logout
-from usuarios.rotas_api import bp_api          # API da corretora + ordens
+from usuarios.rotas import bp as usuarios_bp
+from usuarios.rotas_api import bp_api
 
-from werkzeug.security import generate_password_hash
+# API pública simples para preço ao vivo (proxy da Binance)
+bp_public = Blueprint("public_api", __name__)
+@bp_public.route("/api/ticker")
+def api_ticker():
+    symbol = request.args.get("symbol", "BTCUSDT").upper()
+    try:
+        r = requests.get("https://api.binance.com/api/v3/ticker/price",
+                         params={"symbol": symbol}, timeout=5)
+        r.raise_for_status()
+        return jsonify({"ok": True, "symbol": symbol, "price": float(r.json()["price"])})
+    except Exception as e:
+        return jsonify({"ok": False, "symbol": symbol, "error": str(e)}), 502
 
 def ensure_admin():
-    """Cria o usuário admin com senha Claraverse2025 se não existir."""
     with SessionLocal() as s:
         admin = s.query(Usuario).filter(Usuario.username == "admin").one_or_none()
         if not admin:
@@ -24,18 +36,15 @@ def ensure_admin():
                 password_hash=generate_password_hash("Claraverse2025"),
                 is_active=True
             )
-            s.add(admin)
-            s.commit()
+            s.add(admin); s.commit()
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque-esta-chave-super-secreta")
 
-    # DB: cria tabelas
     init_db()
     ensure_admin()
 
-    # Flask-Login
     login_manager = LoginManager()
     login_manager.login_view = "usuarios.login"
     login_manager.init_app(app)
@@ -45,19 +54,16 @@ def create_app():
         with SessionLocal() as s:
             return s.get(Usuario, int(user_id))
 
-    # Blueprints
-    app.register_blueprint(usuarios_bp, url_prefix="/usuario")        # /usuario/login, /usuario/logout
-    app.register_blueprint(bp_operacoes_auto)                         # /operacoes_automatico/...
-    app.register_blueprint(bp_painel_operacao)                        # /painel/operacao
-    app.register_blueprint(bp_api)                                    # /usuario/configurar-api, /usuario/testar-api, etc.
+    app.register_blueprint(usuarios_bp, url_prefix="/usuario")
+    app.register_blueprint(bp_operacoes_auto)
+    app.register_blueprint(bp_painel_operacao)
+    app.register_blueprint(bp_api)
+    app.register_blueprint(bp_public)  # /api/ticker
 
-    # INDEX = Login (tela inicial)
     @app.route("/")
     def index():
-        # Renderiza o formulário de login diretamente
         return render_template("index.html")
 
-    # Rota “atalho” para o painel (exige login)
     @app.route("/painel")
     @login_required
     def painel_redirect():
@@ -65,7 +71,6 @@ def create_app():
 
     return app
 
-# WSGI para Render (gunicorn app:app)
 app = create_app()
 
 if __name__ == "__main__":
