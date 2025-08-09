@@ -1,73 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Painel de Operações - ClaraVerse{% endblock %}
+{% from 'componentes/macros.html' import alert, card_operacao, tabela_operacoes, paginacao, modal, filtro_periodo, toast %}
+
+{% block title %}Painel Automático — Operações{% endblock %}
 
 {% block content %}
-<h2>ClaraVerse • Operações em Tempo Real</h2>
+  <h2 class="mb-3">Painel Automático</h2>
 
-<div id="grafico-container">
-  <!-- Exemplo TradingView Widget, trocar pelo ativo que desejar -->
-  <iframe src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=1&theme=dark"
-          width="100%" height="350" frameborder="0"></iframe>
-</div>
+  {# Alerta inicial / mensagens do sistema #}
+  {{ alert('info', status_msg|default('Configure e inicie o robô quando estiver pronta.')) }}
 
-<div class="botoes-operacao">
-  <button onclick="executarAcao('entrada')">ENTRADA</button>
-  <button onclick="executarAcao('stop')">STOP</button>
-  <button onclick="executarAcao('alvo')">ALVO</button>
-  <button onclick="executarAcao('executar')">EXECUTAR</button>
-  <form id="auto-form" method="post" action="/modo_automatico">
-    <button name="acao" value="start">INICIAR AUTO</button>
-    <button name="acao" value="stop">PARAR AUTO</button>
-  </form>
-</div>
+  <section class="mb-4">
+    <h5>Status do Robô</h5>
+    <ul class="mb-2">
+      <li>Rodando: <strong>{{ robo_status|default('desconhecido') }}</strong></li>
+      <li>Par de Operação: <strong>{{ par|default('BTC/USDT') }}</strong></li>
+      <li>Timeframe: <strong>{{ timeframe|default('15m') }}</strong></li>
+      <li>Estratégia: <strong>{{ estrategia|default('Padrão') }}</strong></li>
+    </ul>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary">Iniciar</button>
+      <button class="btn btn-warning">Pausar</button>
+      <button class="btn btn-danger">Parar</button>
+    </div>
+  </section>
 
-<p><a href="{{ url_for('config_api') }}">Configurar Binance API</a></p>
+  <section class="mb-4">
+    <h5>Filtro por Período</h5>
+    {{ filtro_periodo(url_for('operacoes_automatico.painel') if 'operacoes_automatico.painel' in globals() else '#', inicio, fim) }}
+  </section>
 
-<div class="sugestao-ia">
-  <h3>Sugestão da IA Clarinha</h3>
-  <p id="ia_sugestao">Aguardando sugestão...</p>
-</div>
+  <section class="mb-4">
+    <h5>Operações Recentes</h5>
+    {# Grid de cards com as operações #}
+    {% set _ops = ops if ops is defined else [] %}
+    {% include 'componentes/cards_operacao.html' with context %}
+  </section>
 
-<div class="dados-operacao">
-  <p><strong>Entrada:</strong> <span id="valor_entrada">-</span></p>
-  <p><strong>Alvo:</strong> <span id="valor_alvo">-</span></p>
-  <p><strong>Stop:</strong> <span id="valor_stop">-</span></p>
-  <p><strong>Confiança:</strong> <span id="valor_confianca">-</span></p>
-</div>
+  <section class="mb-3">
+    <h5>Tabela de Operações</h5>
+    {{ tabela_operacoes(_ops) }}
+  </section>
 
-<script>
-// Busca sugestão da IA do backend Flask
-function atualizarSugestaoIA() {
-  fetch('/api/ia/sugestao')
-    .then(response => response.json())
-    .then(data => {
-      document.getElementById('ia_sugestao').innerText = data.sugestao || 'Sem sugestão';
-      document.getElementById('valor_entrada').innerText = data.entrada || '-';
-      document.getElementById('valor_alvo').innerText = data.alvo || '-';
-      document.getElementById('valor_stop').innerText = data.stop || '-';
-      document.getElementById('valor_confianca').innerText = data.confianca ? (data.confianca + "%") : '-';
-    })
-    .catch(() => {
-      document.getElementById('ia_sugestao').innerText = 'Erro ao buscar sugestão';
-    });
-}
+  <div class="mb-4">
+    {{ paginacao(pagina|default(1), total_paginas|default(1), request.path if request is defined else '#') }}
+  </div>
 
-// Função de execução de ação (manda para backend, registra histórico e executa ordem)
-function executarAcao(acao) {
-  fetch('/api/operacao', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ acao: acao })
-  })
-  .then(response => response.json())
-  .then(data => {
-    alert(data.mensagem || 'Ação executada!');
-    atualizarSugestaoIA();
-  })
-  .catch(() => alert('Erro ao executar ação'));
-}
-
-// Atualiza sugestão da IA ao carregar
-document.addEventListener('DOMContentLoaded', atualizarSugestaoIA);
-</script>
+  {# Modal e Toast de exemplo reutilizáveis #}
+  {{ modal('confirmarAcaoAuto', 'Confirmar ação', 'Deseja realmente executar esta ação?', 'Confirmar') }}
+  {{ toast(toast_titulo|default('Aviso'), toast_msg|default('Operação executada.')) }}
 {% endblock %}
