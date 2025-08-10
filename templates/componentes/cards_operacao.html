@@ -1,16 +1,21 @@
 <div class="row g-3">
   {% for o in ops %}
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <h6 class="mb-1">{{ o.par }}</h6>
-            <span class="badge text-bg-secondary">{{ o.status }}</span>
-          </div>
-          <div class="small text-muted mb-2">{{ o.extra }}</div>
-          <div><strong>{{ o.direcao }}</strong> • preço: {{ o.preco }}</div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <h6 class="card-title mb-1">{{ o.par }}</h6>
+          <span class="badge bg-secondary text-uppercase">{{ o.direcao or o.side }}</span>
         </div>
+        <div class="small text-muted">Preço: <strong>{{ o.preco }}</strong></div>
+        <div class="small mt-2">Status:
+          <span class="badge bg-{% if o.status=='aberta' %}warning{% elif o.status in ['executada','encerrada'] %}success{% else %}secondary{% endif %}">
+            {{ o.status }}
+          </span>
+        </div>
+        {% if o.extra %}<div class="small text-info mt-2">{{ o.extra }}</div>{% endif %}
       </div>
     </div>
+  </div>
   {% endfor %}
 </div>
