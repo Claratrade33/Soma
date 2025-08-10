@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Entrar — ClaraVerse{% endblock %}
+{% block content %}
+  <div class="card p-4">
+    <h3 class="mb-3">Bem-vinda 👋</h3>
+    <div class="alert alert-info">
+      Dica: usuário <strong>admin</strong> e senha <strong>Claraverse2025</strong> já estão cadastrados.
+    </div>
+    <form method="post" action="{{ url_for('usuarios.login') }}">
+      <div class="mb-3">
+        <label class="form-label">Usuário</label>
+        <input class="form-control" name="username" value="admin">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-control" name="password" value="Claraverse2025">
+      </div>
+      <button class="btn btn-warning">Entrar</button>
+      <a class="btn btn-outline-secondary ms-2" href="{{ url_for('painel_operacao.dashboard') }}">Ir direto ao painel</a>
+    </form>
+  </div>
+{% endblock %}
