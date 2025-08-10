@@ -1,50 +1,78 @@
-{% macro alert(tipo, msg) -%}
-  <div class="alert alert-{{ tipo }}">{% autoescape false %}{{ msg }}{% endautoescape %}</div>
+{% macro alert(tipo, mensagem) -%}
+  {% if mensagem %}
+    <div class="alert alert-{{ tipo }} alert-dismissible fade show" role="alert">
+      {{ mensagem }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+  {% endif %}
 {%- endmacro %}
 
 {% macro filtro_periodo(action, inicio, fim) -%}
-  <form class="row g-2" method="get" action="{{ action }}">
-    <div class="col-md-5">
-      <input type="date" name="inicio" value="{{ inicio or '' }}" class="form-control">
-    </div>
-    <div class="col-md-5">
-      <input type="date" name="fim" value="{{ fim or '' }}" class="form-control">
-    </div>
-    <div class="col-md-2 d-grid">
-      <button class="btn btn-outline-primary">Filtrar</button>
-    </div>
-  </form>
+<form class="row g-2 align-items-end" method="get" action="{{ action }}">
+  <div class="col-sm-5">
+    <label class="form-label">Início</label>
+    <input type="date" class="form-control" name="inicio" value="{{ inicio|default('') }}">
+  </div>
+  <div class="col-sm-5">
+    <label class="form-label">Fim</label>
+    <input type="date" class="form-control" name="fim" value="{{ fim|default('') }}">
+  </div>
+  <div class="col-sm-2">
+    <button class="btn btn-primary w-100">Filtrar</button>
+  </div>
+</form>
 {%- endmacro %}
 
 {% macro tabela_operacoes(ops) -%}
   <div class="table-responsive">
-    <table class="table table-sm align-middle">
-      <thead><tr>
-        <th>Par</th><th>Preço</th><th>Direção</th><th>Status</th><th>Obs</th>
-      </tr></thead>
-      <tbody>
-      {% for o in ops %}
+    <table class="table table-dark table-hover align-middle">
+      <thead>
         <tr>
-          <td>{{ o.par }}</td>
-          <td>{{ o.preco }}</td>
-          <td>{{ o.direcao }}</td>
-          <td>{{ o.status }}</td>
-          <td class="text-muted">{{ o.extra }}</td>
+          <th>#</th><th>Par</th><th>Tipo</th><th>Qtd</th><th>Preço</th><th>Status</th><th>Quando</th>
         </tr>
-      {% else %}
-        <tr><td colspan="5" class="text-center text-muted">Sem operações.</td></tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% if ops and ops|length>0 %}
+          {% for o in ops %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ o.par }}</td>
+            <td>{{ o.side }}</td>
+            <td>{{ o.qtd }}</td>
+            <td>{{ o.preco }}</td>
+            <td>
+              <span class="badge bg-{% if o.status in ['executada','fechada'] %}success{% elif o.status=='aberta' %}warning{% else %}secondary{% endif %}">
+                {{ o.status }}
+              </span>
+            </td>
+            <td>{{ o.quando }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" class="text-muted">Sem registros.</td></tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
 {%- endmacro %}
 
 {% macro paginacao(pagina, total, base_url) -%}
-  <nav aria-label="Paginação" class="mt-2">
-    <ul class="pagination pagination-sm mb-0">
-      <li class="page-item {{ 'disabled' if pagina<=1 }}"><a class="page-link" href="{{ base_url }}?p={{ pagina-1 }}">«</a></li>
-      <li class="page-item disabled"><span class="page-link">{{ pagina }} / {{ total }}</span></li>
-      <li class="page-item {{ 'disabled' if pagina>=total }}"><a class="page-link" href="{{ base_url }}?p={{ pagina+1 }}">»</a></li>
+  {% if total|int > 1 %}
+  <nav>
+    <ul class="pagination">
+      {% set p = pagina|int %}
+      <li class="page-item {% if p<=1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ base_url }}?page={{ p-1 }}">«</a>
+      </li>
+      {% for i in range(1, total+1) %}
+        <li class="page-item {% if i==p %}active{% endif %}">
+          <a class="page-link" href="{{ base_url }}?page={{ i }}">{{ i }}</a>
+        </li>
+      {% endfor %}
+      <li class="page-item {% if p>=total %}disabled{% endif %}">
+        <a class="page-link" href="{{ base_url }}?page={{ p+1 }}">»</a>
+      </li>
     </ul>
   </nav>
+  {% endif %}
 {%- endmacro %}
