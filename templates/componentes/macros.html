@@ -1,38 +1,50 @@
-{% macro alert(tipo='info', mensagem='Tudo certo!') -%}
-<div class="alert alert-{{ tipo }} my-2" role="alert">{{ mensagem }}</div>
+{% macro alert(tipo, msg) -%}
+  <div class="alert alert-{{ tipo }}">{% autoescape false %}{{ msg }}{% endautoescape %}</div>
 {%- endmacro %}
 
-{% macro card_operacao(par='BTC/USDT', preco='-', direcao='NEUTRO', status='aguardando', extra=None) -%}
-<div class="card h-100">
-  <div class="card-body">
-    <h5 class="card-title">{{ par }}</h5>
-    <p class="card-text mb-1"><strong>Preço:</strong> {{ preco }}</p>
-    <p class="card-text mb-1"><strong>Direção:</strong> {{ direcao }}</p>
-    <p class="card-text"><strong>Status:</strong> {{ status }}</p>
-    {% if extra %}<div class="small text-muted">{{ extra }}</div>{% endif %}
+{% macro filtro_periodo(action, inicio, fim) -%}
+  <form class="row g-2" method="get" action="{{ action }}">
+    <div class="col-md-5">
+      <input type="date" name="inicio" value="{{ inicio or '' }}" class="form-control">
+    </div>
+    <div class="col-md-5">
+      <input type="date" name="fim" value="{{ fim or '' }}" class="form-control">
+    </div>
+    <div class="col-md-2 d-grid">
+      <button class="btn btn-outline-primary">Filtrar</button>
+    </div>
+  </form>
+{%- endmacro %}
+
+{% macro tabela_operacoes(ops) -%}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead><tr>
+        <th>Par</th><th>Preço</th><th>Direção</th><th>Status</th><th>Obs</th>
+      </tr></thead>
+      <tbody>
+      {% for o in ops %}
+        <tr>
+          <td>{{ o.par }}</td>
+          <td>{{ o.preco }}</td>
+          <td>{{ o.direcao }}</td>
+          <td>{{ o.status }}</td>
+          <td class="text-muted">{{ o.extra }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted">Sem operações.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
   </div>
-</div>
 {%- endmacro %}
 
-{% macro tabela_operacoes(ops=[]) -%}
-<table class="table table-striped table-sm align-middle">
-  <thead>
-    <tr><th>#</th><th>Par</th><th>Tipo</th><th>Preço</th><th>Qtd</th><th>Status</th><th>Atualizado</th></tr>
-  </thead>
-  <tbody>
-  {% for o in ops %}
-    <tr>
-      <td>{{ loop.index }}</td>
-      <td>{{ o.par }}</td>
-      <td>{{ o.tipo or o.direcao }}</td>
-      <td>{{ o.preco }}</td>
-      <td>{{ o.qtd or '-' }}</td>
-      <td>{{ o.status }}</td>
-      <td>{{ o.atualizado_em or '-' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" class="text-center text-muted">Sem operações.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+{% macro paginacao(pagina, total, base_url) -%}
+  <nav aria-label="Paginação" class="mt-2">
+    <ul class="pagination pagination-sm mb-0">
+      <li class="page-item {{ 'disabled' if pagina<=1 }}"><a class="page-link" href="{{ base_url }}?p={{ pagina-1 }}">«</a></li>
+      <li class="page-item disabled"><span class="page-link">{{ pagina }} / {{ total }}</span></li>
+      <li class="page-item {{ 'disabled' if pagina>=total }}"><a class="page-link" href="{{ base_url }}?p={{ pagina+1 }}">»</a></li>
+    </ul>
+  </nav>
 {%- endmacro %}
