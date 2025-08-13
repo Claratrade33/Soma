@@ -1,43 +1,40 @@
+<!-- templates/painel/dashboard.html -->
 {% extends "base.html" %}
-{% from 'componentes/macros.html' import alert, tabela_operacoes, paginacao, filtro_periodo %}
 {% block title %}Dashboard — Operações{% endblock %}
-
 {% block content %}
-<h2 class="mb-3">Dashboard</h2>
+  <h2 class="mb-4">Dashboard</h2>
 
-{{ alert('success', alerta_dashboard|default('')) }}
-
-<div class="row g-3 mb-4">
-  <div class="col-md-4">
-    <div class="card p-3 h-100">
-      <h6 class="text-muted">Saldo</h6>
-      <div class="display-6">{{ saldo|default(0) }} <small class="text-muted">USDT</small></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card panel-ghost">
+        <div class="card-body">
+          <h6 class="text-muted">Saldo</h6>
+          <div class="display-6">0 <small class="text-muted">USDT</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card panel-ghost">
+        <div class="card-body">
+          <h6 class="text-muted">Lucro (24h)</h6>
+          <div class="display-6">0 <small class="text-muted">USDT</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card panel-ghost">
+        <div class="card-body">
+          <h6 class="text-muted">Operações Abertas</h6>
+          <div class="display-6">0</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="card p-3 h-100">
-      <h6 class="text-muted">Lucro (24h)</h6>
-      <div class="display-6">{{ lucro_24h|default(0) }} <small class="text-muted">USDT</small></div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="mb-3">Visão rápida</h5>
+      <p class="text-muted">Em breve: tabela de operações, métricas e gráficos.</p>
     </div>
   </div>
-  <div class="col-md-4">
-    <div class="card p-3 h-100">
-      <h6 class="text-muted">Operações Abertas</h6>
-      <div class="display-6">{{ abertas|default(0) }}</div>
-    </div>
-  </div>
-</div>
-
-<section class="mb-4">
-  <h5>Filtro</h5>
-  {{ filtro_periodo(url_for('painel_operacao.dashboard'), inicio, fim) }}
-</section>
-
-<section class="mb-3">
-  <h5>Últimas ordens</h5>
-  {% set ops = ops_tabela if ops_tabela is defined else [] %}
-  {{ tabela_operacoes(ops) }}
-</section>
-
-{{ paginacao(pagina|default(1), total_paginas|default(1), request.path) }}
 {% endblock %}
