@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Operação{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Nova Operação</h2>
+  <div class="card p-4">
+    <form>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Par</label>
+          <input class="form-control" value="BTCUSDT">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Side</label>
+          <select class="form-select">
+            <option>BUY</option>
+            <option>SELL</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Quantidade</label>
+          <input class="form-control" value="0.001">
+        </div>
+      </div>
+      <button class="btn btn-brand mt-3">Enviar ordem</button>
+    </form>
+  </div>
+{% endblock %}
