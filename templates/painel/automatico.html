@@ -1,28 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Painel — Automático{% endblock %}
-{% block content %}
-  <h2 class="mb-3">Painel — Automático</h2>
-  <p class="text-muted">Aqui ficará o controle das estratégias automáticas.</p>
 
-  <div class="card p-3">
-    <form method="post">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Par</label>
-          <input name="par" class="form-control" value="BTCUSDT">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Risco</label>
-          <select name="risco" class="form-select">
-            <option>Conservador</option>
-            <option>Moderado</option>
-            <option>Agressivo</option>
-          </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-          <button class="btn btn-primary w-100">Salvar estratégia</button>
-        </div>
+{% block content %}
+  <h2 class="mb-4">Painel — Automático</h2>
+  <p class="muted">Aqui ficará o controle das estratégias automáticas.</p>
+
+  <div class="card p-4 mt-3">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h5 class="mb-1">Estratégia Exemplo</h5>
+        <div class="muted">RSI + Média Móvel • BTC/USDT</div>
       </div>
-    </form>
+      <button class="btn btn-brand">Ativar</button>
+    </div>
   </div>
 {% endblock %}
