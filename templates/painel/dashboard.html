@@ -1,40 +1,32 @@
-<!-- templates/painel/dashboard.html -->
 {% extends "base.html" %}
 {% block title %}Dashboard — Operações{% endblock %}
+
 {% block content %}
   <h2 class="mb-4">Dashboard</h2>
 
   <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <div class="card panel-ghost">
-        <div class="card-body">
-          <h6 class="text-muted">Saldo</h6>
-          <div class="display-6">0 <small class="text-muted">USDT</small></div>
-        </div>
+      <div class="card p-3 h-100">
+        <div class="muted">Saldo</div>
+        <div class="display-6">0 <small class="muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card panel-ghost">
-        <div class="card-body">
-          <h6 class="text-muted">Lucro (24h)</h6>
-          <div class="display-6">0 <small class="text-muted">USDT</small></div>
-        </div>
+      <div class="card p-3 h-100">
+        <div class="muted">Lucro (24h)</div>
+        <div class="display-6">0 <small class="muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card panel-ghost">
-        <div class="card-body">
-          <h6 class="text-muted">Operações Abertas</h6>
-          <div class="display-6">0</div>
-        </div>
+      <div class="card p-3 h-100">
+        <div class="muted">Operações Abertas</div>
+        <div class="display-6">0</div>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-body">
-      <h5 class="mb-3">Visão rápida</h5>
-      <p class="text-muted">Em breve: tabela de operações, métricas e gráficos.</p>
-    </div>
+  <div class="alert alert-info">
+    Esta é uma versão estática do dashboard. Depois podemos conectar nos
+    serviços reais e preencher os cards com dados da corretora.
   </div>
 {% endblock %}
