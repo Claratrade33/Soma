@@ -1,6 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Histórico{% endblock %}
+{% block title %}Histórico de Operações{% endblock %}
 {% block content %}
-  <h3 class="mb-3">Histórico</h3>
-  <p class="text-muted">O histórico de operações ficará aqui (em breve).</p>
+  <h3 class="mb-3">Histórico de Operações — {{ symbol }}</h3>
+
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-auto">
+      <input class="form-control" name="symbol" value="{{ symbol }}" placeholder="BTCUSDT">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-secondary">Trocar símbolo</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if trades and not error %}
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <th>ID</th><th>Side</th><th>Preço</th><th>Quantidade</th>
+            <th>Comissão</th><th>Moeda Comissão</th><th>Data/Hora</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in trades %}
+            <tr>
+              <td>{{ t.id }}</td>
+              <td>{% if t.isBuyer %}Compra{% else %}Venda{% endif %}</td>
+              <td>{{ t.price }}</td>
+              <td>{{ t.qty }}</td>
+              <td>{{ t.commission }}</td>
+              <td>{{ t.commissionAsset }}</td>
+              <td>{{ t.time }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif not error %}
+    <div class="alert alert-info">Nenhuma operação encontrada para {{ symbol }}.</div>
+  {% endif %}
 {% endblock %}
