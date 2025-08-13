@@ -1,36 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Operações{% endblock %}
-
 {% block content %}
-  <h2 class="mb-4">Dashboard</h2>
+  <h2 class="mb-3">Dashboard</h2>
 
-  {% if alert %}
-    <div class="alert alert-info">{{ alert }}</div>
+  {% if alerta_dashboard %}
+    <div class="alert alert-warning">{{ alerta_dashboard }}</div>
   {% endif %}
 
   <div class="row g-3 mb-4">
     <div class="col-md-4">
       <div class="card p-3 h-100">
-        <div class="muted">Saldo</div>
-        <div class="display-6">{{ saldo|default('0') }} <small class="muted">USDT</small></div>
+        <h6 class="text-muted">Saldo</h6>
+        <div class="display-6">{{ saldo|default('0') }} <small class="text-muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card p-3 h-100">
-        <div class="muted">Lucro (24h)</div>
-        <div class="display-6">{{ lucro_24h|default('0') }} <small class="muted">USDT</small></div>
+        <h6 class="text-muted">Lucro (24h)</h6>
+        <div class="display-6">{{ lucro_24h|default('0') }} <small class="text-muted">USDT</small></div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card p-3 h-100">
-        <div class="muted">Operações Abertas</div>
+        <h6 class="text-muted">Operações Abertas</h6>
         <div class="display-6">{{ abertas|default(0) }}</div>
       </div>
     </div>
   </div>
 
-  <div class="alert alert-info">
-    Esta é uma versão estática do lucro (24h). Depois conectamos um cálculo
-    real (ex: consolidar trades do dia). Saldo e ordens abertas já usam a API.
+  <div class="card p-3">
+    <h5 class="mb-2">Destaques</h5>
+    <ul class="mb-0">
+      <li>BTC/USDT — exemplo</li>
+      <li>ETH/USDT — exemplo</li>
+    </ul>
   </div>
 {% endblock %}
