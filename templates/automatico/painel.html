@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Painel — Automático{% endblock %}
+
+{% block content %}
+  <h3 class="mb-3">Painel — Automático</h3>
+  <p class="text-muted mb-4">Controle das estratégias automáticas.</p>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card panel-ghost">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Status do robô</h6>
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge text-bg-secondary">Parado</span>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button class="btn btn-success" disabled>Iniciar</button>
+            <button class="btn btn-outline-danger" disabled>Parar</button>
+          </div>
+
+          <hr>
+          <small class="text-muted">Em breve: controle real de execução, logs em tempo real e métricas.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-3">Estratégias</h5>
+
+          <form class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Par</label>
+              <input class="form-control" value="BTCUSDT" disabled>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Risco</label>
+              <select class="form-select" disabled>
+                <option>Conservador</option>
+                <option>Médio</option>
+                <option>Agressivo</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-warning w-100" disabled>Salvar estratégia</button>
+            </div>
+          </form>
+
+          <div class="table-responsive">
+            <table class="table table-dark table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Estratégia</th>
+                  <th>Par</th>
+                  <th>Status</th>
+                  <th>P/L 24h</th>
+                  <th width="1%">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>RSI + MME</td>
+                  <td>BTCUSDT</td>
+                  <td><span class="badge text-bg-secondary">Parada</span></td>
+                  <td class="text-muted">—</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>Detalhes</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Breakout 1h</td>
+                  <td>ETHUSDT</td>
+                  <td><span class="badge text-bg-secondary">Parada</span></td>
+                  <td class="text-muted">—</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>Detalhes</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="alert alert-info mt-3 mb-0">
+            Placeholders prontos. Quando ligarmos a lógica, estes botões passam a controlar o robô de fato.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
