@@ -1,7 +1,71 @@
-/* ClaraVerse básico */
-body { background-color: #0f1830; color: #e9eef6; }
-.card { background-color: #121a2e; border: 1px solid #223055; }
-.navbar-brand { font-weight: 700; letter-spacing: .5px; }
-.alert-info { background-color: #cfe9ff; color: #0b2e47; }
-a { color: #63b3ff; }
-a:hover { color: #8cc9ff; }
+/* static/css/app.css */
+:root{
+  --bg:#0c1424;
+  --card:#0f1b33;
+  --text:#e8eefc;
+  --muted:#9fb3d1;
+  --brand:#ffd200;
+  --ok:#1f8f4e;
+  --info:#bfe8ff;
+}
+
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+  height:100%;
+}
+
+.navbar{
+  background:#101a2f !important;
+  border-bottom:1px solid #1a2a4a;
+}
+
+a, .nav-link { color:#a9c8ff; }
+a:hover{ color:#d7e6ff; }
+
+.container-page{
+  max-width: 980px;
+  margin: 24px auto 64px auto;
+  padding: 0 16px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid #1c2a4a;
+  color:var(--text);
+  border-radius:14px;
+}
+
+.btn-brand{
+  background:var(--brand);
+  color:#0b0b0b;
+  font-weight:700;
+  border:none;
+}
+.btn-brand:hover{ filter:brightness(0.9); }
+
+.alert-success{
+  background:#123522;
+  border-color:#1f5a37;
+  color:#c7f5db;
+}
+.alert-info{
+  background:#0f2b42;
+  border-color:#194e74;
+  color:#cfeaff;
+}
+
+.form-control, .form-select{
+  background:#0c162a;
+  color:var(--text);
+  border:1px solid #1a2a4a;
+}
+.form-control:focus, .form-select:focus{
+  outline:none;
+  box-shadow:none;
+  border-color:#325aa0;
+}
+
+.muted{ color:var(--muted); }
+.display-6{ font-weight:700; }
