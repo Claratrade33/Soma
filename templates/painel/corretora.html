@@ -2,55 +2,85 @@
 {% block title %}Corretora — Configurar API{% endblock %}
 
 {% block content %}
-  <h2 class="mb-4">Corretora — Binance</h2>
+<div class="container-narrow">
 
-  {% if status == "ok" %}
-    <div class="alert alert-success">{{ msg }}</div>
-  {% elif status == "erro" %}
-    <div class="alert alert-danger">{{ msg }}</div>
+  <h2 class="mb-3">Configurar API — Corretora (Binance)</h2>
+  <p class="text-muted mb-4">
+    Cole suas credenciais da Binance <strong>(Spot)</strong> e teste a conexão.
+    Suas chaves ficam salvas localmente no servidor (<code>storage/keys.json</code>)
+    nesta versão de demonstração.
+  </p>
+
+  {# mensagens flash (sucesso/erro) vindas do backend #}
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      {% for cat, m in msgs %}
+        <div class="alert alert-{{ 'success' if cat=='success' else 'danger' }} alert-dismissible fade show" role="alert">
+          {{ m }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {# status direto da view (quando POST falha/sucesso) #}
+  {% if status == 'ok' %}
+    <div class="alert alert-success">✅ {{ msg }}</div>
+  {% elif status == 'erro' %}
+    <div class="alert alert-danger">❌ {{ msg }}</div>
   {% endif %}
 
-  <div class="row g-4">
-    <div class="col-lg-7">
-      <div class="card p-4">
-        <h5 class="mb-3">Conectar suas chaves</h5>
-        <form method="post">
-          <div class="mb-3">
-            <label class="form-label">API Key</label>
-            <input class="form-control" name="api_key" value="{{ api_key }}" placeholder="cole sua API Key">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">API Secret</label>
-            <input class="form-control" name="api_secret" value="{{ api_secret }}" placeholder="cole seu API Secret">
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-brand">Salvar e Testar</button>
-            <a href="{{ url_for('painel.dashboard') }}" class="btn btn-outline-light">Ir ao Dashboard</a>
-          </div>
-        </form>
-        <p class="mt-3 text-muted" style="font-size:.95rem">
-          Dica: essas chaves ficam salvas somente durante a execução atual do serviço
-          (novo deploy limpa o arquivo). Depois podemos usar banco + criptografia.
-        </p>
-      </div>
+  <form method="post" class="card p-3 mb-4">
+    <div class="mb-3">
+      <label class="form-label">API Key</label>
+      <input type="text" name="api_key" class="form-control" placeholder="AKIA..." value="{{ api_key|default('') }}" autocomplete="off" required>
     </div>
 
-    <div class="col-lg-5">
-      <div class="card p-4 h-100">
-        <h6 class="mb-3">Visão rápida (se conectado)</h6>
-        <div class="d-flex justify-content-between">
-          <span class="muted">Saldo USDT</span>
-          <strong>{{ quick.usdt }}</strong>
-        </div>
-        <div class="d-flex justify-content-between">
-          <span class="muted">Ordens Abertas</span>
-          <strong>{{ quick.abertas }}</strong>
-        </div>
-        <hr>
-        <a class="btn btn-sm btn-outline-light" href="{{ url_for('usuarios.ordens') }}">
-          Ver ordens
-        </a>
+    <div class="mb-3">
+      <label class="form-label">API Secret</label>
+      <input type="password" name="api_secret" class="form-control" placeholder="••••••" value="{{ api_secret|default('') }}" autocomplete="off" required>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Salvar &amp; Testar Conexão</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('usuarios.configurar_api') }}">Cancelar</a>
+    </div>
+
+    <small class="text-muted d-block mt-3">
+      Dica: ative nas permissões da chave <em>Enable Reading</em> e, se for operar,
+      <em>Enable Spot &amp; Margin Trading</em>. Para esta demo usamos somente Spot.
+    </small>
+  </form>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="text-muted mb-1">Visão rápida</h6>
+        <div class="small text-muted mb-2">Com base nas chaves atuais</div>
+        <ul class="list-unstyled mb-0">
+          <li>Saldo livre em <strong>USDT</strong>: <strong>{{ quick.usdt|default('0') }}</strong></li>
+          <li>Ordens abertas: <strong>{{ quick.abertas|default(0) }}</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h6 class="text-muted mb-2">Próximos passos</h6>
+        <ol class="mb-0 small">
+          <li>Salvar chaves (acima) e validar a conexão.</li>
+          <li>Abrir o <a href="{{ url_for('painel.dashboard') }}">Dashboard</a> para ver saldo/ordens abertas.</li>
+          <li>Ver <a href="{{ url_for('usuarios.ordens') }}">Ordens</a> (ex.: <code>?symbol=BTCUSDT</code>).</li>
+        </ol>
       </div>
     </div>
   </div>
+
+  <div class="alert alert-warning mt-4">
+    <strong>Atenção:</strong> em deploys do Render, arquivos locais não são persistentes entre
+    implantações. Para produção, prefira salvar as chaves em
+    <em>Settings → Environment</em> (<code>BINANCE_API_KEY</code> e <code>BINANCE_API_SECRET</code>)
+    ou em <em>Secret Files</em>.
+  </div>
+
+</div>
 {% endblock %}
