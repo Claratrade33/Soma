@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% from 'componentes/macros.html' import tabela_operacoes, filtro_periodo %}
 {% block title %}Histórico{% endblock %}
-{% block content %}
-  <h2 class="mb-3">Histórico</h2>
-  {{ filtro_periodo(url_for('painel_operacao.historico'), inicio, fim) }}
 
-  <hr class="my-3">
-  {% set ops = historico if historico is defined else [] %}
-  {{ tabela_operacoes(ops) }}
+{% block content %}
+  <h2 class="mb-4">Histórico</h2>
+  <p class="muted">Seu histórico de operações aparecerá aqui.</p>
+
+  <div class="card p-3 mt-3">
+    <div class="muted">Nada por enquanto.</div>
+  </div>
 {% endblock %}
