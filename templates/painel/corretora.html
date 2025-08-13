@@ -3,21 +3,25 @@
 
 {% block content %}
   <h2 class="mb-4">Configurar API da Corretora</h2>
+
   <div class="card p-4">
-    <p class="muted mb-3">
-      Aqui você conectará suas chaves (API Key / Secret). Nesta versão de
-      demonstração o formulário é apenas visual.
-    </p>
-    <form>
-      <div class="mb-3">
-        <label class="form-label">API Key</label>
-        <input class="form-control" placeholder="Cole sua API Key">
-      </div>
-      <div class="mb-3">
-        <label class="form-label">API Secret</label>
-        <input class="form-control" placeholder="Cole sua API Secret">
-      </div>
-      <button class="btn btn-brand" type="button">Salvar</button>
-    </form>
+    <ol class="mb-0">
+      <li>Abra o <b>Render → Settings → Environment</b>.</li>
+      <li>Adicione as variáveis:
+        <ul>
+          <li><code>BINANCE_API_KEY</code></li>
+          <li><code>BINANCE_API_SECRET</code></li>
+        </ul>
+      </li>
+      <li>Salve e faça <b>Manual Deploy → Deploy latest commit</b>.</li>
+    </ol>
+
+    <hr class="my-3">
+
+    {% if has_keys %}
+      <div class="alert alert-success mb-0">Chaves encontradas no ambiente ✔</div>
+    {% else %}
+      <div class="alert alert-info mb-0">Ainda não encontrei as chaves no ambiente.</div>
+    {% endif %}
   </div>
 {% endblock %}
