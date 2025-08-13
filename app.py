@@ -1,3 +1,4 @@
+# app.py
 from __future__ import annotations
 import os
 from decimal import Decimal
@@ -11,11 +12,11 @@ from flask_login import (
 )
 from flask import Blueprint
 
-# -------- Binance ----------
+# -------- Binance (python-binance) ----------
 try:
-    from binance.client import Client  # python-binance
+    from binance.client import Client  # pip install python-binance
 except Exception:
-    Client = None  # se a lib não estiver instalada por algum motivo
+    Client = None  # se a lib não vier por algum motivo, não quebra o app
 
 # -----------------------------------------------------------------------------
 # App & Login
@@ -27,7 +28,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = "usuarios.login"
 
 # -----------------------------------------------------------------------------
-# Usuário em memória (admin fixo)
+# Usuário único em memória (admin fixo)
 # -----------------------------------------------------------------------------
 class AdminUser(UserMixin):
     def __init__(self) -> None:
@@ -48,7 +49,7 @@ def load_user(user_id: str):
 # Helpers Binance
 # -----------------------------------------------------------------------------
 def get_binance_client() -> Client | None:
-    """Cria o client se as variáveis de ambiente existirem."""
+    """Cria o client da Binance se as variáveis de ambiente existirem."""
     if Client is None:
         return None
     key = os.getenv("BINANCE_API_KEY")
@@ -76,7 +77,10 @@ bp_auto = Blueprint("operacoes_automatico", __name__, url_prefix="/operacoes_aut
 # ------------------------- USUÁRIOS ------------------------------------------
 @bp_usuarios.route("/login", methods=["GET", "POST"])
 def login():
-    # POST autentica; GET usa a index.html como tela de login
+    """
+    POST: autentica admin / Claraverse2025 e redireciona para o painel.
+    GET: renderiza a home (index) com o form embutido.
+    """
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
@@ -97,13 +101,20 @@ def logout():
 @bp_usuarios.route("/configurar-api")
 @login_required
 def configurar_api():
+    """
+    Tela de instruções: nesta versão as chaves são lidas de variáveis de ambiente:
+    BINANCE_API_KEY / BINANCE_API_SECRET (Render → Settings → Environment).
+    """
     has_keys = bool(os.getenv("BINANCE_API_KEY") and os.getenv("BINANCE_API_SECRET"))
     return render_template("painel/corretora.html", has_keys=has_keys)
 
 @bp_usuarios.route("/ordens")
 @login_required
 def ordens():
-    """Lista últimas ordens de um símbolo (padrão BTCUSDT)."""
+    """
+    Lista as últimas ordens (abertas/fechadas) do símbolo informado.
+    OBS: para ordens abertas especificamente, usamos client.get_open_orders().
+    """
     symbol = (request.args.get("symbol") or "BTCUSDT").upper()
     orders = []
     error = None
@@ -120,42 +131,60 @@ def ordens():
 @bp_usuarios.route("/historico")
 @login_required
 def historico():
-    return render_template("painel/historico.html")
+    """
+    Histórico automático: usa get_my_trades para trazer as últimas operações executadas.
+    """
+    symbol = (request.args.get("symbol") or "BTCUSDT").upper()
+    trades = []
+    error = None
+    client = get_binance_client()
+    if client is None:
+        error = "Defina BINANCE_API_KEY e BINANCE_API_SECRET no Render (Environment)."
+    else:
+        try:
+            # até 50 últimas negociações do símbolo
+            trades = client.get_my_trades(symbol=symbol, limit=50) or []
+            # normaliza timestamp em string amigável no próprio template (ou aqui se preferir)
+            # deixaremos o timestamp bruto e o template mostra direto
+        except Exception as e:
+            error = f"Não foi possível carregar histórico ({e})."
+    return render_template("painel/historico.html", symbol=symbol, trades=trades, error=error)
 
-# ------------------------- PAINEL (OPERACAO) ---------------------------------
+# ------------------------- PAINEL (OPERAÇÃO) ---------------------------------
 @bp_painel.route("/operacao")
 @login_required
 def dashboard():
-    """Preenche cards com saldo USDT, ordens abertas e lucro 24h (placeholder)."""
+    """
+    Painel com saldo USDT, ordens abertas e lucro 24h (placeholder).
+    """
     saldo = Decimal("0")
     abertas = 0
-    lucro_24h = Decimal("0")  # Spot não tem PnL 24h simples; deixamos 0 por ora.
-    alerta_dashboard = None
+    lucro_24h = Decimal("0")
+    alert = None
 
     client = get_binance_client()
     if client is None:
-        alerta_dashboard = (
+        alert = (
             "Para ver dados reais, defina as variáveis BINANCE_API_KEY e "
-            "BINANCE_API_SECRET em Render → Settings → Environment."
+            "BINANCE_API_SECRET no Render → Settings → Environment."
         )
     else:
         try:
             bal = client.get_asset_balance(asset="USDT") or {}
             saldo = safe_decimal(bal.get("free", "0"))
         except Exception as e:
-            alerta_dashboard = f"Falha ao buscar saldo ({e})."
+            alert = f"Falha ao buscar saldo ({e})."
         try:
-            abertas = len(client.get_open_orders() or [])
+            open_orders = client.get_open_orders() or []
+            abertas = len(open_orders)
         except Exception as e:
-            alerta_dashboard = f"Falha ao buscar ordens abertas ({e})."
+            alert = f"Falha ao buscar ordens abertas ({e})."
 
     return render_template(
         "painel/dashboard.html",
-        saldo=str(saldo), lucro_24h=str(lucro_24h),
-        abertas=abertas, alerta_dashboard=alerta_dashboard
+        saldo=str(saldo), lucro_24h=str(lucro_24h), abertas=abertas, alert=alert
     )
 
-# Alias /painel → /painel/operacao
 @bp_painel.route("/")
 @login_required
 def painel_root():
