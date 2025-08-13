@@ -1,28 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Operação{% endblock %}
-
+{% block title %}Ordens — {{ symbol }}{% endblock %}
 {% block content %}
-  <h2 class="mb-4">Nova Operação</h2>
-  <div class="card p-4">
-    <form>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Par</label>
-          <input class="form-control" value="BTCUSDT">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Side</label>
-          <select class="form-select">
-            <option>BUY</option>
-            <option>SELL</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Quantidade</label>
-          <input class="form-control" value="0.001">
-        </div>
-      </div>
-      <button class="btn btn-brand mt-3">Enviar ordem</button>
-    </form>
-  </div>
+  <h3 class="mb-3">Ordens — {{ symbol }}</h3>
+
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-auto">
+      <input class="form-control" name="symbol" value="{{ symbol }}" placeholder="BTCUSDT">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-secondary">Trocar símbolo</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if orders and not error %}
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <th>ID</th><th>Side</th><th>Type</th><th>Price</th><th>OrigQty</th><th>Status</th><th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+            <tr>
+              <td>{{ o.orderId }}</td>
+              <td>{{ o.side }}</td>
+              <td>{{ o.type }}</td>
+              <td>{{ o.price }}</td>
+              <td>{{ o.origQty }}</td>
+              <td>{{ o.status }}</td>
+              <td>{{ o.time }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif not error %}
+    <div class="alert alert-info">Sem ordens encontradas para {{ symbol }}.</div>
+  {% endif %}
 {% endblock %}
