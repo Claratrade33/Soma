@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Corretora — Configurar API{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Configurar API da Corretora</h2>
+  <div class="card p-4">
+    <p class="muted mb-3">
+      Aqui você conectará suas chaves (API Key / Secret). Nesta versão de
+      demonstração o formulário é apenas visual.
+    </p>
+    <form>
+      <div class="mb-3">
+        <label class="form-label">API Key</label>
+        <input class="form-control" placeholder="Cole sua API Key">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">API Secret</label>
+        <input class="form-control" placeholder="Cole sua API Secret">
+      </div>
+      <button class="btn btn-brand" type="button">Salvar</button>
+    </form>
+  </div>
+{% endblock %}
