@@ -2,23 +2,36 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Configurar API da Binance</title>
+  <title>Configurar API da Corretora (Binance)</title>
 </head>
 <body>
-  <h1>Configurar API da Binance</h1>
+  <h1>Configurar API da Corretora (Binance)</h1>
+
+  <div style="background:#fff3cd;padding:12px;border-radius:8px;margin-bottom:16px;">
+    ⚠️ Defina no Render → Settings → Environment:
+    <ul>
+      <li><code>BINANCE_API_KEY</code> = sua API Key</li>
+      <li><code>BINANCE_API_SECRET</code> = seu API Secret</li>
+      <li><code>OPENAI_API_KEY</code> = sua OpenAI API Key</li>
+    </ul>
+    <small>Por segurança, recomendo usar variáveis de ambiente e não salvar chaves no banco.</small>
+  </div>
+
   <form method="POST">
     <label>API Key:</label><br>
-    <input type="text" name="api_key" required><br><br>
+    <input type="text" name="api_key" placeholder="(opcional)"><br><br>
 
     <label>API Secret:</label><br>
-    <input type="text" name="api_secret" required><br><br>
+    <input type="password" name="api_secret" placeholder="(opcional)"><br><br>
 
     <label>OpenAI Key:</label><br>
-    <input type="text" name="openai_key" required><br><br>
+    <input type="password" name="openai_key" placeholder="(opcional)"><br><br>
 
     <label><input type="checkbox" name="testnet" checked> Usar Testnet</label><br><br>
 
     <button type="submit">Salvar</button>
   </form>
+
+  <p><a href="{{ url_for('painel_operacao.index') }}">Ir para o Painel</a></p>
 </body>
 </html>
