@@ -1,19 +1,11 @@
 import os
-from openai import OpenAI
+from binance.client import Client
 
-_client = None
-
-def _get_client():
-    global _client
-    if _client is None:
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("OPENAI_API_KEY não configurada no Environment.")
-        _client = OpenAI(api_key=api_key)
-    return _client
-
-def solicitar_analise_json():
-    client = _get_client()
-    # ... faça a chamada ao modelo aqui ...
-    # retorne um dict com { "sugestao": "compra" | "venda" | ... }
-    return {"sugestao": "compra"}  # placeholder
+def get_client(username=None, api_key=None, api_secret=None, testnet=None):
+    key = api_key or os.getenv("BINANCE_API_KEY")
+    secret = api_secret or os.getenv("BINANCE_API_SECRET")
+    if testnet is None:
+        testnet = os.getenv("BINANCE_TESTNET", "true").lower() == "true"
+    if not key or not secret:
+        raise RuntimeError("BINANCE_API_KEY/SECRET não configurados.")
+    return Client(key, secret, testnet=testnet)
