@@ -10,7 +10,7 @@ from binance_client import get_client
 from clarinha_ia import solicitar_analise_json
 from tasks import start_auto_mode, stop_auto_mode
 
-# Carrega .env local e, se existir, o Secret File do Render
+# Carrega .env local e Secret File do Render (se existir)
 load_dotenv(".env")
 load_dotenv("/etc/secrets/.env")
 
@@ -30,7 +30,7 @@ def create_app():
     def load_user(user_id):
         return Usuario.query.get(int(user_id))
 
-    # módulos com rotas (blueprints)
+    # registre aqui todos os blueprints existentes no projeto
     modules = [
         "acessos","anjos","clientes","conectores","configuracao","comunicacao",
         "comando","conhecimento","documentos","estatisticas","estrategias",
@@ -73,31 +73,36 @@ def create_app():
         usuario = current_user
         cred = BinanceKey.query.filter_by(user_id=usuario.id).first()
         if request.method == "POST":
-            api_key = request.form["api_key"]
-            api_secret = request.form["api_secret"]
-            openai_key = request.form["openai_key"]
-            testnet = request.form.get("testnet", "on") in ("on", "true", "1")
+            # Estes só são salvos se você quiser guardar no banco também.
+            api_key = request.form.get("api_key", "")
+            api_secret = request.form.get("api_secret", "")
+            openai_key = request.form.get("openai_key", "")
+            testnet = request.form.get("testnet", "on") in ("on","true","1")
 
-            api_key_enc = criptografar(api_key, usuario.usuario)
-            api_secret_enc = criptografar(api_secret, usuario.usuario)
-            openai_key_enc = criptografar(openai_key, usuario.usuario)
+            if api_key and api_secret:
+                api_key_enc = criptografar(api_key, usuario.usuario)
+                api_secret_enc = criptografar(api_secret, usuario.usuario)
+                openai_key_enc = criptografar(openai_key, usuario.usuario) if openai_key else None
 
-            if cred:
-                cred.api_key = api_key_enc
-                cred.api_secret = api_secret_enc
-                cred.openai_key = openai_key_enc
-                cred.testnet = testnet
-            else:
-                db.session.add(BinanceKey(
-                    user_id=usuario.id,
-                    api_key=api_key_enc,
-                    api_secret=api_secret_enc,
-                    openai_key=openai_key_enc,
-                    testnet=testnet
-                ))
-            db.session.commit()
-            flash("Chaves atualizadas!", "success")
+                if cred:
+                    cred.api_key = api_key_enc
+                    cred.api_secret = api_secret_enc
+                    cred.openai_key = openai_key_enc
+                    cred.testnet = testnet
+                else:
+                    db.session.add(BinanceKey(
+                        user_id=usuario.id,
+                        api_key=api_key_enc,
+                        api_secret=api_secret_enc,
+                        openai_key=openai_key_enc,
+                        testnet=testnet
+                    ))
+                db.session.commit()
+
+            flash("Configurações atualizadas!", "success")
             return redirect(url_for("painel_operacao.index"))
+
+        # A tela de config continua útil para mostrar instruções
         return render_template("conectores/configurar_api.html", binance_key=cred)
 
     @app.route("/historico")
@@ -117,7 +122,7 @@ def create_app():
         quantidade = request.form.get("quantidade", "0.001")
         side = "BUY" if tipo == "compra" else "SELL"
         try:
-            client = get_client(current_user.usuario)
+            client = get_client(current_user.usuario)  # usa ENV por padrão
             ordem = client.create_order(symbol="BTCUSDT", side=side, type="MARKET", quantity=quantidade)
             return jsonify({"status":"ok","order":ordem})
         except Exception as e:
@@ -145,7 +150,7 @@ def create_app():
 
     return app
 
-# >>> Deixa o app exposto para o Gunicorn <<<
+# Expor 'app' para o Gunicorn
 app = create_app()
 
 if __name__ == "__main__":
