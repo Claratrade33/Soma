@@ -1,0 +1,81 @@
+name: Audit templates
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run audit (render_template vs templates/)
+        env:
+          GITHUB_STEP_SUMMARY: ${{ env.GITHUB_STEP_SUMMARY }}
+        run: |
+          python - <<'PY'
+          import os, re, sys
+
+          BASE = os.getcwd()
+          TPL_DIR = os.path.join(BASE, "templates")
+
+          pat = re.compile(r"render_template\(\s*['\"]([^'\"]+)['\"]")
+          referenced, existing = set(), set()
+
+          # Coletar referências
+          for root, _, files in os.walk(BASE):
+              for f in files:
+                  if f.endswith(".py"):
+                      p = os.path.join(root, f)
+                      try:
+                          with open(p, "r", encoding="utf-8", errors="ignore") as fh:
+                              referenced.update(m.group(1) for m in pat.finditer(fh.read()))
+                      except Exception:
+                          pass
+
+          # Coletar templates existentes
+          if os.path.isdir(TPL_DIR):
+              for root, _, files in os.walk(TPL_DIR):
+                  for f in files:
+                      if f.lower().endswith((".html", ".htm", ".j2")):
+                          rel = os.path.relpath(os.path.join(root, f), TPL_DIR).replace("\\","/")
+                          existing.add(rel)
+
+          def base(p): return os.path.splitext(p)[0]
+          bases = {}
+          for rel in existing:
+              bases.setdefault(base(rel), set()).add(rel)
+
+          missing = sorted(t for t in referenced if t not in existing and base(t) not in bases)
+          suspects = sorted((t, sorted(bases[base(t)]))
+                            for t in referenced if t not in existing and base(t) in bases)
+
+          # Print no log
+          print("=== REFERENCIADOS:", len(referenced))
+          for t in sorted(referenced): print(" -", t)
+          print("\n=== EXISTENTES:", len(existing))
+          print("\n=== FALTANDO:", len(missing))
+          for t in missing: print(" -", t)
+          print("\n=== SUSPEITOS (.htm vs .html / caminhos):", len(suspects))
+          for want, have in suspects:
+              print(" - Rota pede:", want)
+              print("   Existe:   ", ", ".join(have))
+
+          # Escrever no Step Summary (mais fácil de copiar)
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as sm:
+                  sm.write("## Auditoria de templates\n\n")
+                  sm.write(f"**Referenciados**: {len(referenced)}\n\n")
+                  sm.write(f"**Existentes**: {len(existing)}\n\n")
+                  sm.write(f"**FALTANDO**: {len(missing)}\n")
+                  for t in missing: sm.write(f"- {t}\n")
+                  sm.write("\n**SUSPEITOS** (.htm vs .html / caminhos com mesmo basename):\n")
+                  for want, have in suspects:
+                      sm.write(f"- Rota pede: `{want}` → existe: {', '.join(have)}\n")
+          PY
