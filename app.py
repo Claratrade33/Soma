@@ -1,157 +1,200 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import LoginManager, login_required, current_user
-from werkzeug.security import generate_password_hash
-from dotenv import load_dotenv
-import os, importlib, json
+from __future__ import annotations
+import os
+from decimal import Decimal
+from flask import (
+    Flask, render_template, render_template_string,
+    request, redirect, url_for, flash
+)
+from flask_login import (
+    LoginManager, UserMixin, login_user, logout_user,
+    current_user, login_required
+)
+from flask import Blueprint
 
-from models import db, Usuario, BinanceKey
-from crypto_utils import criptografar
-from binance_client import get_client
-from clarinha_ia import solicitar_analise_json
-from tasks import start_auto_mode, stop_auto_mode
+# Modelos e DB (sem 'db' antigo, e sem 'BinanceKey')
+from db import create_all
+from models import Usuario, UserCredential, OrderLog  # se precisar usar, já está aqui
 
-# Carrega .env local e Secret File do Render (se existir)
-load_dotenv(".env")
-load_dotenv("/etc/secrets/.env")
+# -------- Binance opcional ----------
+try:
+    from binance.client import Client  # python-binance
+except Exception:
+    Client = None  # se a lib não estiver disponível
 
-def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.getenv("FLASK_SECRET_KEY", "super_secret_key")
+# -----------------------------------------------------------------------------
+# App & Login
+# -----------------------------------------------------------------------------
+app = Flask(__name__, static_folder="static", template_folder="templates")
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///usuarios.db"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    db.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "usuarios.login"
 
-    login_manager = LoginManager()
-    login_manager.login_view = "acessos.login"
-    login_manager.init_app(app)
+# -----------------------------------------------------------------------------
+# Usuário em memória (admin fixo)
+# -----------------------------------------------------------------------------
+class AdminUser(UserMixin):
+    def __init__(self) -> None:
+        self.id = "admin"
+        self.username = "admin"
+        self.password = "Claraverse2025"
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        return Usuario.query.get(int(user_id))
+    def get_id(self) -> str:  # type: ignore[override]
+        return self.id
 
-    # registre aqui todos os blueprints existentes no projeto
-    modules = [
-        "acessos","anjos","clientes","conectores","configuracao","comunicacao",
-        "comando","conhecimento","documentos","estatisticas","estrategias",
-        "executores","feedbacks","financeiro","guardian","historicos",
-        "indicadores","inteligencia","inteligencia_financeira","infinity",
-        "monitoramento","notificacoes","operacoes","operacoes_automatico",
-        "oraculo","painel_operacao","previsoes","recompensas","recursos",
-        "registro","resgates","rotas_publicas","servicos","sinais","tarefas",
-        "treinamentos","tokens","usuarios","vendedores"
-    ]
-    for m in modules:
+ADMIN = AdminUser()
+
+@login_manager.user_loader
+def load_user(user_id: str):
+    return ADMIN if user_id == ADMIN.id else None
+
+# -----------------------------------------------------------------------------
+# Helpers Binance
+# -----------------------------------------------------------------------------
+def get_binance_client() -> Client | None:
+    """Cria o client se as variáveis de ambiente existirem."""
+    if Client is None:
+        return None
+    key = os.getenv("BINANCE_API_KEY")
+    sec = os.getenv("BINANCE_API_SECRET")
+    if not key or not sec:
+        return None
+    try:
+        return Client(api_key=key, api_secret=sec)
+    except Exception:
+        return None
+
+def safe_decimal(x) -> Decimal:
+    try:
+        return Decimal(str(x))
+    except Exception:
+        return Decimal("0")
+
+# -----------------------------------------------------------------------------
+# Blueprints
+# -----------------------------------------------------------------------------
+bp_usuarios = Blueprint("usuarios", __name__, url_prefix="/usuario")
+bp_painel = Blueprint("painel", __name__, url_prefix="/painel")
+bp_auto = Blueprint("operacoes_automatico", __name__, url_prefix="/operacoes_automatico")
+
+# ------------------------- USUÁRIOS ------------------------------------------
+@bp_usuarios.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        if username == ADMIN.username and password == ADMIN.password:
+            login_user(ADMIN)
+            flash("Login efetuado com sucesso.", "success")
+            return redirect(url_for("painel.dashboard"))
+        flash("Credenciais inválidas.", "danger")
+    return render_template("index.html")
+
+@bp_usuarios.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Você saiu da sua conta.", "info")
+    return redirect(url_for("index"))
+
+@bp_usuarios.route("/configurar-api")
+@login_required
+def configurar_api():
+    has_keys = bool(os.getenv("BINANCE_API_KEY") and os.getenv("BINANCE_API_SECRET"))
+    return render_template("painel/corretora.html", has_keys=has_keys)
+
+@bp_usuarios.route("/ordens")
+@login_required
+def ordens():
+    """Lista últimas ordens de um símbolo (padrão BTCUSDT)."""
+    symbol = (request.args.get("symbol") or "BTCUSDT").upper()
+    orders = []
+    error = None
+    client = get_binance_client()
+    if client is None:
+        error = "Defina BINANCE_API_KEY e BINANCE_API_SECRET no Render (Settings → Environment)."
+    else:
         try:
-            mod = importlib.import_module(f"{m}.rotas")
-            bp = getattr(mod, "bp", None)
-            if bp and bp.name not in app.blueprints:
-                app.register_blueprint(bp)
-        except ImportError:
-            pass
-
-    def criar_admin():
-        db.create_all()
-        admin = Usuario.query.filter_by(usuario="admin").first()
-        if not admin:
-            senha_hash = generate_password_hash("claraverse2025")
-            db.session.add(Usuario(usuario="admin", senha_hash=senha_hash))
-            db.session.commit()
-
-    with app.app_context():
-        criar_admin()
-
-    @app.route("/")
-    def index():
-        if current_user.is_authenticated:
-            return redirect(url_for("painel_operacao.index"))
-        return redirect(url_for("acessos.login"))
-
-    @app.route("/config_api", methods=["GET", "POST"])
-    @login_required
-    def config_api():
-        usuario = current_user
-        cred = BinanceKey.query.filter_by(user_id=usuario.id).first()
-        if request.method == "POST":
-            # Estes só são salvos se você quiser guardar no banco também.
-            api_key = request.form.get("api_key", "")
-            api_secret = request.form.get("api_secret", "")
-            openai_key = request.form.get("openai_key", "")
-            testnet = request.form.get("testnet", "on") in ("on","true","1")
-
-            if api_key and api_secret:
-                api_key_enc = criptografar(api_key, usuario.usuario)
-                api_secret_enc = criptografar(api_secret, usuario.usuario)
-                openai_key_enc = criptografar(openai_key, usuario.usuario) if openai_key else None
-
-                if cred:
-                    cred.api_key = api_key_enc
-                    cred.api_secret = api_secret_enc
-                    cred.openai_key = openai_key_enc
-                    cred.testnet = testnet
-                else:
-                    db.session.add(BinanceKey(
-                        user_id=usuario.id,
-                        api_key=api_key_enc,
-                        api_secret=api_secret_enc,
-                        openai_key=openai_key_enc,
-                        testnet=testnet
-                    ))
-                db.session.commit()
-
-            flash("Configurações atualizadas!", "success")
-            return redirect(url_for("painel_operacao.index"))
-
-        # A tela de config continua útil para mostrar instruções
-        return render_template("conectores/configurar_api.html", binance_key=cred)
-
-    @app.route("/historico")
-    @login_required
-    def historico():
-        if os.path.exists("orders.json"):
-            with open("orders.json","r") as f:
-                data = json.load(f)
-        else:
-            data = []
-        return jsonify(data)
-
-    @app.route("/executar_ordem", methods=["POST"])
-    @login_required
-    def executar_ordem():
-        tipo = request.form.get("tipo")
-        quantidade = request.form.get("quantidade", "0.001")
-        side = "BUY" if tipo == "compra" else "SELL"
-        try:
-            client = get_client(current_user.usuario)  # usa ENV por padrão
-            ordem = client.create_order(symbol="BTCUSDT", side=side, type="MARKET", quantity=quantidade)
-            return jsonify({"status":"ok","order":ordem})
+            orders = client.get_all_orders(symbol=symbol, limit=15)
         except Exception as e:
-            return str(e), 500
+            error = f"Não foi possível carregar ordens ({e})."
+    return render_template("painel/ordens.html", symbol=symbol, orders=orders, error=error)
 
-    @app.route("/sugestao_ia")
-    @login_required
-    def sugestao_ia():
-        quantidade = request.args.get("quantidade","0.001")
-        analise = solicitar_analise_json()
-        texto = analise.get("sugestao","").lower()
-        tipo = "compra" if "compra" in texto else ("venda" if "venda" in texto else None)
-        return jsonify({"status":"ok" if tipo else "erro","tipo":tipo,"quantidade":quantidade,"analise":analise})
+@bp_usuarios.route("/historico")
+@login_required
+def historico():
+    return render_template("painel/historico.html")
 
-    @app.route("/modo_automatico", methods=["POST"])
-    @login_required
-    def modo_automatico():
-        acao = request.form.get("acao")
-        usuario = current_user.usuario
-        if acao == "start":
-            start_auto_mode(usuario)
-        elif acao == "stop":
-            stop_auto_mode(usuario)
-        return jsonify({"status":"ok","acao":acao})
+# ------------------------- PAINEL (OPERACAO) ---------------------------------
+@bp_painel.route("/operacao")
+@login_required
+def dashboard():
+    """Preenche cards com saldo USDT, ordens abertas e (placeholder) lucro 24h."""
+    saldo = Decimal("0")
+    abertas = 0
+    lucro_24h = Decimal("0")
+    alert = None
 
-    return app
+    client = get_binance_client()
+    if client is None:
+        alert = (
+            "Para ver dados reais, defina as variáveis BINANCE_API_KEY e "
+            "BINANCE_API_SECRET no Render → Settings → Environment."
+        )
+    else:
+        try:
+            bal = client.get_asset_balance(asset="USDT") or {}
+            saldo = safe_decimal(bal.get("free", "0"))
+        except Exception as e:
+            alert = f"Falha ao buscar saldo ({e})."
+        try:
+            open_orders = client.get_open_orders() or []
+            abertas = len(open_orders)
+        except Exception as e:
+            alert = f"Falha ao buscar ordens abertas ({e})."
 
-# Expor 'app' para o Gunicorn
-app = create_app()
+    return render_template(
+        "painel/dashboard.html",
+        saldo=str(saldo), lucro_24h=str(lucro_24h), abertas=abertas, alert=alert
+    )
 
+@bp_painel.route("/")
+@login_required
+def painel_root():
+    return redirect(url_for("painel.dashboard"))
+
+# ------------------------- AUTOMÁTICO ----------------------------------------
+@bp_auto.route("/painel")
+@login_required
+def painel_automatico():
+    return render_template("painel/automatico.html")
+
+# -----------------------------------------------------------------------------
+# Rotas principais
+# -----------------------------------------------------------------------------
+@app.get("/")
+def index():
+    return render_template("index.html")
+
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+# -----------------------------------------------------------------------------
+# Registro dos blueprints + criação de tabelas
+# -----------------------------------------------------------------------------
+app.register_blueprint(bp_usuarios)
+app.register_blueprint(bp_painel)
+app.register_blueprint(bp_auto)
+
+# cria as tabelas (se não estiver usando Alembic)
+try:
+    create_all()
+except Exception as e:
+    print(f"[models] Aviso: não foi possível criar tabelas automaticamente: {e}")
+
+# -----------------------------------------------------------------------------
+# Execução local
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=True)
