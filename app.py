@@ -7,13 +7,13 @@ from flask import (
 )
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user,
-    current_user, login_required
+    login_required
 )
 from flask import Blueprint
 
-# Modelos e DB (sem 'db' antigo, e sem 'BinanceKey')
+# Modelos e DB
 from db import create_all
-from models import Usuario, UserCredential, OrderLog  # se precisar usar, já está aqui
+from models import Usuario, UserCredential, OrderLog  # noqa: F401
 
 # -------- Binance opcional ----------
 try:
@@ -52,7 +52,6 @@ def load_user(user_id: str):
 # Helpers Binance
 # -----------------------------------------------------------------------------
 def get_binance_client() -> Client | None:
-    """Cria o client se as variáveis de ambiente existirem."""
     if Client is None:
         return None
     key = os.getenv("BINANCE_API_KEY")
@@ -106,10 +105,8 @@ def configurar_api():
 @bp_usuarios.route("/ordens")
 @login_required
 def ordens():
-    """Lista últimas ordens de um símbolo (padrão BTCUSDT)."""
     symbol = (request.args.get("symbol") or "BTCUSDT").upper()
-    orders = []
-    error = None
+    orders, error = [], None
     client = get_binance_client()
     if client is None:
         error = "Defina BINANCE_API_KEY e BINANCE_API_SECRET no Render (Settings → Environment)."
@@ -129,7 +126,6 @@ def historico():
 @bp_painel.route("/operacao")
 @login_required
 def dashboard():
-    """Preenche cards com saldo USDT, ordens abertas e (placeholder) lucro 24h."""
     saldo = Decimal("0")
     abertas = 0
     lucro_24h = Decimal("0")
@@ -181,13 +177,12 @@ def healthz():
     return {"ok": True}
 
 # -----------------------------------------------------------------------------
-# Registro dos blueprints + criação de tabelas
+# Registro + criação de tabelas
 # -----------------------------------------------------------------------------
 app.register_blueprint(bp_usuarios)
 app.register_blueprint(bp_painel)
 app.register_blueprint(bp_auto)
 
-# cria as tabelas (se não estiver usando Alembic)
 try:
     create_all()
 except Exception as e:
