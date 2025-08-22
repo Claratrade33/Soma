@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import logging
 from decimal import Decimal
 from flask import (
     Flask, render_template, render_template_string,
@@ -10,15 +9,15 @@ from flask import (
 )
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user,
-    login_required
+    current_user, login_required
 )
 from flask import Blueprint
 
-# -------- Binance (python-binance) ----------
+# -------- Binance ----------
 try:
-    from binance.client import Client  # type: ignore
+    from binance.client import Client  # python-binance
 except Exception:
-    Client = None  # se a lib não estiver disponível
+    Client = None  # se a lib não estiver disponível no build
 
 # -----------------------------------------------------------------------------
 # App & Login
@@ -28,9 +27,6 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
 login_manager = LoginManager(app)
 login_manager.login_view = "usuarios.login"
-
-logging.basicConfig(level=logging.INFO)
-SECRETS_DIR = "/etc/secrets"  # Secret Files do Render
 
 # -----------------------------------------------------------------------------
 # Usuário em memória (admin fixo)
@@ -51,56 +47,26 @@ def load_user(user_id: str):
     return ADMIN if user_id == ADMIN.id else None
 
 # -----------------------------------------------------------------------------
-# Helpers gerais
+# Helpers Binance
 # -----------------------------------------------------------------------------
-def _read_secret_file(varname: str) -> str | None:
-    """Lê um Secret File com o mesmo nome da env var (Render monta em /etc/secrets)."""
+def get_binance_client() -> Client | None:
+    """Cria o client se as variáveis de ambiente existirem."""
+    if Client is None:
+        return None
+    key = os.getenv("BINANCE_API_KEY")
+    sec = os.getenv("BINANCE_API_SECRET")
+    if not key or not sec:
+        return None
     try:
-        path = os.path.join(SECRETS_DIR, varname)
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                value = f.read().strip()
-                return value or None
+        return Client(api_key=key, api_secret=sec)
     except Exception:
-        pass
-    return None
-
-def get_env_or_secret(varname: str) -> str | None:
-    """Pega primeiro de ENV; se ausente, tenta Secret Files."""
-    v = os.getenv(varname)
-    if v and v.strip():
-        return v.strip()
-    return _read_secret_file(varname)
+        return None
 
 def safe_decimal(x) -> Decimal:
     try:
         return Decimal(str(x))
     except Exception:
         return Decimal("0")
-
-# -------- Binance helpers ----------
-def get_binance_client() -> Client | None:
-    """Cria o client se as variáveis existirem (ENV ou Secret Files)."""
-    if Client is None:
-        logging.warning("python-binance não disponível (Client=None)")
-        return None
-
-    key = get_env_or_secret("BINANCE_API_KEY")
-    sec = get_env_or_secret("BINANCE_API_SECRET")
-
-    logging.info(
-        "Binance keys? BINANCE_API_KEY=%s, BINANCE_API_SECRET=%s",
-        "present" if key else "absent",
-        "present" if sec else "absent",
-    )
-
-    if not key or not sec:
-        return None
-    try:
-        return Client(api_key=key, api_secret=sec)
-    except Exception as e:
-        logging.exception("Falha ao criar Client da Binance: %s", e)
-        return None
 
 # -----------------------------------------------------------------------------
 # Blueprints
@@ -120,6 +86,7 @@ def login():
             flash("Login efetuado com sucesso.", "success")
             return redirect(url_for("painel.dashboard"))
         flash("Credenciais inválidas.", "danger")
+    # reaproveita o index como tela de login
     return render_template("index.html")
 
 @bp_usuarios.route("/logout")
@@ -132,28 +99,46 @@ def logout():
 @bp_usuarios.route("/configurar-api")
 @login_required
 def configurar_api():
-    # verifica ENV e/ou Secret Files
-    has_key = bool(get_env_or_secret("BINANCE_API_KEY"))
-    has_sec = bool(get_env_or_secret("BINANCE_API_SECRET"))
-    has_keys = has_key and has_sec
+    # Só instruções/checagem; nesta versão usamos variáveis de ambiente
+    has_keys = bool(os.getenv("BINANCE_API_KEY") and os.getenv("BINANCE_API_SECRET"))
     return render_template("painel/corretora.html", has_keys=has_keys)
 
 @bp_usuarios.route("/ordens")
 @login_required
 def ordens():
-    """Lista últimas ordens de um símbolo (padrão BTCUSDT)."""
+    """
+    Mostra últimas ordens para um símbolo:
+    1) tenta Spot (get_all_orders)
+    2) se não houver, tenta Futuros USD-M (futures_get_open_orders)
+    """
     symbol = (request.args.get("symbol") or "BTCUSDT").upper()
-    orders = []
-    error = None
     client = get_binance_client()
+    error = None
+    orders = []
+    fonte = "spot"
+
     if client is None:
-        error = "Defina BINANCE_API_KEY e BINANCE_API_SECRET nas Environment Variables (ou Secret Files)."
+        error = "Defina BINANCE_API_KEY e BINANCE_API_SECRET no Render (Environment)."
     else:
+        # Spot
         try:
-            orders = client.get_all_orders(symbol=symbol, limit=15)
+            orders = client.get_all_orders(symbol=symbol, limit=15) or []
         except Exception as e:
-            error = f"Não foi possível carregar ordens ({e})."
-    return render_template("painel/ordens.html", symbol=symbol, orders=orders, error=error)
+            error = f"Spot: {e}"
+
+        # Se não achou nada em Spot, tenta Futuros (USD-M)
+        if not orders:
+            try:
+                fonte = "futuros"
+                orders = client.futures_get_open_orders(symbol=symbol) or []
+                error = None  # sucesso em futuros
+            except Exception as e:
+                error = (error + f" | Futuros: {e}") if error else f"Futuros: {e}"
+
+    return render_template(
+        "painel/ordens.html",
+        symbol=symbol, orders=orders, error=error, fonte=fonte
+    )
 
 @bp_usuarios.route("/historico")
 @login_required
@@ -164,32 +149,59 @@ def historico():
 @bp_painel.route("/operacao")
 @login_required
 def dashboard():
-    """Preenche cards com saldo USDT, ordens abertas e (placeholder) lucro 24h."""
+    """
+    Dashboard que soma saldo de USDT em Spot + Futuros USD-M
+    e conta ordens abertas (Spot + Futuros). O lucro_24h fica placeholder (0).
+    """
     saldo = Decimal("0")
     abertas = 0
     lucro_24h = Decimal("0")
-    alert = None
+    alert_msgs = []
 
     client = get_binance_client()
     if client is None:
-        alert = (
-            "Para ver dados reais, defina BINANCE_API_KEY e BINANCE_API_SECRET "
-            "em Settings → Environment (ou como Secret Files)."
+        alert_msgs.append(
+            "Defina BINANCE_API_KEY e BINANCE_API_SECRET em Settings → Environment (no Render)."
         )
-    else:
+        return render_template(
+            "painel/dashboard.html",
+            saldo=str(saldo), lucro_24h=str(lucro_24h), abertas=abertas,
+            alert="<br>".join(alert_msgs)
+        )
+
+    # ------- SPOT -------
+    try:
+        bal = client.get_asset_balance(asset="USDT") or {}
+        spot_free = safe_decimal(bal.get("free", "0"))
+        saldo += spot_free
         try:
-            bal = client.get_asset_balance(asset="USDT") or {}
-            saldo = safe_decimal(bal.get("free", "0"))
+            abertas_spot = client.get_open_orders() or []
+            abertas += len(abertas_spot)
         except Exception as e:
-            alert = f"Falha ao buscar saldo ({e})."
+            alert_msgs.append(f"Falha ao buscar ordens Spot ({e}).")
+    except Exception as e:
+        alert_msgs.append(f"Falha ao buscar saldo Spot ({e}).")
+
+    # ------- FUTUROS USD-M -------
+    try:
+        f_balances = client.futures_account_balance() or []
+        usdt_row = next((r for r in f_balances if r.get("asset") == "USDT"), None)
+        if usdt_row:
+            saldo += safe_decimal(usdt_row.get("balance", "0"))
         try:
-            abertas = len(client.get_open_orders() or [])
+            f_open = client.futures_get_open_orders() or []
+            abertas += len(f_open)
         except Exception as e:
-            alert = f"Falha ao buscar ordens abertas ({e})."
+            alert_msgs.append(f"Falha ao buscar ordens Futuros ({e}).")
+    except Exception as e:
+        alert_msgs.append(f"Falha ao buscar saldo Futuros ({e}).")
 
     return render_template(
         "painel/dashboard.html",
-        saldo=str(saldo), lucro_24h=str(lucro_24h), abertas=abertas, alert=alert
+        saldo=str(saldo),
+        lucro_24h=str(lucro_24h),   # placeholder por enquanto
+        abertas=abertas,
+        alert="<br>".join(alert_msgs) if alert_msgs else None
     )
 
 # Alias /painel → /painel/operacao
@@ -214,15 +226,6 @@ def index():
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
-
-# --- diagnóstico: não vaza valores, só presença/ausência ---
-@app.get("/debug/env")
-def debug_env():
-    info = {
-        "BINANCE_API_KEY": "present" if get_env_or_secret("BINANCE_API_KEY") else "absent",
-        "BINANCE_API_SECRET": "present" if get_env_or_secret("BINANCE_API_SECRET") else "absent",
-    }
-    return info, 200
 
 # -----------------------------------------------------------------------------
 # Registro dos blueprints
