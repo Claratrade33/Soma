@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import os
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from flask import (
     Flask, render_template, render_template_string,
     request, redirect, url_for, flash
 )
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user,
-    login_required
+    current_user, login_required
 )
 from flask import Blueprint
 
@@ -54,48 +54,32 @@ def load_user(user_id: str):
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
-def safe_decimal(x) -> Decimal:
+def get_binance_client() -> Client | None:
+    """Cria o client se as variáveis de ambiente existirem."""
+    if Client is None:
+        return None
+    key = os.getenv("BINANCE_API_KEY")
+    sec = os.getenv("BINANCE_API_SECRET")
+    if not key or not sec:
+        return None
+    try:
+        return Client(api_key=key, api_secret=sec)
+    except Exception:
+        return None
+
+
+def to_decimal(x) -> Decimal:
     try:
         return Decimal(str(x))
-    except Exception:
+    except (InvalidOperation, Exception):
         return Decimal("0")
 
 
-def get_binance_client() -> Client | None:
-    """
-    Cria o client se as variáveis existirem e faz um 'ping' para validar.
-    Escreve mensagens claras nos logs do Render (Settings → Logs).
-    """
-    if Client is None:
-        print("❌ Binance Client não importado (python-binance indisponível).")
-        return None
-
-    key = os.getenv("BINANCE_API_KEY")
-    sec = os.getenv("BINANCE_API_SECRET")
-
-    if not key or not sec:
-        print("❌ Variáveis BINANCE_API_KEY ou BINANCE_API_SECRET não encontradas.")
-        return None
-
-    try:
-        client = Client(api_key=key, api_secret=sec)
-
-        # teste rápido: server time
-        server_time = client.get_server_time()
-        print("✅ Binance conectado. Server time:", server_time)
-
-        # teste extra: ping REST
-        try:
-            client.ping()
-            print("✅ Ping OK.")
-        except Exception as e:
-            print("⚠️ Ping falhou (não crítico):", e)
-
-        return client
-
-    except Exception as e:
-        print("❌ Erro ao criar Binance Client:", e)
-        return None
+def fmt_decimal(d: Decimal, places: int = 8) -> str:
+    # corta zeros à direita de forma amigável
+    q = d.quantize(Decimal(10) ** -places)
+    s = f"{q:.{places}f}".rstrip("0").rstrip(".")
+    return s if s else "0"
 
 
 # -----------------------------------------------------------------------------
@@ -186,13 +170,15 @@ def historico():
 @login_required
 def dashboard():
     """
-    Dashboard que soma saldo de USDT em Spot + Futuros USD-M
-    e conta ordens abertas (Spot + Futuros). O lucro_24h fica placeholder (0).
+    Dashboard agora lista os principais saldos do usuário (Spot) por ativo
+    e também mostra o balanço de USDT dos Futuros USD-M (se houver).
+    Também somamos as ordens abertas de Spot + Futuros.
     """
-    saldo = Decimal("0")
-    abertas = 0
-    lucro_24h = Decimal("0")
-    alert_msgs = []
+    alert_msgs: list[str] = []
+    spot_rows: list[dict] = []     # [{asset, free, locked, total}]
+    futures_usdt_balance = Decimal("0")
+    abertas_total = 0
+    lucro_24h = Decimal("0")       # placeholder
 
     client = get_binance_client()
     if client is None:
@@ -201,43 +187,78 @@ def dashboard():
         )
         return render_template(
             "painel/dashboard.html",
-            saldo=str(saldo), lucro_24h=str(lucro_24h), abertas=abertas,
-            alert="<br>".join(alert_msgs)
+            alert="<br>".join(alert_msgs),
+            abertas=abertas_total,
+            lucro_24h=fmt_decimal(lucro_24h, 2),
+            saldo_total_usdt="0",
+            spot_rows=[],
+            futures_usdt="0"
         )
 
-    # ------- SPOT -------
+    # ----------------- SPOT: todos os ativos com saldo -----------------
     try:
-        bal = client.get_asset_balance(asset="USDT") or {}
-        spot_free = safe_decimal(bal.get("free", "0"))
-        saldo += spot_free
-        try:
-            abertas_spot = client.get_open_orders() or []
-            abertas += len(abertas_spot)
-        except Exception as e:
-            alert_msgs.append(f"Falha ao buscar ordens Spot ({e}).")
+        acct = client.get_account() or {}
+        balances = acct.get("balances", [])
+        # somamos free + locked e filtramos quem tem algo (>0)
+        for b in balances:
+            asset = b.get("asset")
+            free = to_decimal(b.get("free", "0"))
+            locked = to_decimal(b.get("locked", "0"))
+            total = free + locked
+            if total > 0:
+                spot_rows.append(
+                    {
+                        "asset": asset,
+                        "free": free,
+                        "locked": locked,
+                        "total": total,
+                        "free_str": fmt_decimal(free),
+                        "locked_str": fmt_decimal(locked),
+                        "total_str": fmt_decimal(total),
+                    }
+                )
     except Exception as e:
-        alert_msgs.append(f"Falha ao buscar saldo Spot ({e}).")
+        alert_msgs.append(f"Falha ao buscar saldos Spot ({e}).")
 
-    # ------- FUTUROS USD-M -------
+    # ordena decrescente por total
+    spot_rows.sort(key=lambda r: r["total"], reverse=True)
+
+    # saldo “principal”: se houver USDT no spot, usamos; caso contrário 0
+    saldo_usdt_spot = next((r["total"] for r in spot_rows if r["asset"] == "USDT"), Decimal("0"))
+
+    # ----------------- SPOT: ordens abertas -----------------
+    try:
+        abertas_spot = client.get_open_orders() or []
+        abertas_total += len(abertas_spot)
+    except Exception as e:
+        alert_msgs.append(f"Falha ao buscar ordens Spot ({e}).")
+
+    # ----------------- FUTUROS USD-M: balanço USDT + ordens -----------------
     try:
         f_balances = client.futures_account_balance() or []
         usdt_row = next((r for r in f_balances if r.get("asset") == "USDT"), None)
         if usdt_row:
-            saldo += safe_decimal(usdt_row.get("balance", "0"))
+            futures_usdt_balance = to_decimal(usdt_row.get("balance", "0"))
         try:
             f_open = client.futures_get_open_orders() or []
-            abertas += len(f_open)
+            abertas_total += len(f_open)
         except Exception as e:
             alert_msgs.append(f"Falha ao buscar ordens Futuros ({e}).")
     except Exception as e:
+        # pode falhar se a conta não tiver futuros habilitado
         alert_msgs.append(f"Falha ao buscar saldo Futuros ({e}).")
+
+    # total “USDT” combinando Spot(USDT) + Futuros(USDT)
+    saldo_total_usdt = saldo_usdt_spot + futures_usdt_balance
 
     return render_template(
         "painel/dashboard.html",
-        saldo=str(saldo),
-        lucro_24h=str(lucro_24h),   # placeholder por enquanto
-        abertas=abertas,
-        alert="<br>".join(alert_msgs) if alert_msgs else None
+        alert="<br>".join(alert_msgs) if alert_msgs else None,
+        abertas=abertas_total,
+        lucro_24h=fmt_decimal(lucro_24h, 2),
+        saldo_total_usdt=fmt_decimal(saldo_total_usdt, 2),
+        spot_rows=spot_rows,
+        futures_usdt=fmt_decimal(futures_usdt_balance, 2),
     )
 
 
@@ -253,32 +274,6 @@ def painel_root():
 @login_required
 def painel_automatico():
     return render_template("painel/automatico.html")
-
-
-# ------------------------- DEBUG OPCIONAIS -----------------------------------
-@app.get("/debug/env")
-def dbg_env():
-    """Rota simples para conferência (não mostra valores!)."""
-    has_key = bool(os.getenv("BINANCE_API_KEY"))
-    has_sec = bool(os.getenv("BINANCE_API_SECRET"))
-    return {
-        "BINANCE_API_KEY_present": has_key,
-        "BINANCE_API_SECRET_present": has_sec,
-        "python_binance_imported": Client is not None,
-    }
-
-
-@app.get("/debug/binance")
-def dbg_binance():
-    """Tenta montar o client e mostrar um ping básico."""
-    client = get_binance_client()
-    if client is None:
-        return "Sem cliente Binance. Verifique BINANCE_API_KEY e BINANCE_API_SECRET.", 500
-    try:
-        client.ping()
-        return "Binance OK (ping).", 200
-    except Exception as e:
-        return f"Falha no ping: {e}", 500
 
 
 # -----------------------------------------------------------------------------
