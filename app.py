@@ -19,6 +19,13 @@ try:
 except Exception:
     Client = None  # se a lib não estiver disponível no build
 
+# Exceções da Binance (com fallback para não quebrar o import)
+try:
+    from binance.exceptions import BinanceAPIException, BinanceRequestException
+except Exception:
+    BinanceAPIException = Exception
+    BinanceRequestException = Exception
+
 # -----------------------------------------------------------------------------
 # App & Login
 # -----------------------------------------------------------------------------
@@ -215,6 +222,70 @@ def painel_root():
 @login_required
 def painel_automatico():
     return render_template("painel/automatico.html")
+
+# ------------------------- DEBUG BINANCE -------------------------------------
+@app.get("/debug/binance")
+@login_required
+def debug_binance():
+    """
+    Página de diagnóstico: mostra ping, horário do servidor,
+    saldos spot (ativos com quantidade > 0), saldo de futuros (linhas),
+    contagem de ordens abertas em Spot e Futuros.
+    Em erros, exibe mensagens cruas da API.
+    """
+    client = get_binance_client()
+    if client is None:
+        return render_template_string(
+            "<pre>Sem cliente Binance. Verifique BINANCE_API_KEY e BINANCE_API_SECRET.</pre>"
+        )
+
+    info = {"ok": True, "errors": []}
+
+    # Ping e server time
+    try:
+        info["ping"] = client.ping()
+        info["server_time"] = client.get_server_time()
+    except Exception as e:
+        info["errors"].append(f"Ping/ServerTime: {e}")
+
+    # Spot balances (todos > 0)
+    try:
+        account = client.get_account() or {}
+        balances = account.get("balances", [])
+        non_zero = [
+            b for b in balances
+            if (Decimal(b.get("free", "0")) > 0) or (Decimal(b.get("locked", "0")) > 0)
+        ]
+        info["spot_balances"] = non_zero[:50]
+    except (BinanceAPIException, BinanceRequestException) as e:
+        info["errors"].append(f"Spot balances: {e}")
+    except Exception as e:
+        info["errors"].append(f"Spot balances (gen): {e}")
+
+    # Spot open orders
+    try:
+        info["spot_open_orders_count"] = len(client.get_open_orders() or [])
+    except (BinanceAPIException, BinanceRequestException) as e:
+        info["errors"].append(f"Spot open orders: {e}")
+    except Exception as e:
+        info["errors"].append(f"Spot open orders (gen): {e}")
+
+    # Futuros: saldo/ordens
+    try:
+        info["futures_account_balance"] = client.futures_account_balance()
+    except (BinanceAPIException, BinanceRequestException) as e:
+        info["errors"].append(f"Futures balance: {e}")
+    except Exception as e:
+        info["errors"].append(f"Futures balance (gen): {e}")
+
+    try:
+        info["futures_open_orders_count"] = len(client.futures_get_open_orders() or [])
+    except (BinanceAPIException, BinanceRequestException) as e:
+        info["errors"].append(f"Futures open orders: {e}")
+    except Exception as e:
+        info["errors"].append(f"Futures open orders (gen): {e}")
+
+    return render_template_string("<pre>{{ info | tojson(indent=2) }}</pre>", info=info)
 
 # -----------------------------------------------------------------------------
 # Rotas principais
