@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user,
-    current_user, login_required
+    login_required
 )
 from flask import Blueprint
 
@@ -19,12 +19,6 @@ try:
 except Exception:
     Client = None  # se a lib não estiver disponível no build
 
-# Exceções da Binance (com fallback para não quebrar o import)
-try:
-    from binance.exceptions import BinanceAPIException, BinanceRequestException
-except Exception:
-    BinanceAPIException = Exception
-    BinanceRequestException = Exception
 
 # -----------------------------------------------------------------------------
 # App & Login
@@ -34,6 +28,7 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
 login_manager = LoginManager(app)
 login_manager.login_view = "usuarios.login"
+
 
 # -----------------------------------------------------------------------------
 # Usuário em memória (admin fixo)
@@ -47,33 +42,61 @@ class AdminUser(UserMixin):
     def get_id(self) -> str:  # type: ignore[override]
         return self.id
 
+
 ADMIN = AdminUser()
+
 
 @login_manager.user_loader
 def load_user(user_id: str):
     return ADMIN if user_id == ADMIN.id else None
 
-# -----------------------------------------------------------------------------
-# Helpers Binance
-# -----------------------------------------------------------------------------
-def get_binance_client() -> Client | None:
-    """Cria o client se as variáveis de ambiente existirem."""
-    if Client is None:
-        return None
-    key = os.getenv("BINANCE_API_KEY")
-    sec = os.getenv("BINANCE_API_SECRET")
-    if not key or not sec:
-        return None
-    try:
-        return Client(api_key=key, api_secret=sec)
-    except Exception:
-        return None
 
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
 def safe_decimal(x) -> Decimal:
     try:
         return Decimal(str(x))
     except Exception:
         return Decimal("0")
+
+
+def get_binance_client() -> Client | None:
+    """
+    Cria o client se as variáveis existirem e faz um 'ping' para validar.
+    Escreve mensagens claras nos logs do Render (Settings → Logs).
+    """
+    if Client is None:
+        print("❌ Binance Client não importado (python-binance indisponível).")
+        return None
+
+    key = os.getenv("BINANCE_API_KEY")
+    sec = os.getenv("BINANCE_API_SECRET")
+
+    if not key or not sec:
+        print("❌ Variáveis BINANCE_API_KEY ou BINANCE_API_SECRET não encontradas.")
+        return None
+
+    try:
+        client = Client(api_key=key, api_secret=sec)
+
+        # teste rápido: server time
+        server_time = client.get_server_time()
+        print("✅ Binance conectado. Server time:", server_time)
+
+        # teste extra: ping REST
+        try:
+            client.ping()
+            print("✅ Ping OK.")
+        except Exception as e:
+            print("⚠️ Ping falhou (não crítico):", e)
+
+        return client
+
+    except Exception as e:
+        print("❌ Erro ao criar Binance Client:", e)
+        return None
+
 
 # -----------------------------------------------------------------------------
 # Blueprints
@@ -81,6 +104,7 @@ def safe_decimal(x) -> Decimal:
 bp_usuarios = Blueprint("usuarios", __name__, url_prefix="/usuario")
 bp_painel = Blueprint("painel", __name__, url_prefix="/painel")
 bp_auto = Blueprint("operacoes_automatico", __name__, url_prefix="/operacoes_automatico")
+
 
 # ------------------------- USUÁRIOS ------------------------------------------
 @bp_usuarios.route("/login", methods=["GET", "POST"])
@@ -96,6 +120,7 @@ def login():
     # reaproveita o index como tela de login
     return render_template("index.html")
 
+
 @bp_usuarios.route("/logout")
 @login_required
 def logout():
@@ -103,12 +128,14 @@ def logout():
     flash("Você saiu da sua conta.", "info")
     return redirect(url_for("index"))
 
+
 @bp_usuarios.route("/configurar-api")
 @login_required
 def configurar_api():
     # Só instruções/checagem; nesta versão usamos variáveis de ambiente
     has_keys = bool(os.getenv("BINANCE_API_KEY") and os.getenv("BINANCE_API_SECRET"))
     return render_template("painel/corretora.html", has_keys=has_keys)
+
 
 @bp_usuarios.route("/ordens")
 @login_required
@@ -147,10 +174,12 @@ def ordens():
         symbol=symbol, orders=orders, error=error, fonte=fonte
     )
 
+
 @bp_usuarios.route("/historico")
 @login_required
 def historico():
     return render_template("painel/historico.html")
+
 
 # ------------------------- PAINEL (OPERACAO) ---------------------------------
 @bp_painel.route("/operacao")
@@ -211,11 +240,13 @@ def dashboard():
         alert="<br>".join(alert_msgs) if alert_msgs else None
     )
 
+
 # Alias /painel → /painel/operacao
 @bp_painel.route("/")
 @login_required
 def painel_root():
     return redirect(url_for("painel.dashboard"))
+
 
 # ------------------------- AUTOMÁTICO ----------------------------------------
 @bp_auto.route("/painel")
@@ -223,69 +254,32 @@ def painel_root():
 def painel_automatico():
     return render_template("painel/automatico.html")
 
-# ------------------------- DEBUG BINANCE -------------------------------------
+
+# ------------------------- DEBUG OPCIONAIS -----------------------------------
+@app.get("/debug/env")
+def dbg_env():
+    """Rota simples para conferência (não mostra valores!)."""
+    has_key = bool(os.getenv("BINANCE_API_KEY"))
+    has_sec = bool(os.getenv("BINANCE_API_SECRET"))
+    return {
+        "BINANCE_API_KEY_present": has_key,
+        "BINANCE_API_SECRET_present": has_sec,
+        "python_binance_imported": Client is not None,
+    }
+
+
 @app.get("/debug/binance")
-@login_required
-def debug_binance():
-    """
-    Página de diagnóstico: mostra ping, horário do servidor,
-    saldos spot (ativos com quantidade > 0), saldo de futuros (linhas),
-    contagem de ordens abertas em Spot e Futuros.
-    Em erros, exibe mensagens cruas da API.
-    """
+def dbg_binance():
+    """Tenta montar o client e mostrar um ping básico."""
     client = get_binance_client()
     if client is None:
-        return render_template_string(
-            "<pre>Sem cliente Binance. Verifique BINANCE_API_KEY e BINANCE_API_SECRET.</pre>"
-        )
-
-    info = {"ok": True, "errors": []}
-
-    # Ping e server time
+        return "Sem cliente Binance. Verifique BINANCE_API_KEY e BINANCE_API_SECRET.", 500
     try:
-        info["ping"] = client.ping()
-        info["server_time"] = client.get_server_time()
+        client.ping()
+        return "Binance OK (ping).", 200
     except Exception as e:
-        info["errors"].append(f"Ping/ServerTime: {e}")
+        return f"Falha no ping: {e}", 500
 
-    # Spot balances (todos > 0)
-    try:
-        account = client.get_account() or {}
-        balances = account.get("balances", [])
-        non_zero = [
-            b for b in balances
-            if (Decimal(b.get("free", "0")) > 0) or (Decimal(b.get("locked", "0")) > 0)
-        ]
-        info["spot_balances"] = non_zero[:50]
-    except (BinanceAPIException, BinanceRequestException) as e:
-        info["errors"].append(f"Spot balances: {e}")
-    except Exception as e:
-        info["errors"].append(f"Spot balances (gen): {e}")
-
-    # Spot open orders
-    try:
-        info["spot_open_orders_count"] = len(client.get_open_orders() or [])
-    except (BinanceAPIException, BinanceRequestException) as e:
-        info["errors"].append(f"Spot open orders: {e}")
-    except Exception as e:
-        info["errors"].append(f"Spot open orders (gen): {e}")
-
-    # Futuros: saldo/ordens
-    try:
-        info["futures_account_balance"] = client.futures_account_balance()
-    except (BinanceAPIException, BinanceRequestException) as e:
-        info["errors"].append(f"Futures balance: {e}")
-    except Exception as e:
-        info["errors"].append(f"Futures balance (gen): {e}")
-
-    try:
-        info["futures_open_orders_count"] = len(client.futures_get_open_orders() or [])
-    except (BinanceAPIException, BinanceRequestException) as e:
-        info["errors"].append(f"Futures open orders: {e}")
-    except Exception as e:
-        info["errors"].append(f"Futures open orders (gen): {e}")
-
-    return render_template_string("<pre>{{ info | tojson(indent=2) }}</pre>", info=info)
 
 # -----------------------------------------------------------------------------
 # Rotas principais
@@ -294,9 +288,11 @@ def debug_binance():
 def index():
     return render_template("index.html")
 
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
+
 
 # -----------------------------------------------------------------------------
 # Registro dos blueprints
@@ -304,6 +300,7 @@ def healthz():
 app.register_blueprint(bp_usuarios)
 app.register_blueprint(bp_painel)
 app.register_blueprint(bp_auto)
+
 
 # -----------------------------------------------------------------------------
 # Execução local
